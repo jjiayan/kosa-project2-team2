@@ -1,4 +1,4 @@
-package kr.or.kosa.controller.user;
+package kr.or.kosa.controller.user.ajax;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -10,13 +10,11 @@ import kr.or.kosa.utils.ConnectionPoolHelper;
 import java.io.IOException;
 import java.sql.Connection;
 
-
-@WebServlet("*.user")
-public class UserController extends HttpServlet {
+@WebServlet("*.userajax")
+public class UserAjaxController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
-
-    public UserController() {
+    public UserAjaxController() {
         super();
     }
 

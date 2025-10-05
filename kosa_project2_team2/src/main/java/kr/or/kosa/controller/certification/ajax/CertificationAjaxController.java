@@ -1,4 +1,4 @@
-package kr.or.kosa.controller.user;
+package kr.or.kosa.controller.certification.ajax;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -11,12 +11,11 @@ import java.io.IOException;
 import java.sql.Connection;
 
 
-@WebServlet("*.user")
-public class UserController extends HttpServlet {
+@WebServlet("*.certificationajax")
+public class CertificationAjaxController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
-
-    public UserController() {
+    public CertificationAjaxController() {
         super();
     }
 

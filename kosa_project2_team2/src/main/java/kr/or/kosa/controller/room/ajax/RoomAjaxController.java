@@ -1,4 +1,4 @@
-package kr.or.kosa.controller.user;
+package kr.or.kosa.controller.room.ajax;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -11,16 +11,15 @@ import java.io.IOException;
 import java.sql.Connection;
 
 
-@WebServlet("*.user")
-public class UserController extends HttpServlet {
+@WebServlet("*.roomajax")
+public class RoomAjaxController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
-
-    public UserController() {
+    public RoomAjaxController() {
         super();
     }
 
-    private void doProcess(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	private void doProcess(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	try (Connection conn = ConnectionPoolHelper.getConnection()) {
     	    if (conn != null) {
     	        System.out.println("✅ DB 연결 성공: " + conn);

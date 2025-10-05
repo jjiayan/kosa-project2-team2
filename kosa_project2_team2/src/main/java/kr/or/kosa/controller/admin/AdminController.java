@@ -1,4 +1,4 @@
-package kr.or.kosa.controller.user;
+package kr.or.kosa.controller.admin;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -11,12 +11,12 @@ import java.io.IOException;
 import java.sql.Connection;
 
 
-@WebServlet("*.user")
-public class UserController extends HttpServlet {
+@WebServlet("*.admin")
+public class AdminController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
-
-    public UserController() {
+  
+    public AdminController() {
         super();
     }
 
