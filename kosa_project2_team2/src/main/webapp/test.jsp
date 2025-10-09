@@ -4,6 +4,8 @@
 <head>
 <meta charset="UTF-8">
 <title>DB Test Page</title>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/style/default.css">
+
 </head>
 <body>
     <jsp:include page="/include/nav.jsp" />

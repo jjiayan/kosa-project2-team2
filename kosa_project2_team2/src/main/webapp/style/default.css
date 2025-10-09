@@ -1,0 +1,15 @@
+/* === default.css : 모든 페이지 공통 === */
+
+* {
+  box-sizing: border-box;
+}
+
+/* 페이지 전체 스크롤 제거 */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* ✅ 가로 + 세로 스크롤 완전 제거 */
+  font-family: "Noto Sans KR", "Pretendard", sans-serif;
+  background: #fff;
+  color: #111;
+}

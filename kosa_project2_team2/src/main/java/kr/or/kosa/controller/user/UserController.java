@@ -32,21 +32,7 @@ public class UserController extends HttpServlet {
 
         ActionForward forward = null;
 
-        // DB 연결 테스트 (선택)
-        try (Connection conn = ConnectionPoolHelper.getConnection()) {
-            if (conn != null) {
-                System.out.println("✅ DB 연결 성공: " + conn);
-            } else {
-                System.out.println("❌ DB 연결 실패: conn is null");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // ======================================
-        // 요청별 분기
-        // ======================================
-
+        
         if (command.equals("/login.user")) {
             forward = new ActionForward();
             forward.setRedirect(false);
@@ -57,14 +43,24 @@ public class UserController extends HttpServlet {
             forward.setRedirect(false);
             forward.setPath("/index.jsp"); // webapp 바로 아래 경로
         }
+        else if(command.equals("/test.user")) {
+        	// DB 연결 테스트 (선택)
+            try (Connection conn = ConnectionPoolHelper.getConnection()) {
+                if (conn != null) {
+                    System.out.println("✅ DB 연결 성공: " + conn);
+                } else {
+                    System.out.println("❌ DB 연결 실패: conn is null");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
 
-        // ======================================
-        // View 이동
-        // ======================================
+        
         if (forward != null) {
             if (forward.isRedirect()) {
                 response.sendRedirect(forward.getPath());
