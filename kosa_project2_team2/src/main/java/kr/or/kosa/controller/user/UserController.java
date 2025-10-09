@@ -41,16 +41,25 @@ public class UserController extends HttpServlet {
         else if (command.equals("/index.user")) {
             forward = new ActionForward();
             forward.setRedirect(false);
-            forward.setPath("/index.jsp"); // webapp 바로 아래 경로
+            forward.setPath("/index.jsp"); // webapp 바로 아래
         }
-        else if(command.equals("/test.user")) {
-        	// DB 연결 테스트 (선택)
+        // ✅ 추가: 아이디 찾기 화면
+        else if (command.equals("/findId.user")) {
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath("/WEB-INF/views/user/findId.jsp");
+        }
+        // ✅ 추가: 비밀번호 찾기 화면
+        else if (command.equals("/findPwd.user")) {
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath("/WEB-INF/views/user/findPwd.jsp");
+        }
+        else if (command.equals("/test.user")) {
+            // DB 연결 테스트 (선택)
             try (Connection conn = ConnectionPoolHelper.getConnection()) {
-                if (conn != null) {
-                    System.out.println("✅ DB 연결 성공: " + conn);
-                } else {
-                    System.out.println("❌ DB 연결 실패: conn is null");
-                }
+                if (conn != null) System.out.println("✅ DB 연결 성공: " + conn);
+                else System.out.println("❌ DB 연결 실패: conn is null");
             } catch (Exception e) {
                 e.printStackTrace();
             }
