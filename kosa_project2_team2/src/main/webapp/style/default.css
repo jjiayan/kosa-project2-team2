@@ -1,15 +1,15 @@
-/* === default.css : 모든 페이지 공통 === */
-
-* {
-  box-sizing: border-box;
-}
-
-/* 페이지 전체 스크롤 제거 */
 html, body {
   margin: 0;
   padding: 0;
-  overflow: hidden; /* ✅ 가로 + 세로 스크롤 완전 제거 */
-  font-family: "Noto Sans KR", "Pretendard", sans-serif;
-  background: #fff;
-  color: #111;
+  overflow-x: hidden;  /* 가로 스크롤 차단 */
+  overflow-y: auto;    /* 세로 스크롤 가능 */
+}
+
+/* 스크롤바 숨기기 (브라우저별) — html에 적용 */
+html::-webkit-scrollbar {
+  display: none;              /* Chrome, Safari, Edge */
+}
+html {
+  -ms-overflow-style: none;   /* IE/Old Edge */
+  scrollbar-width: none;      /* Firefox */
 }

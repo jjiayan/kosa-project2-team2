@@ -55,6 +55,11 @@ public class UserController extends HttpServlet {
             forward.setRedirect(false);
             forward.setPath("/WEB-INF/views/user/findPwd.jsp");
         }
+        else if (command.equals("/signup.user")) {
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath("/WEB-INF/views/user/signup.jsp");
+        }
         else if (command.equals("/test.user")) {
             // DB 연결 테스트 (선택)
             try (Connection conn = ConnectionPoolHelper.getConnection()) {

@@ -102,13 +102,7 @@
 
     <button type="submit" class="submit-btn">로그인</button>
 
-    <div class="links">
-	  <a href="${pageContext.request.contextPath}/findId.user">아이디찾기</a>
-	  <span class="sep">|</span>
-	  <a href="${pageContext.request.contextPath}/findPwd.user">비밀번호찾기</a>
-	  <span class="sep">|</span>
-	  <a href="${pageContext.request.contextPath}/join.user">회원가입</a>
-	</div>
+    <jsp:include page="/include/login-links.jsp" />
   </form>
 </div>
 
