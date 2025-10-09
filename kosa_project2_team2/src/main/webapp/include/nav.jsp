@@ -38,6 +38,7 @@
 
   .left, .center, .right { min-width: 0; }
 
+  /* ===== 로고 영역 ===== */
   .logo {
     display: inline-flex;
     flex-direction: column;
@@ -47,7 +48,11 @@
     letter-spacing: 2px;
     font-size: 14px;
     position: relative;
+    text-decoration: none;
+    color: var(--ink);
   }
+
+  .logo:hover { color: var(--muted); }
 
   .logo .barcode {
     width: 100%;
@@ -59,6 +64,7 @@
   .logo .wordmark { font-weight: 400; }
   .logo .wordmark span { font-weight: 600; font-size: 20px; }
 
+  /* ===== 중앙 메뉴 ===== */
   .center {
     flex: 1;
     display: flex;
@@ -98,6 +104,7 @@
     color: var(--muted);
   }
 
+  /* ===== 오른쪽 ===== */
   .right {
     display: flex;
     align-items: center;
@@ -125,6 +132,7 @@
     border: 0;
   }
 
+  /* ===== 모바일 메뉴 ===== */
   .mobile-menu {
     display: none;
     flex-direction: column;
@@ -164,13 +172,13 @@
 <body>
 
 <header>
-  <!-- 왼쪽 -->
-  <div class="left logo" id="logoArea">
+  <!-- 왼쪽 로고: 클릭 시 index.jsp로 이동 -->
+  <a href="${pageContext.request.contextPath}/index.user" class="left logo" id="logoArea">
     <img class="barcode" src="${pageContext.request.contextPath}/images/barcode.jpg" alt="바코드">
     <div class="wordmark">Cer : <span id="bibleText">BIBLE</span></div>
-  </div>
+  </a>
 
-  <!-- 중앙 -->
+  <!-- 중앙 메뉴 -->
   <div class="center">
     <nav class="menu" aria-label="주요 메뉴">
       <a href="${pageContext.request.contextPath}/study.do"><i class="fa-regular fa-comments"></i>스터디</a>
@@ -182,7 +190,7 @@
   <!-- 오른쪽 -->
   <div class="right">
     <div class="login">
-      <a href="${pageContext.request.contextPath}/login.do">
+      <a href="${pageContext.request.contextPath}/login.user">
         <span>로그인</span>
         <i class="fa-regular fa-user"></i>
       </a>
@@ -197,7 +205,7 @@
     <a href="${pageContext.request.contextPath}/study.do"><i class="fa-regular fa-comments"></i>스터디</a>
     <a href="${pageContext.request.contextPath}/license.do"><i class="fa-regular fa-calendar"></i>자격증</a>
     <a href="${pageContext.request.contextPath}/notice.do"><i class="fa-solid fa-bullhorn"></i>공지</a>
-    <a href="${pageContext.request.contextPath}/login.do"><i class="fa-regular fa-user"></i>로그인</a>
+    <a href="${pageContext.request.contextPath}/login.user"><i class="fa-regular fa-user"></i>로그인</a>
   </nav>
 </header>
 
