@@ -1,14 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%
-  String ctx = request.getContextPath();
-  String errorMsg = (String)request.getAttribute("errorMsg");
-%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
 <title>로그인</title>
 
+<!-- (선택) 전역 기본 CSS가 있다면 사용: <link rel="stylesheet" href="${pageContext.request.contextPath}/style/default.css" /> -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
 <style>
@@ -74,12 +72,12 @@
 </head>
 <body>
 
-<!-- 상단 네비게이션 (nav.jsp 포함) -->
+<!-- 상단 네비게이션 -->
 <jsp:include page="/include/nav.jsp" />
 
 <!-- 로그인 카드 -->
 <div class="page-wrap">
-  <form class="card" action="<%=ctx%>/login.do" method="post" autocomplete="on">
+  <form class="card" action="${pageContext.request.contextPath}/login.do" method="post" autocomplete="on">
     <h1>로그인</h1>
 
     <div class="field">
@@ -97,20 +95,19 @@
       </div>
     </div>
 
-    <div class="error" id="errorText">
-      <%= (errorMsg!=null && !errorMsg.isEmpty())
-          ? errorMsg
-          : "아이디 또는 비밀번호가 잘못되었습니다. 아이디와 비밀번호를 정확히 입력해 주세요." %>
-    </div>
+    <!-- ✅ 에러는 있을 때만 렌더링 -->
+    <c:if test="${not empty errorMsg}">
+      <div class="error" id="errorText">${errorMsg}</div>
+    </c:if>
 
     <button type="submit" class="submit-btn">로그인</button>
 
     <div class="links">
-      <a href="<%=ctx%>/findId.do">아이디찾기</a>
+      <a href="${pageContext.request.contextPath}/findId.do">아이디찾기</a>
       <span class="sep">|</span>
-      <a href="<%=ctx%>/findPw.do">비밀번호찾기</a>
+      <a href="${pageContext.request.contextPath}/findPw.do">비밀번호찾기</a>
       <span class="sep">|</span>
-      <a href="<%=ctx%>/join.do">회원가입</a>
+      <a href="${pageContext.request.contextPath}/join.do">회원가입</a>
     </div>
   </form>
 </div>
