@@ -7,9 +7,16 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 import kr.or.kosa.dto.Certification;
 import kr.or.kosa.utils.ConnectionPoolHelper;
@@ -21,7 +28,47 @@ import kr.or.kosa.utils.ConnectionPoolHelper;
  */
 public class CertificationDao {
 	
-	// 🟢 신규 / 기존 데이터 모두 upsert
+	// 실제 API 서버 주소
+    private static final String API_URL = "http://192.168.2.24:8090/qualifications_api_server/certifications";
+    
+    //API에서 자격증 데이터 가져오기
+    public List<Certification> loadCertifications() {
+        List<Certification> list = null;
+        HttpURLConnection conn = null;
+        BufferedReader reader = null;
+
+        try {
+            URL url = new URL(API_URL);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(5000); // 연결 제한 시간
+            conn.setReadTimeout(5000);    // 읽기 제한 시간
+            conn.setRequestProperty("Accept", "application/json");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+                Gson gson = new Gson();
+                list = gson.fromJson(reader, new TypeToken<List<Certification>>(){}.getType());
+                System.out.println("[ApiCertificationDao] 자격증 데이터 " + list.size() + "건 로드 완료");
+            } else {
+                System.err.println("[ApiCertificationDao] API 응답 오류: " + responseCode);
+            }
+
+        } catch (Exception e) {
+            System.err.println("[ApiCertificationDao] API 요청 실패: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                if (reader != null) reader.close();
+                if (conn != null) conn.disconnect();
+            } catch (Exception ignore) {}
+        }
+
+        return list;
+    }
+	
+	// 신규 / 기존 데이터 모두 upsert
     public int upsertCertifications(List<Certification> list) {
     	String sql =
     		    "MERGE INTO certification c "
