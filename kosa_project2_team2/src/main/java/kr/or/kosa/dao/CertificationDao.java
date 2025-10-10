@@ -3,6 +3,7 @@ package kr.or.kosa.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,41 @@ import kr.or.kosa.utils.ConnectionPoolHelper;
  * - 로컬 DB 조회용
  */
 public class CertificationDao {
+	
+	// 🟢 신규 / 기존 데이터 모두 upsert
+    public int upsertCertifications(List<Certification> list) {
+    	String sql =
+    		    "MERGE INTO certification c "
+    		  + "USING (SELECT ? AS jmcd, ? AS jm_name, ? AS organ_name, ? AS year, ? AS impl_seq FROM dual) d "
+    		  + "ON (c.jmcd = d.jmcd) "
+    		  + "WHEN MATCHED THEN "
+    		  + "    UPDATE SET c.jm_name = d.jm_name, c.organ_name = d.organ_name, "
+    		  + "               c.year = d.year, c.impl_seq = d.impl_seq, "
+    		  + "               c.last_updated = SYSDATE "
+    		  + "WHEN NOT MATCHED THEN "
+    		  + "    INSERT (jmcd, jm_name, organ_name, year, impl_seq) "
+    		  + "    VALUES (d.jmcd, d.jm_name, d.organ_name, d.year, d.impl_seq)";
+
+        int count = 0;
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            for (Certification c : list) {
+                pstmt.setInt(1, c.getJmcd());
+                pstmt.setString(2, c.getJmName());
+                pstmt.setString(3, c.getOrganName());
+                pstmt.setInt(4, c.getYear());
+                pstmt.setInt(5, c.getImplSeq());
+                pstmt.addBatch();
+            }
+            int[] results = pstmt.executeBatch();
+            for (int r : results) count += (r >= 0 ? 1 : 0);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
 
     // DB에 저장된 자격증 전체 목록 조회
     public List<Certification> getAllCertifications() {
