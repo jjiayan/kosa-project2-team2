@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,46 @@ public class CertificationDao {
 	
 	// 실제 API 서버 주소
     private static final String API_URL = "http://192.168.2.24:8090/qualifications_api_server/certifications";
+    
+    
+    // 테이블 존재 여부 확인 후, 없으면 자동 생성
+    public CertificationDao() {
+        ensureTableExists();
+    }
+
+    private void ensureTableExists() {
+        String checkSql = "SELECT COUNT(*) FROM user_tables WHERE table_name = 'CERTIFICATION'";
+        String createSql =
+            "CREATE TABLE certification ("
+          + "jmcd NUMBER PRIMARY KEY, "
+          + "jm_name VARCHAR2(100), "
+          + "organ_name VARCHAR2(100), "
+          + "year NUMBER(4), "
+          + "impl_seq NUMBER(2), "
+          + "last_updated DATE DEFAULT SYSDATE"
+          + ")";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(checkSql)) {
+
+            boolean exists = false;
+            if (rs.next() && rs.getInt(1) > 0) {
+                exists = true;
+            }
+
+            if (!exists) {
+                stmt.execute(createSql);
+                System.out.println("[INIT] certification 테이블이 존재하지 않아 새로 생성했습니다 ✅");
+            } else {
+                // optional log
+                System.out.println("[INIT] certification 테이블이 이미 존재합니다.");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("[INIT] certification 테이블 확인/생성 중 오류: " + e.getMessage());
+        }
+    }
     
     //API에서 자격증 데이터 가져오기
     public List<Certification> loadCertifications() {

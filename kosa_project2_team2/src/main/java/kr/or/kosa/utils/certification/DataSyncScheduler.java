@@ -1,12 +1,8 @@
 package kr.or.kosa.utils.certification;
 
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import kr.or.kosa.dao.ApiCertificationDao;
-import kr.or.kosa.dao.CertificationDao;
-import kr.or.kosa.dto.Certification;
+import kr.or.kosa.service.certification.CertificationService;
 
 public class DataSyncScheduler {
     private static final long INTERVAL = 1000L * 60 * 60 * 6; // 6시간마다 동기화
@@ -18,14 +14,11 @@ public class DataSyncScheduler {
             public void run() {
                 System.out.println("[Scheduler] 자격증 데이터 자동 동기화 시작...");
 
-                ApiCertificationDao apiDao = new ApiCertificationDao();
-                CertificationDao dbDao = new CertificationDao();
+                CertificationService service = new CertificationService();
 
                 try {
-                    List<Certification> list = apiDao.loadCertifications();
-                    int result = dbDao.upsertCertifications(list);
+                    int result = service.syncFromApi();
                     System.out.println("[Scheduler] 동기화 완료 (" + result + "건 반영)");
-
                 } catch (Exception e) {
                     System.err.println("[Scheduler] 동기화 실패: " + e.getMessage());
                     e.printStackTrace();
