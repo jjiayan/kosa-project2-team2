@@ -83,4 +83,28 @@ public class UserDao {
         return 0;
     }
     
+    public UserDto findByNickname(String nickname) throws Exception {
+        String sql = "SELECT user_id, user_login_id, user_nickname, user_photo " +
+                     "FROM \"USER\" WHERE user_nickname = ?";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, nickname);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    UserDto dto = new UserDto();
+                    dto.setUser_id(rs.getInt("user_id"));
+                    dto.setUser_login_id(rs.getString("user_login_id"));
+                    dto.setUser_nickname(rs.getString("user_nickname"));
+                    dto.setUser_photo(rs.getString("user_photo"));
+                    return dto;
+                }
+            }
+        }
+        return null;
+    }
+
+    
 }

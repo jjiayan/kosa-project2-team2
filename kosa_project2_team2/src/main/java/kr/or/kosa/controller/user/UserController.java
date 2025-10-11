@@ -62,7 +62,12 @@ public class UserController extends HttpServlet {
         } else if (command.equals("/signupOk.user")) {
             action = new UserSignupService();
             forward = action.execute(request, response);
-        } else {
+        }
+        else if (command.equals("/photoTest.user")) {
+            action = new kr.or.kosa.service.user.UserPhotoTestService();
+            forward = action.execute(request, response);
+        }
+        else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
