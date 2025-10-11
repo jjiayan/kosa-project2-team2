@@ -20,10 +20,8 @@
   .wrap{min-height:calc(100vh - 80px); padding:32px 16px 64px; display:flex; justify-content:center;}
   .container{width:100%; max-width:760px;}
 
-  /* 제목 */
   .title{margin:12px 0 16px; text-align:center; font-size:44px; font-weight:900; color:#555;}
 
-  /* 아바타 */
   .avatar-area{display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:16px;}
   .avatar{
     width:140px; height:140px; border-radius:999px; overflow:hidden; border:2px solid #111; background:#fff;
@@ -35,7 +33,6 @@
     font-size:12px; padding:6px 10px; border-radius:10px; border:1.5px solid #111; background:#fff; cursor:pointer;
   }
 
-  /* 카드 폼 */
   .card{
     background:#fff; border:2px solid #111; border-radius:20px; padding:24px 20px; box-shadow:0 8px 24px rgba(0,0,0,.06);
   }
@@ -62,11 +59,9 @@
     margin-left:6px; font-size:11px; color:#fff; background:#ff6b6b; border-radius:999px; padding:3px 8px; display:inline-flex; align-items:center; gap:4px;
   }
 
-  /* 안내 */
   .notes{margin:16px 10px; color:#ef4444; font-size:13px;}
   .notes li{margin:6px 0;}
 
-  /* 하단 버튼 */
   .actions{display:flex; gap:14px; margin-top:18px;}
   .btn{
     flex:1; height:52px; border-radius:12px; border:0; font-weight:800; cursor:pointer;
@@ -75,36 +70,38 @@
   .btn-primary:hover{background:var(--accent-hover)}
   .btn-ghost{background:var(--disabled); color:#777;}
 
-  /* responsive */
   @media (max-width:640px){
     .title{font-size:34px}
     .avatar{width:120px; height:120px}
   }
+  .badge.ok{ background:#16a34a; }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <jsp:include page="/include/nav.jsp" />
 
 <div class="wrap">
   <div class="container">
     <h1 class="title">회원가입</h1>
 
-    <!-- 아바타 -->
-    <div class="avatar-area">
-      <div class="avatar">
-        <img id="avatarImg" src="${pageContext.request.contextPath}/images/default-avatar.png" alt="프로필 이미지" />
-      </div>
-      <div class="avatar-actions">
-        <button type="button" class="chip" onclick="setDefaultAvatar()">기본 이미지</button>
-        <button type="button" class="chip" onclick="document.getElementById('avatarFile').click()">이미지 추가</button>
-        <input type="file" id="avatarFile" name="avatarFile" accept="image/*" style="display:none" />
-      </div>
-    </div>
+    <!-- ✅ form 시작 -->
+    <form class="card" action="${pageContext.request.contextPath}/signupOk.user"
+          method="post" enctype="multipart/form-data" autocomplete="on">
 
-    <!-- 폼 -->
-    <form class="card" action="${pageContext.request.contextPath}/signup.do" method="post" enctype="multipart/form-data" autocomplete="on">
+      <!-- ✅ 아바타 -->
+      <div class="avatar-area">
+        <div class="avatar">
+          <img id="avatarImg" src="${pageContext.request.contextPath}/images/default-avatar.png" alt="프로필 이미지" />
+        </div>
+        <div class="avatar-actions">
+          <button type="button" class="chip" onclick="setDefaultAvatar()">기본 이미지</button>
+          <button type="button" class="chip" onclick="document.getElementById('avatarFile').click()">이미지 추가</button>
+          <!-- ✅ form 내부로 이동 -->
+          <input type="file" id="avatarFile" name="avatarFile" accept="image/*" style="display:none" />
+        </div>
+      </div>
+
       <!-- 아이디 -->
       <div class="field">
         <div class="label">아이디</div>
@@ -116,7 +113,7 @@
 
       <!-- 비밀번호 -->
       <div class="field">
-        <div class="label">비밀번호 <span class="badge"><i class="fa-solid fa-circle-exclamation"></i> 사용불가</span></div>
+        <div class="label">비밀번호 <span id="pwBadge" class="badge"><i class="fa-solid fa-circle-exclamation"></i> 사용불가</span></div>
         <div class="input-row">
           <input type="password" name="password" id="password" placeholder="비밀번호" required />
           <button type="button" class="btn-eye" onclick="togglePw('password','eye1')"><i id="eye1" class="fa-regular fa-eye"></i></button>
@@ -125,7 +122,11 @@
 
       <!-- 비밀번호 확인 -->
       <div class="field">
-        <div class="label">비밀번호 확인</div>
+        <div class="label">비밀번호 확인 
+          <span id="pwMatchBadge" class="badge">
+            <i class="fa-solid fa-circle-exclamation"></i> 불일치
+          </span>
+        </div>
         <div class="input-row">
           <input type="password" name="password2" id="password2" placeholder="비밀번호 확인" required />
           <button type="button" class="btn-eye" onclick="togglePw('password2','eye2')"><i id="eye2" class="fa-regular fa-eye"></i></button>
@@ -136,7 +137,7 @@
       <div class="field">
         <div class="label">휴대전화번호</div>
         <div class="input-row">
-          <input type="text" name="phone" id="phone" placeholder="010-1234-5678" inputmode="numeric" maxlength="13" />
+          <input type="text" name="phone" id="phone" placeholder="010-1234-5678" inputmode="numeric" maxlength="13" required  />
           <button type="button" class="btn-mini" onclick="checkPhone()">확인</button>
         </div>
       </div>
@@ -145,7 +146,7 @@
       <div class="field">
         <div class="label">닉네임</div>
         <div class="input-row">
-          <input type="text" name="nickname" id="nickname" placeholder="닉네임" />
+          <input type="text" name="nickname" id="nickname" placeholder="닉네임"  required />
           <button type="button" class="btn-mini" onclick="checkNickname()">확인</button>
         </div>
       </div>
@@ -154,22 +155,14 @@
       <div class="field">
         <div class="label">자기소개</div>
         <div class="input-row" style="border-bottom:none; padding:0;">
-          <textarea name="bio" id="bio" placeholder="간단한 자기소개를 입력해 주세요."></textarea>
+          <textarea name="bio" id="bio" placeholder="간단한 자기소개를 입력해 주세요." required ></textarea>
         </div>
       </div>
 
-      <!-- 서버 에러 있을 때만 표시 -->
-      <c:if test="${not empty errorMsg}">
-        <div style="color:#ef4444; font-size:13px; margin:8px 10px;">${errorMsg}</div>
-      </c:if>
-
-      <!-- 안내 -->
       <ul class="notes">
-        <li>아이디: 필수 정보입니다.</li>
         <li>비밀번호: 8~16자의 영문 대/소문자, 숫자, 특수문자를 사용해 주세요.</li>
       </ul>
 
-      <!-- 하단 버튼 -->
       <div class="actions">
         <button type="submit" class="btn btn-primary">회원가입</button>
         <button type="button" class="btn btn-ghost" onclick="location.href='${pageContext.request.contextPath}/login.user'">취소</button>
@@ -178,51 +171,144 @@
   </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-  // 기본 아바타로 되돌리기
+  // ===== 상태 플래그 & 마지막 검증값 =====
+  let isIdOk=false, isNickOk=false, isPhoneOk=false, isPwOk=false, isPwMatch=false;
+  const lastChecked={id:"",nick:"",phone:""};
+
+  // ===== 유틸 =====
+  const nz = v => (v||"").trim();
+  const normalizePhone = v => (v||"").replace(/[^0-9]/g,"");
+  function isValidPhoneRawDigits(d){ return /^010\d{8}$/.test(d); }
+  function isValidPhoneDisplay(s){ return /^010-\d{4}-\d{4}$/.test(s); }
+
+  // ===== 아바타 미리보기 & 기본 =====
   function setDefaultAvatar(){
-    document.getElementById('avatarImg').src = "${pageContext.request.contextPath}/images/default-avatar.png";
-    const f = document.getElementById('avatarFile'); if (f) f.value = "";
+    $("#avatarImg").attr("src","${pageContext.request.contextPath}/images/default-avatar.png");
+    $("#avatarFile").val("");
   }
-  // 업로드 미리보기
-  (function(){
-    const f = document.getElementById('avatarFile');
-    const img = document.getElementById('avatarImg');
-    if (!f || !img) return;
-    f.addEventListener('change', e=>{
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => img.src = ev.target.result;
-      reader.readAsDataURL(file);
-    });
-  })();
+  $("#avatarFile").on("change", function(e){
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const r=new FileReader();
+    r.onload = ev => $("#avatarImg").attr("src", ev.target.result);
+    r.readAsDataURL(file);
+  });
 
-  // 비밀번호 눈 토글
+  // ===== 비밀번호 토글 =====
   function togglePw(inputId, eyeId){
-    const input = document.getElementById(inputId);
-    const eye = document.getElementById(eyeId);
-    const isText = input.type === 'text';
-    input.type = isText ? 'password' : 'text';
-    eye.className = isText ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
+    const $i=$("#"+inputId), $e=$("#"+eyeId);
+    const toText = $i.attr("type")==="password";
+    $i.attr("type", toText?"text":"password");
+    $e.attr("class", toText?"fa-regular fa-eye-slash":"fa-regular fa-eye");
   }
 
-  // 휴대폰 자동 하이픈
-  (function(){
-    const phone = document.getElementById('phone');
-    if (!phone) return;
-    phone.addEventListener('input', e=>{
-      let v = e.target.value.replace(/[^0-9]/g,'').slice(0,11);
-      if (v.length > 7) v = v.replace(/(\d{3})(\d{4})(\d{1,4})/,'$1-$2-$3');
-      else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,4})/,'$1-$2');
-      e.target.value = v;
-    });
-  })();
+  // ===== 휴대폰 입력 포맷 + IME 보호 =====
+  let isComposingPhone = false;
+  $("#phone")
+    .on("compositionstart", ()=> isComposingPhone=true)
+    .on("compositionend", function(){ isComposingPhone=false; formatPhoneAndInvalidate.call(this); })
+    .on("input", function(){ if(!isComposingPhone) formatPhoneAndInvalidate.call(this); });
 
-  // 중복/형식 확인 (더미: 필요 시 AJAX로 교체)
-  function checkId(){ alert('아이디 중복 확인 로직 연결해 주세요.'); }
-  function checkPhone(){ alert('휴대폰 인증/중복 확인 로직 연결해 주세요.'); }
-  function checkNickname(){ alert('닉네임 중복 확인 로직 연결해 주세요.'); }
+  function formatPhoneAndInvalidate(){
+    let digits = normalizePhone($(this).val()).slice(0, 11);
+    let display = digits;
+    if (digits.length > 3 && digits.length <= 7) {
+      display = digits.replace(/(\d{3})(\d{1,4})/, "$1-$2");
+    } else if (digits.length > 7) {
+      display = digits.replace(/(\d{3})(\d{4})(\d{1,4}).*/, "$1-$2-$3");
+    }
+    $(this).val(display);
+
+    const curDigits = normalizePhone(display);
+    if (curDigits !== lastChecked.phone) isPhoneOk=false;
+  }
+
+  // ===== 아이디/닉네임 입력 변경 시 플래그 무효화 =====
+  $("#userId").on("input", function(){ if(nz(this.value)!==lastChecked.id) isIdOk=false; });
+  $("#nickname").on("input", function(){ if(nz(this.value)!==lastChecked.nick) isNickOk=false; });
+
+  // ===== 비밀번호 규칙/일치 =====
+  const rule=/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
+  function updatePwStrength(){
+    isPwOk = rule.test($("#password").val());
+    $("#pwBadge")
+      .toggleClass("ok", isPwOk)
+      .html(isPwOk?'<i class="fa-solid fa-circle-check"></i> 사용가능'
+                  :'<i class="fa-solid fa-circle-exclamation"></i> 사용불가');
+  }
+  function updatePwMatch(){
+    const v1=$("#password").val(), v2=$("#password2").val();
+    isPwMatch = (v1.length>0 && v1===v2);
+    $("#pwMatchBadge")
+      .toggleClass("ok", isPwMatch)
+      .html(isPwMatch?'<i class="fa-solid fa-circle-check"></i> 일치'
+                     :'<i class="fa-solid fa-circle-exclamation"></i> 불일치');
+  }
+  $("#password, #password2").on("input", ()=>{ updatePwStrength(); updatePwMatch(); });
+
+  // ===== 중복검사 AJAX =====
+  function checkId(){
+    const userId = nz($("#userId").val());
+    if(!userId) return alert("아이디를 입력하세요.");
+    $.getJSON("${pageContext.request.contextPath}/userIdDuplicatedCheck",{userId})
+      .done(d=>{
+        if(d.status==="ok"){ alert("사용 가능한 아이디입니다."); isIdOk=true; lastChecked.id=userId; }
+        else { alert(d.msg||"이미 사용 중인 아이디입니다."); isIdOk=false; lastChecked.id=""; }
+      })
+      .fail(()=>alert("서버 통신 오류가 발생했습니다."));
+  }
+
+  function checkNickname(){
+    const nickname = nz($("#nickname").val());
+    if(!nickname) return alert("닉네임을 입력하세요.");
+    $.getJSON("${pageContext.request.contextPath}/UserNicknameDuplicatedCheck",{nickname})
+      .done(d=>{
+        if(d.status==="ok"){ alert("사용 가능한 닉네임입니다."); isNickOk=true; lastChecked.nick=nickname; }
+        else { alert(d.msg||"이미 사용 중인 닉네임입니다."); isNickOk=false; lastChecked.nick=""; }
+      })
+      .fail(()=>alert("서버 통신 오류가 발생했습니다."));
+  }
+
+  function checkPhone(){
+    const display = $("#phone").val().trim();
+    const raw = normalizePhone(display);
+    if (!isValidPhoneRawDigits(raw)) {
+      alert("휴대전화번호는 010-1234-5678 형식(총 11자리)으로 입력하세요.");
+      isPhoneOk=false;
+      return;
+    }
+    if (!isValidPhoneDisplay(display)) {
+      $("#phone").val(raw.replace(/^(\d{3})(\d{4})(\d{4})$/, "$1-$2-$3"));
+    }
+    $.getJSON("${pageContext.request.contextPath}/UserPhoneNumberDuplicatedCheck",{ phone: raw })
+      .done(d=>{
+        if(d.status==="ok"){
+          alert("사용 가능한 휴대전화번호입니다.");
+          isPhoneOk=true; lastChecked.phone=raw;
+        } else {
+          alert(d.msg||"이미 사용 중인 휴대전화번호입니다.");
+          isPhoneOk=false; lastChecked.phone="";
+        }
+      })
+      .fail(()=>alert("서버 통신 오류가 발생했습니다."));
+  }
+
+  // ===== export 함수 =====
+  window.checkId=checkId; window.checkNickname=checkNickname; window.checkPhone=checkPhone;
+  window.setDefaultAvatar=setDefaultAvatar; window.togglePw=togglePw;
+
+  // ===== 제출 가드 =====
+  $("form.card").on("submit", function(e){
+    if(!(isIdOk && isNickOk && isPhoneOk && isPwOk && isPwMatch)){
+      e.preventDefault();
+      alert("중복 확인 및 비밀번호 검증을 완료하세요.");
+    }
+  });
+
+  // 초기 반영
+  $(function(){ updatePwStrength(); updatePwMatch(); });
 </script>
 
 </body>
