@@ -1,10 +1,8 @@
-package kr.or.kosa.controller.user;
+package kr.or.kosa.controller.reply;
 
 import java.io.IOException;
-import java.sql.Connection;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,19 +10,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.service.user.UserSignupService;
-import kr.or.kosa.utils.ConnectionPoolHelper;
 
-@MultipartConfig(
-    fileSizeThreshold = 1024 * 1024,
-    maxFileSize = 1024 * 1024 * 10,
-    maxRequestSize = 1024 * 1024 * 20
-)
-@WebServlet("*.user")
-public class UserController extends HttpServlet {
+//  
+@WebServlet("*.do")
+public class ReplyController extends HttpServlet {
     private static final long serialVersionUID = 1L;
-    private static final String USER_VIEW_PATH = "/WEB-INF/views/user/";
+    private static final String USER_VIEW_PATH = "/WEB-INF/views/reply/";
 
-    public UserController() {
+    public ReplyController() {
         super();
     }
 
@@ -40,37 +33,22 @@ public class UserController extends HttpServlet {
         Action action = null;
         ActionForward forward = null;
 
-        if (command.equals("/login.user")) {
+        if (command.equals("/tmp.do")) {
             forward = new ActionForward();
             forward.setRedirect(false);
-            forward.setPath(USER_VIEW_PATH + "login.jsp");
-        } else if (command.equals("/index.user")) {
+            forward.setPath(USER_VIEW_PATH + "tmp.jsp");
+        } else if (command.equals("/tmp.do")) {
             forward = new ActionForward();
             forward.setRedirect(true);
-            forward.setPath("/index.jsp");
-        } else if (command.equals("/findId.user")) {
+            forward.setPath(USER_VIEW_PATH + "tmp.jsp");
+        } else if (command.equals("/tmp.do")) {
             forward = new ActionForward();
-            forward.setRedirect(false);
-            forward.setPath(USER_VIEW_PATH + "findId.jsp");
-        } else if (command.equals("/findPwd.user")) {
+            forward.setRedirect(true);
+            forward.setPath(USER_VIEW_PATH + "tmp.jsp");
+        } else if (command.equals("/tmp.do")) {
             forward = new ActionForward();
-            forward.setRedirect(false);
-            forward.setPath(USER_VIEW_PATH + "findPwd.jsp");
-        } else if (command.equals("/signup.user")) {
-            forward = new ActionForward();
-            forward.setRedirect(false);
-            forward.setPath(USER_VIEW_PATH + "signup.jsp");
-        } else if (command.equals("/signupOk.user")) {
-            action = new UserSignupService();
-            forward = action.execute(request, response);
-        } else if (command.equals("/test.user")) {
-            // DB 연결 테스트 (선택)
-            try (Connection conn = ConnectionPoolHelper.getConnection()) {
-                if (conn != null) System.out.println("✅ DB 연결 성공: " + conn);
-                else System.out.println("❌ DB 연결 실패: conn is null");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            forward.setRedirect(true);
+            forward.setPath(USER_VIEW_PATH + "tmp.jsp");
         } else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
