@@ -9,9 +9,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.user.UserFindIdService;
+import kr.or.kosa.service.user.UserFindPwdService;
+import kr.or.kosa.service.user.UserResetPwdService;
 import kr.or.kosa.service.user.UserSignupService;
+import kr.or.kosa.utils.ConnectionPoolHelper;
 
 import java.io.IOException;
+import java.sql.Connection;
 
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024,
@@ -51,18 +56,34 @@ public class UserController extends HttpServlet {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "findId.jsp");
-        } else if (command.equals("/findPwd.user")) {
+        }else if (command.equals("/findIdOk.user")) {
+            action = new UserFindIdService();
+            forward = action.execute(request, response);
+        }
+        else if (command.equals("/findPwd.user")) {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "findPwd.jsp");
-        } else if (command.equals("/signup.user")) {
+        }else if (command.equals("/findPwdOk.user")) { // ★ 추가
+            action = new UserFindPwdService();
+            forward = action.execute(request, response);
+        }else if (command.equals("/resetPwdOk.user")) {                  // ★ 2단계: 새 비번 저장
+            action = new UserResetPwdService();
+            forward = action.execute(request, response);
+        }
+        else if (command.equals("/signup.user")) {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "signup.jsp");
         } else if (command.equals("/signupOk.user")) {
             action = new UserSignupService();
             forward = action.execute(request, response);
-        } else {
+        }
+        else if (command.equals("/photoTest.user")) {
+            action = new kr.or.kosa.service.user.UserPhotoTestService();
+            forward = action.execute(request, response);
+        }
+        else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
