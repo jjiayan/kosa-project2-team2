@@ -8,19 +8,24 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.certification.CertificationListService;
+import kr.or.kosa.service.certification.CertificationAjaxListService;
+import kr.or.kosa.service.certification.CertificationDetailService;
+import kr.or.kosa.service.certification.CertificationSyncActionService; 
 
 import java.io.IOException;
 
 @WebServlet("*.cert")
-public class FrontCertificationController extends HttpServlet {
-	private static final long serialVersionUID = 1L;
+public class CertificationController extends HttpServlet {
+    private static final long serialVersionUID = 1L;
 
-	private void doProcess(HttpServletRequest request, HttpServletResponse response)
+    public CertificationController() { super(); }
+
+    private void doProcess(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 요청 URI 및 ContextPath 분리
-        String requestUri = request.getRequestURI();
-        String contextPath = request.getContextPath();
+        String requestUri = request.getRequestURI();         
+        String contextPath = request.getContextPath();       
         String urlCommand = requestUri.substring(contextPath.length());
 
         System.out.println("urlCommand = " + urlCommand);
@@ -28,31 +33,35 @@ public class FrontCertificationController extends HttpServlet {
         Action action = null;
         ActionForward forward = null;
 
+        // 목록 전체
         if (urlCommand.equals("/certificationList.cert")) {
-            action = new CertificationListController();
+            action = new CertificationListService();
+            forward = action.execute(request, response);
 
+        // 상세 보기 (id 필요)
         } else if (urlCommand.equals("/certificationDetail.cert")) {
-            action = new CertificationDetailController();
+            action = new CertificationDetailService();
+            forward = action.execute(request, response);
 
-        } else if (urlCommand.equals("/certificationAjax.cert")) {
-            action = new CertificationAjaxController();
-
+        // API → DB 동기화
         } else if (urlCommand.equals("/certificationSync.cert")) {
-            action = new CertificationSyncController();
+            action = new CertificationSyncActionService();
+            forward = action.execute(request, response);
+            
+            
+        } else if (urlCommand.equals("/certificationAjax.cert")) {
+            action = new CertificationAjaxListService();
+            forward = action.execute(request, response);
+       
 
+        // 그 외 → 에러 페이지 또는 404
         } else {
-            // 404 or 에러 페이지
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath("/WEB-INF/views/error.jsp");
         }
 
-        // Action 실행
-        if (action != null) {
-            forward = action.execute(request, response);
-        }
-
-        // forward or redirect
+        // forward or redirect 실행
         if (forward != null) {
             if (forward.isRedirect()) {
                 response.sendRedirect(forward.getPath());

@@ -1,39 +1,47 @@
 package kr.or.kosa.service.certification;
 
-import java.util.List;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import kr.or.kosa.action.Action;
+import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.ApiCertificationDao;
 import kr.or.kosa.dto.Certification;
 
-/** [외부 API에서 자격증 데이터 조회 (DB 저장 X)]
- *
- * ✔ 책임 (SRP)
- *  - 외부 API를 호출하여 자격증 데이터를 가져온다.
- *  - DB에는 저장하지 않고, 순수하게 API 응답만 반환한다.
- *
- * ✔ 사용 예
- *  - 데이터 구조 미리보기
- *  - 동기화 전에 API 데이터가 유효한지 확인
- *  - 관리자 페이지에서 테스트용 출력
- *
- * ✔ 예외 처리
- *  - 이 메서드는 Exception을 던진다.
- *  - 실제 예외 처리와 응답(JSON or JSP)은 Action에서 처리한다.
+import java.util.List;
+
+/**
+ * - 외부 API에서 자격증 데이터를 가져와 JSP로 보여주는 서비스 (DB 저장 X)
+ * - 관리자 테스트/미리보기용
  */
-public class CertificationGetFromApiService {
+public class CertificationGetFromApiService implements Action {
 
-    private final ApiCertificationDao apiDao;
+    @Override
+    public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
 
-    public CertificationGetFromApiService() {
-        this.apiDao = new ApiCertificationDao();
-    }
+        ActionForward forward = null;
+        ApiCertificationDao apiDao = new ApiCertificationDao();
 
-    /**
-     * 외부 API로부터 자격증 목록을 조회한다.
-     *
-     * @return List<Certification> (API 응답)
-     * @throws Exception API 호출 실패 시
-     */
-    public List<Certification> getFromApi() throws Exception {
-        return apiDao.loadCertifications();
+        try {
+            // 외부 API에서 데이터 조회
+            List<Certification> apiList = apiDao.loadCertifications();
+
+            // JSP로 전달
+            request.setAttribute("apiList", apiList);
+
+            // 포워드할 JSP 페이지 (새로 만들면 됨)
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath("/WEB-INF/views/certification/certification_api_list.jsp");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            // 예외 발생 시 error.jsp로 이동
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath("/WEB-INF/views/error.jsp");
+        }
+
+        return forward;
     }
 }

@@ -335,7 +335,7 @@
 					    <h3 class="study-title">${room.title}</h3>
 					    <h4>${room.certName} 자격증 스터디</h4>
 					    <p class="study-description">${room.parentRegion} ${room.childRegion}</p>
-					    <%-- <p class="study-date">${room.createDate}</p> --%>
+					    <p class="study-date">${room.updatedAt}</p>
 					    <div class="study-footer">
 					        <span class="member-count">member: ${room.participantCount} / ${room.maxParticipant}</span>
 					        <div class="like-section">

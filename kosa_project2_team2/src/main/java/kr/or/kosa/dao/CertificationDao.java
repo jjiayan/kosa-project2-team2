@@ -30,7 +30,7 @@ import kr.or.kosa.utils.ConnectionPoolHelper;
 public class CertificationDao {
 	
 	// 실제 API 서버 주소
-    private static final String API_URL = "http://192.168.2.24:8090/qualifications_api_server/certifications";
+    private static final String API_URL = "http://192.168.2.24:8091/qualifications_api_server/certifications";
     
     /**
      * 전체 자격증 목록 조회 (DB)
@@ -71,38 +71,31 @@ public class CertificationDao {
 
     // 자격증 상세 조회 (PK: jmcd)
     public Certification getCertificationById(int id) {
-        Certification certification = null;
-
-        String sql =
-            "SELECT " +
-            "   jmcd, " +
-            "   year, " +
-            "   impl_seq AS implSeq, " +
-            "   jm_name AS jmName, " +
-            "   organ_name AS organName " +
-            "FROM certification " +
-            "WHERE jmcd = ?";
+        Certification cert = null;
+        String sql = "SELECT jmcd, year, impl_seq AS implSeq, jm_name AS jmName, organ_name AS organName "
+                   + "FROM certification WHERE jmcd = ?";
 
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, id);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    certification = new Certification();
-                    certification.setJmcd(rs.getInt("jmcd"));
-                    certification.setYear(rs.getInt("year"));
-                    certification.setImplSeq(rs.getInt("implSeq"));
-                    certification.setJmName(rs.getString("jmName"));
-                    certification.setOrganName(rs.getString("organName"));
-                }
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                cert = new Certification();
+                cert.setJmcd(rs.getInt("jmcd"));
+                cert.setYear(rs.getInt("year"));
+                cert.setImplSeq(rs.getInt("implSeq"));
+                cert.setJmName(rs.getString("jmName"));
+                cert.setOrganName(rs.getString("organName"));
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return certification;
+        return cert;
     }
+
 
     /**
      * API 데이터 upsert (리스트 기반)
@@ -146,4 +139,6 @@ public class CertificationDao {
 
         return count;
     }
+    
+    
 }

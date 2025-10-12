@@ -67,7 +67,6 @@ public class RoomController extends HttpServlet {
                 response.sendRedirect(forward.getPath());
             } else {
                 // forward (내부 이동, request 유지)
-
                 request.getRequestDispatcher(forward.getPath())
                        .forward(request, response);
             }
