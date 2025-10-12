@@ -138,12 +138,38 @@ public class UserDao {
  // 비밀번호 업데이트
     public int updatePasswordByLoginId(String loginId, String encPw) throws Exception {
         String sql = "UPDATE \"USER\" SET user_pw = ? WHERE user_login_id = ?";
-        try (var conn = ConnectionPoolHelper.getConnection();
-             var ps = conn.prepareStatement(sql)) {
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+        		PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, encPw);
             ps.setString(2, loginId);
             return ps.executeUpdate();
         }
+    }
+    
+    public UserDto findByLoginId(String loginId) throws Exception {
+        String sql = "SELECT user_id, user_login_id, user_pw, user_status, " +
+                     "       user_nickname, user_bio, user_phonenumber, user_photo " +
+                     "FROM \"USER\" WHERE user_login_id = ?";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+        		PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, loginId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    UserDto dto = new UserDto();
+                    dto.setUser_id(rs.getInt("user_id"));
+                    dto.setUser_login_id(rs.getString("user_login_id"));
+                    dto.setUser_pw(rs.getString("user_pw"));           // 비교용
+                    dto.setUser_status(rs.getString("user_status"));   // 상태 체크용
+                    dto.setUser_nickname(rs.getString("user_nickname"));
+                    dto.setUser_bio(rs.getString("user_bio"));
+                    dto.setUser_phonenumber(rs.getString("user_phonenumber"));
+                    dto.setUser_photo(rs.getString("user_photo"));
+                    return dto;
+                }
+            }
+        }
+        return null;
     }
     
 }
