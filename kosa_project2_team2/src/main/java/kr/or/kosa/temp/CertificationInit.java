@@ -1,11 +1,11 @@
 package kr.or.kosa.temp;
 
-import kr.or.kosa.service.certification.CertificationService;
+import kr.or.kosa.service.certification.CertificationSyncService;
 
 /** [Manual DB Initialization Tool - 개발자 수동 실행용]
- * 
+ *
  * ✔ 목적
- *  - 프로젝트 초기 세팅 시 또는  DB가 비어 있을 경우
+ *  - 프로젝트 초기 세팅 시 또는 DB가 비어 있을 경우,
  *    외부 API에서 자격증 데이터를 불러와 DB에 저장하기 위한 스크립트입니다.
  *  - 실제 웹 애플리케이션 요청 흐름에서는 사용되지 않습니다.
  *
@@ -27,18 +27,23 @@ import kr.or.kosa.service.certification.CertificationService;
  *  - ServletContextListener를 통해 서버 시작 시 자동 동기화
  *  - 관리자 전용 페이지에서 "데이터 동기화" 기능 제공
  *  - 스케줄러(Cron, Quartz 등)로 정기 자동 동기화 구현
- *
  */
 public class CertificationInit {
 
     public static void main(String[] args) {
-        // 서비스 객체 생성 (DAO를 내부에서 주입받아 사용)
-        CertificationService service = new CertificationService();
+        try {
+            // CertificationSyncService 사용 (Action 아님, 비즈니스 로직 전용)
+            CertificationSyncService syncService = new CertificationSyncService();
 
-        // API -> DB 동기화 실행
-        int result = service.syncFromApi();
+            // API → DB 동기화 실행
+            int result = syncService.syncFromApi();
 
-        // 실행 결과 콘솔 출력
-        System.out.println("✅ 초기 데이터 동기화 완료: " + result + "건 삽입 또는 업데이트 완료");
+            // 실행 결과 콘솔 출력
+            System.out.println("✅ 초기 데이터 동기화 완료: " + result + "건 삽입 또는 업데이트 됨");
+
+        } catch (Exception e) {
+            System.err.println("❌ 초기 데이터 동기화 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

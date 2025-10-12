@@ -1,36 +1,55 @@
 package kr.or.kosa.service.certification;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import kr.or.kosa.action.Action;
+import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.CertificationDao;
 import kr.or.kosa.dto.Certification;
 
-/** [자격증 상세 조회]
- *
- * ✔ 책임 (SRP)
- *  - 자격증 ID를 이용하여 DB에서 단일 자격증 정보를 조회한다.
- *
- * ✔ 예외 처리
- *  - 이 메서드는 Exception을 그대로 던진다.
- *  - 실제 try-catch, 에러 화면 처리 등은 Action에서 담당한다.
- *
- * ✔ 확장 가능성
- *  - 추후 상세 조회 시 조회수 증가 등의 비즈니스 로직을 추가할 수 있다.
- */
-public class CertificationDetailService {
 
-    private final CertificationDao certificationDao;
+public class CertificationDetailService implements Action {
 
-    public CertificationDetailService() {
-        this.certificationDao = new CertificationDao();
-    }
+    @Override
+    public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
 
-    /**
-     * 자격증 상세 정보 조회
-     *
-     * @param id 자격증 식별자 (PK)
-     * @return Certification 객체 (없을 시 null)
-     * @throws Exception DB 조회 실패 시
-     */
-    public Certification getCertificationById(int id) throws Exception {
-        return certificationDao.getCertificationById(id);
+        ActionForward forward = null;
+        CertificationDao dao = new CertificationDao();
+
+        try {
+            // 파라미터(id) 받기
+            String idParam = request.getParameter("id");
+
+            if (idParam == null || idParam.trim().equals("")) {
+                throw new IllegalArgumentException("자격증 ID가 없습니다.");
+            }
+
+            int id = Integer.parseInt(idParam);
+
+            // DB에서 상세 조회
+            Certification certification = dao.getCertificationById(id);
+
+            if (certification == null) {
+                throw new IllegalStateException("해당 자격증이 존재하지 않습니다. ID: " + id);
+            }
+
+            // JSP에 전달
+            request.setAttribute("certification", certification);
+
+            // 페이지 이동 설정
+            forward = new ActionForward();
+            forward.setRedirect(false); // forward 방식
+            forward.setPath("/WEB-INF/views/certification/certification_detail.jsp");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            // 예외 발생 시 에러 페이지로 이동
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath("/WEB-INF/views/error.jsp");
+        }
+
+        return forward;
     }
 }

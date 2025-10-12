@@ -1,36 +1,68 @@
 package kr.or.kosa.service.certification;
 
 import java.util.List;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import kr.or.kosa.action.Action;
+import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.dao.ApiCertificationDao;
 import kr.or.kosa.dao.CertificationDao;
 import kr.or.kosa.dto.Certification;
 
-/** [자격증 전체 목록 조회]
- * 
- * ✔ 책임(SRP)
- *  - DAO를 호출하여 전체 자격증 리스트를 반환한다.
- *  - 추가적인 비즈니스 로직은 포함하지 않는다.
- * 
- * ✔ 예외 처리
- *  - 이 메서드는 Exception을 던진다.
- *  - 실제 예외 처리(try-catch)는 Action(컨트롤러)에서 수행한다.
- * 
- * ✔ 확장성
- *  - 추후 페이징 / 검색 / 정렬 등으로 확장할 수 있다.
+/**
+ * 1) 먼저 DB에서 목록 조회
+ * 2) 만약 DB가 비어있으면 → API에서 데이터 가져와 DB 저장
+ * 3) 다시 DB에서 목록 조회 후 반환
+ * 4) JSP로 forward
  */
-public class CertificationListService {
+public class CertificationListService implements Action {
 
-    private final CertificationDao certificationDao;
+    @Override
+    public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
+        
+        ActionForward forward = null;
+        CertificationDao dao = new CertificationDao();
+        ApiCertificationDao apiDao = new ApiCertificationDao();
 
-    public CertificationListService() {
-        this.certificationDao = new CertificationDao();
-    }
+        try { // 1회만 동작한거니까 삭제....
+            // DB에서 목록 조회
+            List<Certification> list = dao.getAllCertifications();
 
-    /**
-     * 전체 자격증 목록 조회
-     * @return List<Certification>
-     * @throws Exception DB 조회 실패 시
-     */
-    public List<Certification> getCertificationList() throws Exception {
-        return certificationDao.getAllCertifications();
+            // DB가 비어있으면 API 호출 → DB 저장 → 다시 DB 조회
+            if (list == null || list.isEmpty()) {
+                System.out.println("[INFO] DB가 비어 있음 → API에서 데이터 가져옵니다.");
+
+                List<Certification> apiList = apiDao.loadCertifications();
+
+                if (apiList != null && !apiList.isEmpty()) {
+                    int result = dao.upsertCertifications(apiList);
+                    System.out.println("[INFO] API 데이터 DB 반영 완료 (" + result + "건)");
+
+                    // 다시 DB 조회
+                    list = dao.getAllCertifications();
+                } else {
+                    System.out.println("[WARN] API에서도 데이터를 가져오지 못했습니다.");
+                }
+            }
+
+            // 최종 데이터 request에 담기
+            request.setAttribute("certificationList", list);
+
+            // JSP로 forward
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath("/WEB-INF/views/certification/certificationList.jsp");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            // 예외 발생 시 에러 페이지로 이동
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath("/WEB-INF/views/error.jsp");
+        }
+
+        return forward;
     }
 }
