@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.RoomDao;
+import kr.or.kosa.dto.RoomDto;
 
 public class RoomDetailService implements Action{
 
@@ -13,11 +14,14 @@ public class RoomDetailService implements Action{
 		int roomId = Integer.parseInt(request.getParameter("roomId"));
 		RoomDao roomDao = new RoomDao();
 		
-		
-		
+		RoomDto roomDetail = roomDao.detialRoom(roomId);
 		ActionForward forward = new ActionForward();
 		
-		return null;
+		request.setAttribute("roomDetail", roomDetail);
+		forward.setRedirect(false);
+		forward.setPath("/WEB-INF/views/room/detailRoom.jsp");
+
+		return forward;
 	}
 
 }
