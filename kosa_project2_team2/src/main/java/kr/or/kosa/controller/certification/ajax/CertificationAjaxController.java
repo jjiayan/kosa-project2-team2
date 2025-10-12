@@ -5,37 +5,47 @@ import java.util.List;
 
 import com.google.gson.Gson;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kr.or.kosa.action.Action;
-import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dto.Certification;
-import kr.or.kosa.service.certification.CertificationService;
+import kr.or.kosa.service.certification.CertificationListService;
 
-public class CertificationAjaxController implements Action {
-	private CertificationService service = new CertificationService();
+
+@WebServlet("/certificationAjax")  // 원하는 URL로 변경 가능 (예: /certAjax.cert 도 OK)
+public class CertificationAjaxController extends HttpServlet {
+    
+    private static final long serialVersionUID = 1L;
+    
+    private CertificationListService service = new CertificationListService();
     private Gson gson = new Gson();
-
+    
     @Override
-    public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        
         try {
-            List<Certification> list = service.getCertifications();
+            List<Certification> list = service.getCertificationList();
+           
             String json = gson.toJson(list);
-
+            
             response.setContentType("application/json; charset=UTF-8");
             response.getWriter().write(json);
 
         } catch (Exception e) {
             e.printStackTrace();
-            try {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                response.getWriter().write("{\"error\":\"Failed to fetch certifications\"}");
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
 
-        // Ajax는 JSP로 이동이 필요 없으니 null 반환
-        return null;
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setContentType("application/json; charset=UTF-8");
+            response.getWriter().write("{\"error\":\"Failed to fetch certifications\"}");
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doGet(request, response);
     }
 }
