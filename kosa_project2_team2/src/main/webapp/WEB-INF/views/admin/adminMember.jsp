@@ -135,7 +135,7 @@
             transform: translateY(-1px);
         }
 
-        /*  페이지네이션  */
+        /* 페이지네이션 */
         .pagination {
             display: flex;
             justify-content: center;
@@ -217,18 +217,21 @@
             </c:forEach>
         </div>
 
-        <!--  페이지네이션 -->
+        <!-- 페이지네이션 -->
         <div class="pagination">
-            <c:if test="${pageResult.currentPage > 1}">
-                <button class="page-arrow" onclick="goToPage(${pageResult.currentPage - 1})">&lt;</button>
+            <!-- 이전 그룹 -->
+            <c:if test="${startPage > 1}">
+                <button class="page-arrow" onclick="goToPage(${startPage - 1})">&laquo;</button>
             </c:if>
 
-            <c:forEach begin="1" end="${pageResult.totalPages}" var="i">
+            <!-- 현재 그룹 번호 -->
+            <c:forEach begin="${startPage}" end="${endPage}" var="i">
                 <button class="page-num ${pageResult.currentPage == i ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>
             </c:forEach>
 
-            <c:if test="${pageResult.currentPage < pageResult.totalPages}">
-                <button class="page-arrow" onclick="goToPage(${pageResult.currentPage + 1})">&gt;</button>
+            <!-- 다음 그룹 -->
+            <c:if test="${endPage < pageResult.totalPages}">
+                <button class="page-arrow" onclick="goToPage(${endPage + 1})">&raquo;</button>
             </c:if>
         </div>
 

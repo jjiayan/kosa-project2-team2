@@ -20,22 +20,29 @@ public class AdminMemberService implements Action {
         try {
             AdminMemberDao dao = new AdminMemberDao();
 
-            //  현재 페이지 파라미터
+            // ✅ 현재 페이지 파라미터
             int currentPage = 1;
             String pageParam = request.getParameter("page");
             if (pageParam != null && !pageParam.isEmpty()) {
                 currentPage = Integer.parseInt(pageParam);
             }
 
+            // ✅ 페이지 관련 설정
             int pageSize = 9; // 한 페이지당 회원 수
             int totalCount = dao.getUserCount();
             int totalPages = (int) Math.ceil((double) totalCount / pageSize);
             int offset = (currentPage - 1) * pageSize;
 
-            // 현재 페이지 데이터 가져오기
+            // ✅ 페이지 블록 (한 번에 5개 번호씩 표시)
+            int pageBlock = 5;
+            int startPage = ((currentPage - 1) / pageBlock) * pageBlock + 1;
+            int endPage = startPage + pageBlock - 1;
+            if (endPage > totalPages) endPage = totalPages;
+
+            // ✅ 회원 목록 불러오기
             List<UserDto> memberList = dao.getPagedUsers(offset, pageSize);
 
-            //  PageResult 객체 생성 (기존 구조 사용)
+            // ✅ 결과 객체 세팅
             PageResult<UserDto> pageResult = new PageResult<>();
             pageResult.setData(memberList);
             pageResult.setTotalCount(totalCount);
@@ -43,9 +50,11 @@ public class AdminMemberService implements Action {
             pageResult.setCurrentPage(currentPage);
             pageResult.setTotalPages(totalPages);
 
-            //  JSP로 전달
+            // ✅ JSP로 전달
             request.setAttribute("memberList", memberList);
             request.setAttribute("pageResult", pageResult);
+            request.setAttribute("startPage", startPage);
+            request.setAttribute("endPage", endPage);
 
             forward.setRedirect(false);
             forward.setPath("/WEB-INF/views/admin/adminMember.jsp");

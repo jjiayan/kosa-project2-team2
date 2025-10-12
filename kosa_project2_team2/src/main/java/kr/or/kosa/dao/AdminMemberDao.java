@@ -34,19 +34,18 @@ public class AdminMemberDao {
         List<UserDto> userList = new ArrayList<>();
 
         String sql = 
-        	    "SELECT user_id, user_login_id, user_status, user_nickname, user_phonenumber, user_photo " +
-        	    "FROM \"USER\" " +
-        	    "ORDER BY user_id" + 
-        	    "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-            
-            try (Connection conn = ConnectionPoolHelper.getConnection();
+            "SELECT user_id, user_login_id, user_status, user_nickname, user_phonenumber, user_photo " +
+            "FROM \"USER\" " +
+            "ORDER BY user_id " + // ← 여기 끝에 공백 중요!
+            "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            	
-                pstmt.setInt(1, offset);
-                pstmt.setInt(2, limit);
+
+            pstmt.setInt(1, offset);
+            pstmt.setInt(2, limit);
 
             try (ResultSet rs = pstmt.executeQuery()) {
-            	
                 while (rs.next()) {
                     UserDto user = new UserDto();
                     user.setUser_id(rs.getInt("user_id"));
@@ -65,4 +64,5 @@ public class AdminMemberDao {
 
         return userList;
     }
+
 }
