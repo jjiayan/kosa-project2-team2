@@ -106,5 +106,20 @@ public class UserDao {
         return null;
     }
 
+    /** 아이디 찾기: 휴대폰 번호로 단일 로그인ID 조회 */
+    public String findLoginIdByPhone(String phoneOnlyDigits) throws Exception {
+        String sql = "SELECT user_login_id FROM \"USER\" WHERE user_phonenumber = ?";
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, phoneOnlyDigits);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("user_login_id");
+                }
+            }
+        }
+        return null; // 없으면 null
+    }
     
 }

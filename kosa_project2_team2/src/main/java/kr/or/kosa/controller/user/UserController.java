@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.user.UserFindIdService;
 import kr.or.kosa.service.user.UserSignupService;
 
 import java.io.IOException;
@@ -51,7 +52,11 @@ public class UserController extends HttpServlet {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "findId.jsp");
-        } else if (command.equals("/findPwd.user")) {
+        }else if (command.equals("/findIdOk.user")) {
+            action = new UserFindIdService();
+            forward = action.execute(request, response);
+        }
+        else if (command.equals("/findPwd.user")) {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "findPwd.jsp");
