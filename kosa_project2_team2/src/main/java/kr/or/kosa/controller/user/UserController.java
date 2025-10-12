@@ -11,8 +11,10 @@ import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.service.user.UserFindIdService;
 import kr.or.kosa.service.user.UserSignupService;
+import kr.or.kosa.utils.ConnectionPoolHelper;
 
 import java.io.IOException;
+import java.sql.Connection;
 
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024,
