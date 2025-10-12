@@ -62,6 +62,11 @@ public class UserController extends HttpServlet {
         } else if (command.equals("/signupOk.user")) {
             action = new UserSignupService();
             forward = action.execute(request, response);
+        } else if (command.equals("/test.user")) {
+            // DB 연결 테스트 페이지 열기 or action 실행
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath(USER_VIEW_PATH + "dbTest.jsp");
         } else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
