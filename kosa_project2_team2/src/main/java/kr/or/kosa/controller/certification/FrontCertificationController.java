@@ -18,7 +18,7 @@ public class FrontCertificationController extends HttpServlet {
 	private void doProcess(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1) 요청 URI 및 ContextPath 분리
+        // 요청 URI 및 ContextPath 분리
         String requestUri = request.getRequestURI();
         String contextPath = request.getContextPath();
         String urlCommand = requestUri.substring(contextPath.length());
