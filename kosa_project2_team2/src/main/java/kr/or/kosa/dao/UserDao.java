@@ -122,4 +122,28 @@ public class UserDao {
         return null; // 없으면 null
     }
     
+    public boolean existsByLoginIdAndPhone(String loginId, String phoneOnlyDigits) throws Exception {
+        String sql = "SELECT 1 FROM \"USER\" WHERE user_login_id = ? AND user_phonenumber = ?";
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, loginId);
+            ps.setString(2, phoneOnlyDigits);
+            try (ResultSet rs = ps.executeQuery()) {
+            	boolean next = rs.next();
+                return next;
+            }
+        }
+    }
+    
+ // 비밀번호 업데이트
+    public int updatePasswordByLoginId(String loginId, String encPw) throws Exception {
+        String sql = "UPDATE \"USER\" SET user_pw = ? WHERE user_login_id = ?";
+        try (var conn = ConnectionPoolHelper.getConnection();
+             var ps = conn.prepareStatement(sql)) {
+            ps.setString(1, encPw);
+            ps.setString(2, loginId);
+            return ps.executeUpdate();
+        }
+    }
+    
 }
