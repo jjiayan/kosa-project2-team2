@@ -83,4 +83,43 @@ public class UserDao {
         return 0;
     }
     
+    public UserDto findByNickname(String nickname) throws Exception {
+        String sql = "SELECT user_id, user_login_id, user_nickname, user_photo " +
+                     "FROM \"USER\" WHERE user_nickname = ?";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, nickname);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    UserDto dto = new UserDto();
+                    dto.setUser_id(rs.getInt("user_id"));
+                    dto.setUser_login_id(rs.getString("user_login_id"));
+                    dto.setUser_nickname(rs.getString("user_nickname"));
+                    dto.setUser_photo(rs.getString("user_photo"));
+                    return dto;
+                }
+            }
+        }
+        return null;
+    }
+
+    /** 아이디 찾기: 휴대폰 번호로 단일 로그인ID 조회 */
+    public String findLoginIdByPhone(String phoneOnlyDigits) throws Exception {
+        String sql = "SELECT user_login_id FROM \"USER\" WHERE user_phonenumber = ?";
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, phoneOnlyDigits);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("user_login_id");
+                }
+            }
+        }
+        return null; // 없으면 null
+    }
+    
 }
