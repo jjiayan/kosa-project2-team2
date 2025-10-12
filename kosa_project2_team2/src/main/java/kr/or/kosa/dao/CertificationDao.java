@@ -30,7 +30,7 @@ import kr.or.kosa.utils.ConnectionPoolHelper;
 public class CertificationDao {
 	
 	// 실제 API 서버 주소
-    private static final String API_URL = "http://192.168.2.24:8090/qualifications_api_server/certifications";
+    private static final String API_URL = "http://192.168.2.24:8091/qualifications_api_server/certifications";
     
     /**
      * 전체 자격증 목록 조회 (DB)

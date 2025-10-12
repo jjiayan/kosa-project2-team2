@@ -25,7 +25,7 @@ public class CertificationListService implements Action {
         CertificationDao dao = new CertificationDao();
         ApiCertificationDao apiDao = new ApiCertificationDao();
 
-        try {
+        try { // 1회만 동작한거니까 삭제....
             // DB에서 목록 조회
             List<Certification> list = dao.getAllCertifications();
 
@@ -52,7 +52,7 @@ public class CertificationListService implements Action {
             // JSP로 forward
             forward = new ActionForward();
             forward.setRedirect(false);
-            forward.setPath("/WEB-INF/views/certification/certification_list.jsp");
+            forward.setPath("/WEB-INF/views/certification/certificationList.jsp");
 
         } catch (Exception e) {
             e.printStackTrace();

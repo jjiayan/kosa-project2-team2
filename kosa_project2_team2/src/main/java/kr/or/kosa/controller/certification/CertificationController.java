@@ -9,8 +9,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.service.certification.CertificationListService;
+import kr.or.kosa.service.certification.CertificationAjaxListService;
 import kr.or.kosa.service.certification.CertificationDetailService;
-import kr.or.kosa.service.certification.CertificationSyncActionService;  // ✅ 반드시 추가!
+import kr.or.kosa.service.certification.CertificationSyncActionService; 
 
 import java.io.IOException;
 
@@ -46,6 +47,12 @@ public class CertificationController extends HttpServlet {
         } else if (urlCommand.equals("/certificationSync.cert")) {
             action = new CertificationSyncActionService();
             forward = action.execute(request, response);
+            
+            
+        } else if (urlCommand.equals("/certificationAjax.cert")) {
+            action = new CertificationAjaxListService();
+            forward = action.execute(request, response);
+       
 
         // 그 외 → 에러 페이지 또는 404
         } else {

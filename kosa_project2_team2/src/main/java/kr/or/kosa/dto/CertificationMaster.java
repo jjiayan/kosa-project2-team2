@@ -4,18 +4,18 @@ package kr.or.kosa.dto;
  * 자격증 기본 정보 DTO
  * API 서버의 certifications.json 구조와 동일해야 함
  */
-public class Certification {
+public class CertificationMaster {
     private int jmcd;           // 종목코드
     private int year;           // 연도
     private int implSeq;        // 시행차수
     private String jmName;      // 자격증명
     private String organName;   // 주관기관명
 
-    // ✅ 기본 생성자
-    public Certification() {}
+    // 기본 생성자
+    public CertificationMaster() {}
 
-    // ✅ 모든 필드를 받는 생성자
-    public Certification(int jmcd, int year, int implSeq, String jmName, String organName) {
+    // 모든 필드를 받는 생성자
+    public CertificationMaster(int jmcd, int year, int implSeq, String jmName, String organName) {
         this.jmcd = jmcd;
         this.year = year;
         this.implSeq = implSeq;
@@ -23,7 +23,7 @@ public class Certification {
         this.organName = organName;
     }
 
-    // ✅ Getter / Setter
+    // Getter / Setter
     public int getJmcd() {
         return jmcd;
     }
