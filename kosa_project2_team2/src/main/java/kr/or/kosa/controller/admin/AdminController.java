@@ -7,12 +7,15 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.admin.AdminMemberService;
 
 
 @WebServlet("*.admin")
 public class AdminController extends HttpServlet {
-	private static final long serialVersionUID = 1L;	   
+	private static final long serialVersionUID = 1L;	
+	private static final String USER_VIEW_PATH = "/WEB-INF/views/admin/";
   
     public AdminController() {
         super();
@@ -29,9 +32,8 @@ public class AdminController extends HttpServlet {
 
     	       
     			if(command.equals("/adminMember.admin")) { //관리자회원관리페이지
-    				forward = new ActionForward();
-    				forward.setRedirect(false); 
-    				forward.setPath("/WEB-INF/views/admin/adminMember.jsp");
+    				Action action = new AdminMemberService();  // Action 인터페이스 구현체로 호출
+    			    forward = action.execute(request, response);
     			} else if(command.equals("/adminStat.admin")) { //관리자통계보드페이지 
     				forward = new ActionForward();
     				forward.setRedirect(false); 
@@ -39,7 +41,7 @@ public class AdminController extends HttpServlet {
     			} else if(command.equals("/adminNotice.admin")) { //관리자공지사항페이지 
     				forward = new ActionForward();
     				forward.setRedirect(false); 
-    				forward.setPath("/WEB-INF/views/admin/adminNotice.jsp");
+    				forward.setPath(USER_VIEW_PATH + "adminNotice.jsp");
     			} else {
     	            response.sendError(HttpServletResponse.SC_NOT_FOUND);
     	            return;
