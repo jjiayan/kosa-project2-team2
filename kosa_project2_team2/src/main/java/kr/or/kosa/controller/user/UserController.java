@@ -10,6 +10,8 @@ import jakarta.servlet.http.Part;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.service.user.UserFindIdService;
+import kr.or.kosa.service.user.UserFindPwdService;
+import kr.or.kosa.service.user.UserResetPwdService;
 import kr.or.kosa.service.user.UserSignupService;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
@@ -62,7 +64,14 @@ public class UserController extends HttpServlet {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "findPwd.jsp");
-        } else if (command.equals("/signup.user")) {
+        }else if (command.equals("/findPwdOk.user")) { // ★ 추가
+            action = new UserFindPwdService();
+            forward = action.execute(request, response);
+        }else if (command.equals("/resetPwdOk.user")) {                  // ★ 2단계: 새 비번 저장
+            action = new UserResetPwdService();
+            forward = action.execute(request, response);
+        }
+        else if (command.equals("/signup.user")) {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "signup.jsp");
