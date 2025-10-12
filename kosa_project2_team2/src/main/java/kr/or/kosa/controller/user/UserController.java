@@ -10,8 +10,10 @@ import jakarta.servlet.http.Part;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.service.user.UserSignupService;
+import kr.or.kosa.utils.ConnectionPoolHelper;
 
 import java.io.IOException;
+import java.sql.Connection;
 
 @MultipartConfig(
     fileSizeThreshold = 1024 * 1024,
@@ -63,10 +65,13 @@ public class UserController extends HttpServlet {
             action = new UserSignupService();
             forward = action.execute(request, response);
         } else if (command.equals("/test.user")) {
-            // DB 연결 테스트 페이지 열기 or action 실행
-            forward = new ActionForward();
-            forward.setRedirect(false);
-            forward.setPath(USER_VIEW_PATH + "dbTest.jsp");
+            // DB 연결 테스트 (선택)
+            try (Connection conn = ConnectionPoolHelper.getConnection()) {
+                if (conn != null) System.out.println("✅ DB 연결 성공: " + conn);
+                else System.out.println("❌ DB 연결 실패: conn is null");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
