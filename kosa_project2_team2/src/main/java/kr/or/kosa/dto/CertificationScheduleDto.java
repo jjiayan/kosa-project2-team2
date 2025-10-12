@@ -1,6 +1,10 @@
 package kr.or.kosa.dto;
 
-public class CertificationSchedule {
+/**
+ * 자격증 시험 일정 정보 (CERTIFICATION_SCHEDULE)
+ * FK → CERTIFICATION_MASTER(jmcd, year, implSeq)
+ */
+public class CertificationScheduleDto {
     private int jmcd;
     private int year;
     private int implSeq;
@@ -17,7 +21,7 @@ public class CertificationSchedule {
     private String pracPassDt;
     private int examFee;
 
-    public CertificationSchedule() {}
+    public CertificationScheduleDto() {}
 
     // Getter / Setter
     public int getJmcd() { return jmcd; }
