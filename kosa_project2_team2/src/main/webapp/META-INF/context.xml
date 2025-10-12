@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Context>
-	<Resource   maxWait="-1" 
+	<!-- <Resource   maxWait="-1" 
 				maxIdle="20" 
 				maxTotal="20" 
 				maxActive="20"
@@ -10,5 +10,17 @@
 				driverClassName="oracle.jdbc.OracleDriver" 
 				type="javax.sql.DataSource"
 				auth="Container" 
-				name="jdbc/oracle" />
+				name="jdbc/oracle" /> -->
+				<Resource 
+		maxWait="-1" 
+		maxIdle="20" 
+		maxActive="20"
+		password="kosakosa123" 
+		username="hr"
+		url="jdbc:oracle:thin:@141.164.63.213:1521:XE"
+		driverClassName="oracle.jdbc.OracleDriver" 
+		type="javax.sql.DataSource"
+		auth="Container" 
+		name="jdbc/oracle" />
+				
 </Context>
