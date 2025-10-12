@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.user.UserFindIdService;
 import kr.or.kosa.service.user.UserSignupService;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
@@ -53,7 +54,11 @@ public class UserController extends HttpServlet {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "findId.jsp");
-        } else if (command.equals("/findPwd.user")) {
+        }else if (command.equals("/findIdOk.user")) {
+            action = new UserFindIdService();
+            forward = action.execute(request, response);
+        }
+        else if (command.equals("/findPwd.user")) {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "findPwd.jsp");
@@ -64,15 +69,12 @@ public class UserController extends HttpServlet {
         } else if (command.equals("/signupOk.user")) {
             action = new UserSignupService();
             forward = action.execute(request, response);
-        } else if (command.equals("/test.user")) {
-            // DB 연결 테스트 (선택)
-            try (Connection conn = ConnectionPoolHelper.getConnection()) {
-                if (conn != null) System.out.println("✅ DB 연결 성공: " + conn);
-                else System.out.println("❌ DB 연결 실패: conn is null");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
+        }
+        else if (command.equals("/photoTest.user")) {
+            action = new kr.or.kosa.service.user.UserPhotoTestService();
+            forward = action.execute(request, response);
+        }
+        else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
