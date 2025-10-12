@@ -26,7 +26,7 @@
     <img class="avatar"
          src="<c:url value='${user.user_photo}'/>"
          alt="avatar"
-         onerror="this.onerror=null; this.src='<c:url value="/imges/default-avatar.png"/>';">
+         onerror="this.onerror=null; this.src='<c:url value="/images/default-avatar.png"/>';">
     <p class="info">
       위 이미지가 안 보이면
       <a href="<c:url value='${user.user_photo}'/>" target="_blank">원본 링크</a>로 확인하세요.<br>

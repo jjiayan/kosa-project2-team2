@@ -16,7 +16,7 @@ public class UserPhotoTestService implements Action {
         forward.setPath("/WEB-INF/views/user/photo-test.jsp");
         try {
             UserDao dao = new UserDao();
-            UserDto user = dao.findByNickname("test"); // ★ 고정
+            UserDto user = dao.findByNickname("test2"); // ★ 고정
             request.setAttribute("user", user);
         } catch (Exception e) {
             System.out.println(e.getMessage());

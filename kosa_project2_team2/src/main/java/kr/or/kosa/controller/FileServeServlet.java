@@ -42,7 +42,6 @@ public class FileServeServlet extends HttpServlet {
     String mime = java.nio.file.Files.probeContentType(file);
     if (mime == null) mime = "application/octet-stream";
     resp.setContentType(mime);
-    resp.setHeader("Cache-Control", "public, max-age=31536000");
     resp.setContentLengthLong(java.nio.file.Files.size(file));
     java.nio.file.Files.copy(file, resp.getOutputStream());
   }
