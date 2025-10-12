@@ -10,27 +10,51 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import kr.or.kosa.dao.ApiCertificationDao;
+import kr.or.kosa.dao.CertificationDao;
 import kr.or.kosa.dto.Certification;
-import kr.or.kosa.service.certification.CertificationListService;
 
-
-@WebServlet("/certificationAjax")  // 원하는 URL로 변경 가능 (예: /certAjax.cert 도 OK)
+/**
+ * - Ajax 전용 Controller (JSON 응답)
+ * - DB 우선 조회 + DB가 비어있다면 API 호출 후 DB 저장 (fallback)
+ * - Action / ActionForward 사용 ❌
+ */
+@WebServlet("/certificationAjax")
 public class CertificationAjaxController extends HttpServlet {
     
     private static final long serialVersionUID = 1L;
     
-    private CertificationListService service = new CertificationListService();
+    private CertificationDao certificationDao = new CertificationDao();
+    private ApiCertificationDao apiDao = new ApiCertificationDao();
     private Gson gson = new Gson();
-    
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
         try {
-            List<Certification> list = service.getCertificationList();
-           
+            // DB에서 먼저 조회
+            List<Certification> list = certificationDao.getAllCertifications();
+
+            // DB가 비어있으면 → API → DB 저장 → 다시 DB 조회 (fallback)
+            if (list == null || list.isEmpty()) {
+                System.out.println("[Ajax] DB 비어있음 → API 호출 시작");
+
+                List<Certification> apiList = apiDao.loadCertifications();
+
+                if (apiList != null && !apiList.isEmpty()) {
+                    certificationDao.upsertCertifications(apiList);
+                    System.out.println("[Ajax] API 데이터 DB 저장 완료");
+
+                    // 다시 DB에서 조회
+                    list = certificationDao.getAllCertifications();
+                }
+            }
+
+            // JSON 변환
             String json = gson.toJson(list);
-            
+
+            // 응답 설정
             response.setContentType("application/json; charset=UTF-8");
             response.getWriter().write(json);
 

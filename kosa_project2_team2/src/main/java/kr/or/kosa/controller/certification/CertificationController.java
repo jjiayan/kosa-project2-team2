@@ -10,7 +10,7 @@ import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.service.certification.CertificationListService;
 import kr.or.kosa.service.certification.CertificationDetailService;
-import kr.or.kosa.service.certification.CertificationSyncService;
+import kr.or.kosa.service.certification.CertificationSyncActionService;  // ✅ 반드시 추가!
 
 import java.io.IOException;
 
@@ -23,8 +23,8 @@ public class CertificationController extends HttpServlet {
     private void doProcess(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String requestUri = request.getRequestURI();         // /kosa_project2_team2/certificationList.cert
-        String contextPath = request.getContextPath();       // /kosa_project2_team2
+        String requestUri = request.getRequestURI();         
+        String contextPath = request.getContextPath();       
         String urlCommand = requestUri.substring(contextPath.length());
 
         System.out.println("urlCommand = " + urlCommand);
@@ -44,17 +44,17 @@ public class CertificationController extends HttpServlet {
 
         // API → DB 동기화
         } else if (urlCommand.equals("/certificationSync.cert")) {
-            action = new CertificationSyncService();
+            action = new CertificationSyncActionService();
             forward = action.execute(request, response);
 
         // 그 외 → 에러 페이지 또는 404
         } else {
             forward = new ActionForward();
             forward.setRedirect(false);
-            forward.setPath("/WEB-INF/views/error.jsp"); // 미리 만들어둘 예정
+            forward.setPath("/WEB-INF/views/error.jsp");
         }
 
-        // forward 혹은 redirect 실행
+        // forward or redirect 실행
         if (forward != null) {
             if (forward.isRedirect()) {
                 response.sendRedirect(forward.getPath());
