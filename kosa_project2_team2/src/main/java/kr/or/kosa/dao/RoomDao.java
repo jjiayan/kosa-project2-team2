@@ -6,6 +6,7 @@ import javax.sql.DataSource;
 
 import kr.or.kosa.dto.PageResult;
 import kr.or.kosa.dto.RegionDto;
+import kr.or.kosa.dto.RoomBoardDto;
 import kr.or.kosa.dto.RoomDto;
 import kr.or.kosa.dto.SearchCondition;
 import kr.or.kosa.utils.ConnectionPoolHelper;
@@ -218,6 +219,7 @@ public class RoomDao {
 		ResultSet rs = null;
 		RoomDto roomDetail = null;
 		
+		
 		try {
 			conn = ConnectionPoolHelper.getConnection();
 			StringBuilder sqlBuilder = new StringBuilder();
@@ -226,26 +228,32 @@ public class RoomDao {
 			sqlBuilder.append("(SELECT COUNT(*) FROM LIKE_ROOM lr WHERE lr.room_id = ro.room_id) AS like_count, ");
 			sqlBuilder.append("(SELECT CASE WHEN ROUND(AVG(score), 1) IS NOT NULL THEN ROUND(AVG(score), 1) ELSE 0 END ");
 			sqlBuilder.append("FROM ROOM_SCORE rs WHERE rs.room_id = ro.room_id) AS room_score, ");
-			sqlBuilder.append("CASE WHEN EXISTS (SELECT 1 FROM JOIN_ROOM jr2 WHERE jr2.user_id = ? AND jr2.room_id = ?) ");
-			sqlBuilder.append("THEN 1 ELSE 0 END AS join_room_check ");
-			sqlBuilder.append("CASE WHEN lr.USER_ID IS NOT NULL THEN 1 ELSE 0 END AS is_liked ");
+			sqlBuilder.append("NVL(jr2.ROOM_TIER, 'NOT_JOINED') AS join_status, ");
+			sqlBuilder.append("CASE WHEN lr.USER_ID IS NOT NULL THEN 1 ELSE 0 END AS is_liked, ");
+			sqlBuilder.append("CASE WHEN u.USER_ID = ? THEN 1 ELSE 0 END AS leader_check ");			
 			sqlBuilder.append("FROM room ro ");
 			sqlBuilder.append("JOIN JOIN_ROOM jr ON jr.room_id = ro.room_id ");
 			sqlBuilder.append("JOIN \"USER\" u ON u.user_id = jr.user_id ");
 			sqlBuilder.append("LEFT JOIN LIKE_ROOM lr ON lr.ROOM_ID = ro.ROOM_ID AND lr.USER_ID = ? ");
+			sqlBuilder.append("LEFT JOIN JOIN_ROOM jr2 ON jr2.USER_ID = ? AND jr2.ROOM_ID = ? ");
 			sqlBuilder.append("WHERE ro.room_id = ? AND jr.room_tier = 'LEADER'");
+			
 			String sql = sqlBuilder.toString();
-			
-			
-			
+			int userId = 5;
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1, 1); // 현재 접속 유저 아이디
-			pstmt.setInt(2, roomId);
-			pstmt.setInt(3, roomId);
-			pstmt.setInt(4, 1); // 현재 접속 유저 아이디
+			pstmt.setInt(1, userId); // 현재 접속 유저 아이디
+			pstmt.setInt(2, userId); // 현재 접속 유저 아이디
+			pstmt.setInt(3, userId);
+			pstmt.setInt(4, roomId);
+			pstmt.setInt(5, roomId); // 현재 접속 유저 아이디
 			
 			rs = pstmt.executeQuery();
 			while(rs.next()) {
+				System.out.println("islIke ==>> " + (rs.getInt("is_liked") == 1));
+				System.out.println("leader_check ==>> " + (rs.getInt("leader_check") == 1));
+				System.out.println("asdasdas ==>>> " + rs.getInt("leader_check"));
+				
+				
 				roomDetail =  RoomDto.builder()
 						.roomId(rs.getInt("room_id"))
 				        .title(rs.getString("room_title"))
@@ -253,10 +261,23 @@ public class RoomDao {
 				        .updatedAt(rs.getTimestamp("updated_at"))
 				        .userNickName(rs.getString("user_nickname"))
 				        .likeCount(rs.getInt("like_count"))
-				        .joinUserCheck(rs.getInt("join_room_check") == 1)
+				        .joinUserStatus(rs.getString("join_status"))
 				        .roomScore(rs.getDouble("room_score"))
 				        .isLiked(rs.getInt("is_liked") == 1)
+				        .leaderCheck(rs.getInt("leader_check") == 1)
 						.build();
+				
+				try {
+						roomDetail.isLiked();
+						
+					
+				}catch(Exception e) {
+					
+					System.out.println("isLiked() ==>> ?? " + roomDetail.isLiked());
+					System.out.println(" ==>> " + (rs.getInt("is_liked")));
+					System.out.println(" ==>> " + (rs.getInt("is_liked") == 1));
+				}
+					
 			}
 			
 		} catch (SQLException e) {
@@ -269,6 +290,131 @@ public class RoomDao {
 		}
 		return roomDetail;
 		
+	}
+	
+	// 룸보드 게시판 검색
+	public List<RoomBoardDto> getRoomBoardBySearch(SearchCondition searchCondition) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		List<RoomBoardDto> roomBoardList = new ArrayList<>();
+		
+		StringBuilder sqlBuilder = new StringBuilder();
+		
+		sqlBuilder.append("SELECT rb.ROOM_BOARD_ID as ROOM_BOARD_ID, ")
+        .append("       rb.ROOM_BOARD_TITLE as ROOM_BOARD_TITLE, ")
+        .append("       rb.UPDATED_AT as UPDATED_AT, ")
+        .append("       rb.ROOM_BOARD_VIEW_CNT as ROOM_BOARD_VIEW_CNT, ")
+        .append("       u.USER_NICKNAME as USER_NICKNAME, ")
+        .append("       (SELECT COUNT(*) ")
+        .append("        FROM \"REPLY\" r ")
+        .append("        WHERE r.ROOM_BOARD_ID = rb.ROOM_BOARD_ID ")
+        .append("        AND r.PARENT_REPLY_ID IS NULL) AS reply_count ")
+        .append("FROM ROOM_BOARD rb \n")
+        .append("JOIN \"USER\" u ON u.USER_ID = rb.USER_ID ")
+		.append("WHERE ROOM_BOARD_TYPE = 'GENERAL' ");
+		
+		if (searchCondition.getKeyword() != null && !searchCondition.getKeyword().trim().isEmpty()) {
+		    String whereClause = "AND rb.ROOM_BOARD_TITLE LIKE ? ";
+		    sqlBuilder.append(whereClause);
+		}
+		sqlBuilder.append("ORDER BY rb.ROOM_BOARD_ID DESC ")
+        .append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+		String sql = sqlBuilder.toString();
+		int paramIndex = 1;
+		
+		try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			if (searchCondition.getKeyword() != null && !searchCondition.getKeyword().trim().isEmpty()) {
+			    pstmt.setString(paramIndex++, "%" + searchCondition.getKeyword() + "%");
+			}
+			// 페이지네이션 파라미터
+			pstmt.setInt(paramIndex++, searchCondition.getRoomBoardOffset());
+			pstmt.setInt(paramIndex, searchCondition.getRoomBoardSize());
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				RoomBoardDto roomBoard = RoomBoardDto.builder()
+				        .roomBoardId(rs.getInt("ROOM_BOARD_ID"))
+				        .roomBoardTitle(rs.getString("ROOM_BOARD_TITLE"))
+				        .updatedAt(rs.getTimestamp("UPDATED_AT"))
+				        .roomBoardViewCnt(rs.getInt("ROOM_BOARD_VIEW_CNT"))
+				        .userNickname(rs.getString("USER_NICKNAME"))
+				        .replyCount(rs.getInt("reply_count"))
+				        .build();
+				
+				System.out.println(" ??? 타이들인데?? +===>>> " + roomBoard.getRoomBoardTitle());
+				roomBoardList.add(roomBoard);
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return roomBoardList;
+	}
+	
+	public RoomBoardDto getRoomBoardDetail(int roomBoardId) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int userId = 13;
+		RoomBoardDto roomBoard = null;
+		
+		String sql = """
+			    SELECT 
+			    	rb.ROOM_BOARD_ID as ROOM_BOARD_ID,
+			        rb.ROOM_BOARD_TITLE as ROOM_BOARD_TITLE,  
+			        rb.ROOM_BOARD_CONTENT as ROOM_BOARD_CONTENT, 
+			        rb.UPDATED_AT as UPDATED_AT, 
+			        rb.ROOM_BOARD_VIEW_CNT as ROOM_BOARD_VIEW_CNT,
+			        u.USER_PHOTO as USER_PHOTO, 
+			        (SELECT COUNT(*) 
+			         FROM LIKE_ROOM_BOARD 
+			         WHERE ROOM_BOARD_ID = rb.ROOM_BOARD_ID) AS like_count,
+			        NVL(lrb.USER_ID, 0) AS like_status,
+			        (SELECT CASE 
+			             WHEN rb.USER_ID = ? THEN 1 
+			             ELSE 0 
+			         END 
+			         FROM DUAL) AS is_my_post
+			    FROM ROOM_BOARD rb
+			    JOIN "USER" u ON u.USER_ID = rb.USER_ID
+			    LEFT JOIN LIKE_ROOM_BOARD lrb 
+			        ON lrb.USER_ID = ? 
+			        AND lrb.ROOM_BOARD_ID = rb.ROOM_BOARD_ID
+			    WHERE rb.ROOM_BOARD_ID = ?
+			    """;
+		
+		try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, userId);
+			pstmt.setInt(2, userId);
+			pstmt.setInt(3, roomBoardId);
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				 roomBoard = RoomBoardDto.builder()
+				        .roomBoardId(rs.getInt("ROOM_BOARD_ID"))
+				        .roomBoardTitle(rs.getString("ROOM_BOARD_TITLE"))
+				        .roomBoardContent(rs.getString("ROOM_BOARD_CONTENT"))
+				        .updatedAt(rs.getDate("UPDATED_AT"))
+				        .roomBoardViewCnt(rs.getInt("ROOM_BOARD_VIEW_CNT"))
+				        .userPhoto(rs.getString("USER_PHOTO"))
+				        .likeCount(rs.getInt("like_count"))
+				        .likeStatus(rs.getInt("like_status") == 1)
+				        .isMyPost(rs.getInt("is_my_post") == 1)
+				        .build();
+				 
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return roomBoard;
 	}
 	
 	

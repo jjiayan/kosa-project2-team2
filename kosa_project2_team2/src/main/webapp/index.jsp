@@ -74,7 +74,6 @@
         🧪 테스트 유저 사진 보기
       </button>
     </main>
-
   </div>
 
 </body>
