@@ -1,1257 +1,831 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%
-	// 테스트용~ 
-    // 게시글 ID 설정 (DB에 실제로 존재하는 ROOM_BOARD_ID)
-    Long roomBoardId = 1L;
-    
-    // 테스트할 사용자 선택 (2: user1, )
-    session.setAttribute("userId", 2L);
-    
-    // 현재 사용자 닉네임 가져오기
-    String currentUser = "가연";
-    Long userId = (Long) session.getAttribute("userId");
-    if (userId != null) {
-        switch (userId.intValue()) {
-            case 1: currentUser = "재건"; break;
-            case 2: currentUser = "가연"; break;
-        }
-    }
-%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>댓글 시스템 테스트</title>
+<title>댓글 시스템 테스트 (List + Count + Write)</title>
 <style>
-    * { 
-        box-sizing: border-box; 
-        margin: 0;
-        padding: 0;
-    }
-    
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        padding: 20px;
-        padding-bottom: 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-    }
-    
-    .main-container {
-        max-width: 1000px;
-        margin: 0 auto;
-        background: white;
-        padding: 40px;
-        padding-bottom: 0;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        margin-bottom: 20px;
-    }
-    
-    .page-header {
-        margin-bottom: 30px;
-        padding-bottom: 20px;
-        border-bottom: 3px solid #667eea;
-    }
-    
-    .page-header h1 {
-        color: #333;
-        font-size: 32px;
-        margin-bottom: 10px;
-    }
-    
-    .page-header .info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 15px;
-    }
-    
-    .page-header .info .board-id {
-        color: #666;
-        font-size: 14px;
-    }
-    
-    .current-user {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 16px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 20px;
-        font-size: 14px;
-        font-weight: 600;
-    }
-    
-    .current-user::before {
-        content: "👤";
-        font-size: 16px;
-    }
-    
-    .test-info {
-        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-        border: 2px solid #28a745;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    
-    .test-info h3 {
-        color: #155724;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 18px;
-    }
-    
-    .test-info h3::before {
-        content: "✅";
-    }
-    
-    /* 댓글 영역 스타일 */
-    .reply-container { 
-        margin-top: 30px; 
-        padding: 0; 
-        background: white; 
-        border-radius: 0; 
-    }
-    
-    .reply-header { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center;
-        margin-bottom: 0; 
-        padding: 16px 20px; 
-        border-bottom: 1px solid #f0f0f0;
-        background: white;
-    }
-    
-    .reply-stats {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-    }
-    
-    .stat-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        color: #666;
-        font-size: 14px;
-    }
-    
-    .stat-icon {
-        font-size: 18px;
-    }
-    
-    .reply-sort { 
-        display: flex; 
-        gap: 0;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    
-    .sort-btn { 
-        padding: 12px 20px; 
-        border: none; 
-        background: transparent; 
-        cursor: pointer; 
-        font-size: 14px;
-        color: #999;
-        font-weight: 500;
-        position: relative;
-        transition: all 0.3s;
-    }
-    
-    .sort-btn:hover {
-        color: #333;
-    }
-    
-    .sort-btn.active { 
-        color: #333; 
-        font-weight: 700;
-    }
-    
-    .sort-btn.active::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: #333;
-    }
-    .reply-write-form { 
-        padding: 20px;
-        background: white;
-        border-top: 8px solid #f5f5f5;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        max-width: 1000px;
-        margin: 0 auto;
-        z-index: 100;
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    }
-    
-    #replyList {
-        padding-bottom: 200px; /* 댓글 입력창 높이만큼 여유 공간 */
-    }
-    
-    .write-form-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 12px;
-    }
-    
-    .write-form-header .profile-img {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .write-form-header .author-name {
-        font-weight: 600;
-        font-size: 14px;
-        color: #333;
-    }
-    
-    #replyContent, .reply-textarea { 
-        width: 100%; 
-        min-height: 60px; 
-        padding: 12px 16px; 
-        border: 1px solid #e0e0e0; 
-        border-radius: 8px; 
-        resize: none; 
-        font-size: 14px;
-        line-height: 1.5;
-        font-family: inherit;
-        background: #f9f9f9;
-    }
-    
-    #replyContent:focus, .reply-textarea:focus {
-        outline: none;
-        border-color: #999;
-        background: white;
-    }
-    
-    #replyContent::placeholder {
-        color: #ccc;
-    }
-    
-    .reply-write-actions { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center;
-        margin-top: 12px; 
-    }
-    
-    .write-tools {
-        display: flex;
-        gap: 12px;
-        align-items: center;
-    }
-    
-    .tool-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 20px;
-        color: #999;
-        padding: 4px;
-        transition: color 0.3s;
-    }
-    
-    .tool-btn:hover {
-        color: #666;
-    }
-    
-    .image-input {
-        display: none;
-    }
-    
-    .attached-images {
-        display: none; /* 기본 숨김 */
-        gap: 8px;
-        margin-top: 12px;
-        flex-wrap: wrap;
-    }
-    
-    .attached-image {
-        position: relative;
-        width: 80px;
-        height: 80px;
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid #e0e0e0;
-    }
-    
-    .attached-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .remove-image {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        background: rgba(0,0,0,0.6);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        cursor: pointer;
-        font-size: 12px;
-        line-height: 1;
-        padding: 0;
-    }
-    
-    .char-count { 
-        color: #999; 
-        font-size: 12px;
-        margin-left: auto;
-        margin-right: 12px;
-    }
-    
-    .btn-submit { 
-        padding: 10px 24px; 
-        background: #ff6b6b; 
-        color: white; 
-        border: none; 
-        border-radius: 6px; 
-        cursor: pointer; 
-        font-size: 14px;
-        font-weight: 600;
-        transition: background 0.3s;
-    }
-    
-    .btn-submit:hover {
-        background: #ff5252;
-    }
-    
-    .btn-submit:disabled {
-        background: #ddd;
-        cursor: not-allowed;
-    }
-    
-    .btn-cancel { 
-        padding: 8px 20px; 
-        background: #6c757d; 
-        color: white; 
-        border: none; 
-        border-radius: 4px; 
-        cursor: pointer; 
-        margin-right: 5px; 
-        font-size: 14px;
-        font-weight: 500;
-        transition: background 0.3s;
-    }
-    
-    .btn-cancel:hover {
-        background: #5a6268;
-    }
-    
-    .btn-like {
-    background: none;
+/* 기본 스타일 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f5f5f5;
+    padding: 20px;
+}
+
+.reply-container { 
+    max-width: 800px;
+    margin: 40px auto 0;
+    padding: 0;
+    background: white; 
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 1px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+/* 테스트 정보 패널 */
+.test-info {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    padding: 15px 20px;
+    margin: 20px auto;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 800px;
+}
+
+.test-info h3 {
+    margin: 0 0 10px 0;
+    color: #856404;
+    font-size: 18px;
+}
+
+.test-info p {
+    margin: 5px 0;
+    color: #856404;
+    font-size: 14px;
+}
+
+.test-input-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    margin: 15px 0 10px;
+}
+
+.test-input-group label {
+    font-weight: 600;
+    color: #856404;
+}
+
+.test-input-group input {
+    width: 100px;
+    padding: 5px 10px;
+    border: 2px solid #ffc107;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.test-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.test-btn {
+    padding: 8px 16px;
     border: none;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
-    color: #999;
-    padding: 4px 8px;
-    transition: all 0.3s;
-    display: inline-flex;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.test-btn.primary {
+    background: #007bff;
+    color: white;
+}
+
+.test-btn.primary:hover {
+    background: #0056b3;
+}
+
+.test-btn.success {
+    background: #28a745;
+    color: white;
+}
+
+.test-btn.success:hover {
+    background: #218838;
+}
+
+.test-btn.secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.test-btn.secondary:hover {
+    background: #545b62;
+}
+
+.test-btn.warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.test-btn.warning:hover {
+    background: #e0a800;
+}
+
+/* 테스트 로그 */
+.test-log {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    padding: 15px;
+    margin: 20px auto;
+    border-radius: 8px;
+    max-height: 250px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    max-width: 800px;
+}
+
+.test-log .log-entry {
+    padding: 5px;
+    margin: 2px 0;
+    border-left: 3px solid #007bff;
+    padding-left: 10px;
+}
+
+.test-log .log-success {
+    border-left-color: #28a745;
+    color: #155724;
+    background: #d4edda;
+}
+
+.test-log .log-error {
+    border-left-color: #dc3545;
+    color: #721c24;
+    background: #f8d7da;
+}
+
+.test-log .log-warning {
+    border-left-color: #ffc107;
+    color: #856404;
+    background: #fff3cd;
+}
+
+/* 댓글 헤더 */
+.reply-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    padding: 20px 24px 16px; 
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.reply-stats {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #666;
+    font-size: 14px;
+}
+
+.stat-icon {
+    font-size: 16px;
+}
+
+.reply-sort { 
+    display: flex;
     align-items: center;
     gap: 4px;
-	}
-	
-	.btn-like:hover {
-	    color: #ff6b6b;
-	}
-	
-	.btn-like.liked {
-	    color: #ff6b6b;
-	}
-	
-	.btn-like .heart-icon {
-	    font-size: 16px;
-	}
-    .reply-item { 
-        background: white; 
-        padding: 20px;
-        margin-bottom: 0; 
-        border-radius: 0; 
-        border: none;
-        border-bottom: 1px solid #f0f0f0;
-        transition: background 0.3s;
-        position: relative;
-    }
-    
-    .reply-item:hover {
-        background: #fafafa;
-    }
-    
-    .reply-item.child-reply { 
-        margin-left: 60px; 
-        background: #fafafa; 
-        border-left: 2px solid #e0e0e0;
-        padding-left: 20px;
-    }
-    
-    .reply-item-header { 
+}
+
+.sort-btn { 
+    padding: 6px 14px; 
+    border: none; 
+    background: white; 
+    cursor: pointer; 
+    font-size: 13px;
+    color: #999;
+    font-weight: 500;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.sort-btn:hover {
+    background: #f8f8f8;
+}
+
+.sort-btn.active { 
+    background: white; 
+    color: #333;
+    font-weight: 700;
+}
+
+/* 댓글 목록 */
+#replyList {
+    padding: 0;
+    background: white;
+}
+
+.reply-item { 
+    background: white; 
+    padding: 10px 24px;
+    border-bottom: 1px solid #f5f5f5;
+    transition: background 0.2s;
+    position: relative;
+}
+
+.reply-item:hover {
+    background: #fafafa;
+}
+
+.reply-item.child-reply { 
+    margin-left: 52px; 
+    background: #ffffff; 
+    padding-left: 20px;
+    border-left: 2px solid #e0e0e0;
+}
+
+.reply-item-header { 
     display: flex; 
     justify-content: space-between; 
     align-items: flex-start;
-    margin-bottom: 8px; 
-    position: relative; /* 추가 */
-	}
-    
-    .reply-author { 
-        display: flex; 
-        align-items: flex-start;
-        gap: 12px;
-        flex: 1;
-    }
-    
-    .profile-img {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: none;
-        flex-shrink: 0;
-    }
-    
-    .reply-main-content {
-        flex: 1;
-        min-width: 0;
-    }
-    
-    .author-info {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 6px;
-    }
-    
-    .author-name { 
-        font-weight: 700; 
-        font-size: 14px; 
-        color: #333;
-    }
-    
-    .reply-time { 
-        font-size: 12px; 
-        color: #999; 
-    }
-    
-    .reply-actions-menu {
-        display: flex;
-        gap: 8px;
-    }
-    
-    .btn-more {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px 8px;
-    color: #999;
-    font-size: 20px;
-    line-height: 1;
-    border-radius: 4px;
-    transition: all 0.2s;
-	}
-	
-	.btn-more:hover {
-	    color: #666;
-	    background: #f5f5f5;
-	}
-    
-    .btn-action {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px 8px;
-        color: #666;
-        font-size: 13px;
-        transition: color 0.3s;
-    }
-    
-    .btn-action:hover {
-        color: #333;
-        text-decoration: underline;
-    }
-    
-    .reply-content { 
-        margin: 12px 0; 
-        line-height: 1.6; 
-        white-space: pre-wrap; 
-        word-break: break-word;
-        color: #333;
-        font-size: 14px;
-    }
-    
-    /* .reply-footer { 
-        margin-top: 10px; 
-        padding-top: 10px; 
-        border-top: 1px solid #f0f0f0; 
-    } */
-    
-    .btn-reply-write { 
-        font-size: 13px; 
-        color: #007bff; 
-        background: none; 
-        border: none; 
-        cursor: pointer; 
-        font-weight: 500;
-        transition: color 0.3s;
-    }
-    
-    .btn-reply-write:hover {
-        color: #0056b3;
-        text-decoration: underline;
-    }
-    
-    .child-reply-form { 
-        margin-top: 15px; 
-        padding: 16px; 
-        background: white; 
-        border-radius: 8px; 
-        border: 1px solid #e0e0e0;
-    }
-    
-    .loading, .empty-state { 
-        text-align: center; 
-        padding: 60px 20px; 
-        color: #999; 
-        font-size: 14px;
-        background: white;
-    }
-    
-    .empty-state {
-        border-radius: 0;
-        border: none;
-        border-bottom: 1px solid #f0f0f0;
-    }
-    /* 더보기 메뉴 스타일 */
-	.reply-more-menu {
-	    position: absolute; /* relative에서 absolute로 변경 */
-	    right: 0; /* 추가 */
-	    top: 10px; /* 추가 */
-	    display: inline-block;
-	}
-	
-	.dropdown-menu {
-	    display: none;
-	    position: absolute;
-	    right: 0;
-	    top: 100%;
-	    background: white;
-	    border: 1px solid #e0e0e0;
-	    border-radius: 8px;
-	    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-	    min-width: 120px;
-	    z-index: 1000;
-	    margin-top: 4px;
-	}
-	
-	.dropdown-menu.show {
-	    display: block;
-	}
-	
-	.dropdown-item {
-	    padding: 12px 16px;
-	    cursor: pointer;
-	    border: none;
-	    background: none;
-	    width: 100%;
-	    text-align: left;
-	    font-size: 14px;
-	    color: #333;
-	    transition: background 0.2s;
-	}
-	
-	.dropdown-item:hover {
-	    background: #f5f5f5;
-	}
-	
-	.dropdown-item:first-child {
-	    border-radius: 8px 8px 0 0;
-	}
-	
-	.dropdown-item:last-child {
-	    border-radius: 0 0 8px 8px;
-	}
-	
-	.dropdown-item.danger {
-	    color: #dc3545;
-	}
-	
-	.dropdown-item.danger:hover {
-	    background: #fff5f5;
-	}
-    
+    margin-bottom: 10px; 
+}
+
+.reply-author { 
+    display: flex; 
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+}
+
+.profile-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.reply-main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.author-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.author-name { 
+    font-weight: 700; 
+    font-size: 14px; 
+    color: #333;
+}
+
+.reply-content { 
+    margin: 0;
+    line-height: 1.5; 
+    white-space: pre-wrap; 
+    word-break: break-word;
+    color: #333;
+    font-size: 14px;
+}
+
+.reply-time { 
+    font-size: 12px; 
+    color: #aaa; 
+}
+
+.loading, .empty-state { 
+    text-align: center; 
+    padding: 60px 20px; 
+    color: #aaa; 
+    font-size: 13px;
+    background: white;
+}
+
+/* 댓글 작성 폼 */
+.reply-write-form { 
+    padding: 20px 24px;
+    background: white;
+    border-top: 1px solid #f0f0f0;
+}
+
+.write-form-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.write-form-header .profile-img {
+    width: 28px;
+    height: 28px;
+}
+
+.write-form-header .author-name {
+    font-weight: 700;
+    font-size: 13px;
+    color: #333;
+}
+
+#replyContent { 
+    width: 100%; 
+    min-height: 80px; 
+    padding: 12px 16px; 
+    border: 2px solid #e8e8e8; 
+    border-radius: 8px; 
+    resize: vertical; 
+    font-size: 14px;
+    line-height: 1.5;
+    font-family: inherit;
+    background: #fafafa;
+}
+
+#replyContent:focus {
+    outline: none;
+    border-color: #28a745;
+    background: white;
+}
+
+#replyContent::placeholder {
+    color: #bbb;
+}
+
+.reply-write-actions { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    margin-top: 12px; 
+}
+
+.char-count { 
+    color: #bbb; 
+    font-size: 11px;
+    margin-left: auto;
+    margin-right: 12px;
+}
+
+.btn-submit { 
+    padding: 10px 24px; 
+    background: #28a745; 
+    color: white; 
+    border: none; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.btn-submit:hover {
+    background: #218838;
+}
+
+.btn-submit:disabled {
+    background: #e0e0e0;
+    cursor: not-allowed;
+}
+
+/* 상태 표시 */
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 5px;
+}
+
+.status-badge.enabled {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.disabled {
+    background: #f8d7da;
+    color: #721c24;
+}
 </style>
 </head>
 <body>
-    <div class="main-container">
-        <div class="page-header">
-            <h1>💬 댓글 시스템 테스트</h1>
-            <div class="info">
-                <div class="board-id">게시글 ID: <%= roomBoardId %></div>
-                <div class="current-user">
-                    현재 로그인: <%= currentUser %>
-                </div>
-            </div>
+    <!-- 테스트 정보 패널 -->
+    <div class="test-info">
+        <h3>🧪 댓글 시스템 테스트 페이지</h3>
+        <p>
+            <strong>테스트 기능:</strong> 
+            <span class="status-badge enabled">LIST</span>
+            <span class="status-badge enabled">COUNT</span>
+            <span class="status-badge enabled">WRITE</span>
+        </p>
+        <div class="test-input-group">
+            <label>게시글 ID:</label>
+            <input type="number" id="testRoomBoardId" value="1">
+            <label>현재 사용자 ID:</label>
+            <input type="number" id="testUserId" value="${sessionScope.LOGIN_USER.getUser_id}" readonly>
         </div>
-        
-        <div class="test-info">
-            <h3>페이지가 정상적으로 로드되었습니다!</h3>
+        <div class="test-buttons">
+            <button class="test-btn primary" onclick="testReloadAll()">🔄 전체 새로고침</button>
+            <button class="test-btn secondary" onclick="testCountOnly()">📊 댓글 수 조회</button>
+            <button class="test-btn success" onclick="testQuickWrite()">✏️ 빠른 댓글 작성</button>
+            <button class="test-btn warning" onclick="clearTestLog()">🗑️ 로그 초기화</button>
         </div>
-        
-        <!-- 댓글 영역 -->
-        <div class="reply-container">
-            <!-- 좋아요/댓글 통계 -->
-            <div class="reply-header">
-                <div class="reply-stats">
-                    <div class="stat-item">
-                        <span class="stat-icon">👍</span>
-                        <span>좋아요 <strong>4</strong></span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-icon">💬</span>
-                        <span>댓글 <strong id="replyTotalCount">0</strong></span>
-                    </div>
+    </div>
+
+    <!-- 테스트 로그 -->
+    <div class="test-log" id="testLog">
+        <div class="log-entry">테스트 로그가 여기에 표시됩니다...</div>
+    </div>
+
+    <!-- 댓글 영역 -->
+    <div class="reply-container">
+        <!-- 댓글 통계 -->
+        <div class="reply-header">
+            <div class="reply-stats">
+                <div class="stat-item">
+                    <span class="stat-icon">💬</span>
+                    <span>댓글 <strong id="replyTotalCount">0</strong></span>
                 </div>
             </div>
             
-            <!-- 정렬 탭 -->
             <div class="reply-sort">
                 <button class="sort-btn active" data-order="ASC">등록순</button>
                 <button class="sort-btn" data-order="DESC">최신순</button>
             </div>
-            
-            <!-- 댓글 목록 -->
-            <div id="replyList">
-                <div class="loading">댓글을 불러오는 중...</div>
+        </div>
+        
+        <!-- 댓글 목록 -->
+        <div id="replyList">
+            <div class="loading">댓글을 불러오는 중...</div>
+        </div>
+        
+        <!-- 댓글 작성 폼 -->
+        <div class="reply-write-form">
+            <div class="write-form-header">
+                <c:choose>
+                    <c:when test="${not empty sessionScope.LOGIN_USER.user_photo}">
+                        <img src="${pageContext.request.contextPath}${sessionScope.LOGIN_USER.user_photo}" 
+                             alt="프로필" class="profile-img">
+                    </c:when>
+                    <c:otherwise>
+                        <img src="${pageContext.request.contextPath}/images/default-avatar.png" 
+                             alt="프로필" class="profile-img">
+                    </c:otherwise>
+                </c:choose>
+                <span class="author-name">
+                    ${not empty sessionScope.LOGIN_USER ? sessionScope.LOGIN_USER.user_nickname : '테스트 사용자'}
+                </span>
             </div>
-            
-            <!-- 댓글 작성 폼 -->
-            <div class="reply-write-form">
-                <div class="write-form-header">
-                    <img src="${pageContext.request.contextPath}/images/default-avatar.png" alt="프로필" class="profile-img">
-                    <span class="author-name"><%= currentUser %></span>
-                </div>
-                <div id="attachedImages" class="attached-images"></div>
-                <textarea id="replyContent" placeholder="댓글을 남겨보세요" maxlength="3000"></textarea>
-                <div class="reply-write-actions">
-                    <div class="write-tools">
-                        <input type="file" id="imageInput" class="image-input" accept="image/*" multiple onchange="handleImageSelect(event)">
-                        <button class="tool-btn" title="이미지 첨부" onclick="document.getElementById('imageInput').click()">📷</button>
-                        <button class="tool-btn" title="이모티콘">😊</button>
-                    </div>
-                    <span class="char-count"><span id="currentLength">0</span>/3000</span>
-                    <button class="btn-submit" onclick="writeReply()">등록</button>
-                </div>
+            <textarea id="replyContent" placeholder="댓글을 입력하세요 (테스트용)..." maxlength="3000"></textarea>
+            <div class="reply-write-actions">
+                <span class="char-count"><span id="currentLength">0</span>/3000</span>
+                <button class="btn-submit" onclick="writeReply()">✅ 댓글 작성 테스트</button>
             </div>
         </div>
     </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-// 게시글 ID
-var ROOM_BOARD_ID = <%= roomBoardId %>;
-var currentOrder = 'ASC';
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // 게시글 ID
+        var ROOM_BOARD_ID = 1;
+        var currentOrder = 'ASC';
 
-jQuery(document).ready(function() {
-    console.log('페이지 로드 완료, 댓글 목록 불러오기 시작');
-    loadReplyList();
-    
-    // 글자 수 카운터
-    jQuery('#replyContent').on('input', function() {
-        jQuery('#currentLength').text(jQuery(this).val().length);
-    });
-    
-    // 정렬 버튼 클릭
-    jQuery('.sort-btn').on('click', function() {
-        jQuery('.sort-btn').removeClass('active');
-        jQuery(this).addClass('active');
-        currentOrder = jQuery(this).data('order');
-        loadReplyList();
-    });
-});
-
-/**
- * 댓글 목록 불러오기
- */
-function loadReplyList() {
-    console.log('loadReplyList 호출됨, ROOM_BOARD_ID:', ROOM_BOARD_ID);
-    
-    jQuery.ajax({
-        url: '${pageContext.request.contextPath}/reply/query',
-        type: 'GET',
-        dataType: 'json',
-        data: {
-            action: 'list',
-            roomBoardId: ROOM_BOARD_ID,
-            orderBy: currentOrder
-        },
-        success: function(response) {
-            console.log('댓글 목록 응답:', response);
-            if (response.success) {
-                displayReplyList(response.replies);
-                jQuery('#replyTotalCount').text(response.totalCount);
-            } else {
-                alert(response.message);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('댓글 목록 로드 에러:', error);
-            console.error('상태:', status);
-            console.error('응답:', xhr.responseText);
-            alert('서버 오류가 발생했습니다: ' + error);
-        }
-    });
-}
-
-/**
- * 댓글 목록 표시
- */
-/* function displayReplyList(replies) {
-    console.log('displayReplyList 호출됨, 댓글 수:', replies.length);
-    var replyList = jQuery('#replyList');
-    replyList.empty();
-    
-    if (replies.length === 0) {
-        replyList.html('<div class="empty-state">첫 댓글을 작성해보세요!</div>');
-        return;
-    }
-    
-    for (var i = 0; i < replies.length; i++) {
-        var reply = replies[i];
-        replyList.append(createReplyHtml(reply, false));
-        
-        if (reply.replies && reply.replies.length > 0) {
-            for (var j = 0; j < reply.replies.length; j++) {
-                replyList.append(createReplyHtml(reply.replies[j], true));
-            }
-        }
-    }
-} */
-/**
- * 댓글 목록 표시
- */
-function displayReplyList(replies) {
-    console.log('displayReplyList 호출됨, 댓글 수:', replies.length);
-    var replyList = jQuery('#replyList');
-    replyList.empty();
-    
-    if (replies.length === 0) {
-        replyList.html('<div class="empty-state">첫 댓글을 작성해보세요!</div>');
-        return;
-    }
-    
-    // ✅ 재귀 함수로 모든 깊이의 답글 처리
-    function renderReply(reply, isChild) {
-        replyList.append(createReplyHtml(reply, isChild));
-        
-        if (reply.replies && reply.replies.length > 0) {
-            for (var j = 0; j < reply.replies.length; j++) {
-                renderReply(reply.replies[j], true);
-            }
-        }
-    }
-    
-    for (var i = 0; i < replies.length; i++) {
-        renderReply(replies[i], false);
-    }
-}
-/**
- * 댓글 HTML 생성
- */
-function createReplyHtml(reply, isChild) {
-    var childClass = isChild ? 'child-reply' : '';
-    var contextPath = '${pageContext.request.contextPath}';
-    var profileImg = reply.userPhoto ? 
-        '<img src="' + contextPath + reply.userPhoto + '" alt="프로필" class="profile-img">' :
-        '<img src="' + contextPath + '/images/default-avatar.png" alt="프로필" class="profile-img">';
-    
-    // 삭제된 댓글 처리
-    if (reply.status === 'DELETED' && reply.parentReplyId == null) {
-        // 댓글 지워지면 '삭제된 댓글'이라는 메세지 뜸 
-    	// var timeText = formatDateTime(reply.replyUpdatedAt || reply.replyCreatedAt);
-        
-        return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
-            '<div class="reply-item-header">' +
-            '<div class="reply-author">' +
-            // profileImg +
-            '<div class="reply-main-content">' +
-            '<div class="author-info">' +
-            // '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
-            '</div>' +
-            '<div class="reply-content" style="color: #999; font-style: italic;">' +
-            '삭제된 댓글입니다.' +
-            '</div>' +
-            // '<div class="reply-footer">' +
-            // '<span class="reply-time">' + timeText + '</span>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
+        jQuery(document).ready(function() {
+            // 입력 필드에서 게시글 ID 가져오기
+            ROOM_BOARD_ID = parseInt(jQuery('#testRoomBoardId').val());
             
-    } else if (reply.status === 'DELETED' && reply.parentReplyId != null){
-    	// 대댓글 삭제되면 그냥 안보임 
-		// var timeText = formatDateTime(reply.replyUpdatedAt || reply.replyCreatedAt);
-        
-        /* return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
-            '<div class="reply-item-header">' +
-            '<div class="reply-author">' +
-            profileImg +
-            '<div class="reply-main-content">' +
-            '<div class="author-info">' +
-            '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
-            '</div>' +
-            '<div class="reply-content" style="color: #999; font-style: italic;">' +
-            '삭제된 댓글입니다.' +
-            '</div>' +
-            '<div class="reply-footer">' +
-            '<span class="reply-time">' + timeText + '</span>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</div>'; */
-		return;
-    } 
-    
-    // 정상 댓글 처리 (기존 코드)
-    // 수정/삭제 버튼 (본인 댓글만)
-    var actionButtons = '';
-    if (reply.owner) {
-        // 본인 댓글: 수정/삭제 메뉴
-        actionButtons = '<div class="reply-more-menu">' +
-            '<button class="btn-more" onclick="toggleDropdown(event, ' + reply.replyId + ')">⋮</button>' +
-            '<div class="dropdown-menu" id="dropdown' + reply.replyId + '">' +
-            '<button class="dropdown-item" onclick="editReply(' + reply.replyId + ')">수정</button>' +
-            '<button class="dropdown-item danger" onclick="deleteReply(' + reply.replyId + ')">삭제</button>' +
-            '</div>' +
-            '</div>';
-    } else {
-        // 타인 댓글: 신고하기 메뉴
-        actionButtons = '<div class="reply-more-menu">' +
-            '<button class="btn-more" onclick="toggleDropdown(event, ' + reply.replyId + ')">⋮</button>' +
-            '<div class="dropdown-menu" id="dropdown' + reply.replyId + '">' +
-            '<button class="dropdown-item danger" onclick="reportReply(' + reply.replyId + ')">신고하기</button>' +
-            '</div>' +
-            '</div>';
-    }
-    
-    // 답글쓰기 버튼 (모든 댓글에 표시)
-    var replyButton = '<button class="btn-reply-write" onclick="toggleChildReplyForm(' + reply.replyId + ')">답글쓰기</button>';
-    
- 	// 하트 버튼 - 예쁜 하트 아이콘으로 변경
-    var likeButton = '<button class="btn-like" onclick="toggleLike(' + reply.replyId + ')">' +
-        '<span class="heart-icon"> ♥ </span>' +
-        '</button>';
-    
-    var childForm = '<div class="child-reply-form" id="childForm' + reply.replyId + '" style="display:none;">' +
-        '<textarea class="reply-textarea" id="childContent' + reply.replyId + '" ' +
-        'placeholder="답글을 입력하세요..." maxlength="3000"></textarea>' +
-        '<div class="reply-write-actions">' +
-        '<div class="write-tools"></div>' +
-        '<span class="char-count"><span id="childLength' + reply.replyId + '">0</span>/3000</span>' +
-        '<button class="btn-cancel" onclick="toggleChildReplyForm(' + reply.replyId + ')">취소</button>' +
-        '<button class="btn-submit" onclick="writeChildReply(' + reply.replyId + ')">등록</button>' +
-        '</div>' +
-        '</div>';
-        
-    var timeText = '';
-    if (reply.replyUpdatedAt && reply.replyUpdatedAt !== reply.replyCreatedAt) {
-        timeText = '(수정됨) ' + formatDateTime(reply.replyUpdatedAt);
-    } else {
-        timeText = formatDateTime(reply.replyCreatedAt);
-    }
-        
-    return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
-	    '<div class="reply-item-header">' +
-	    '<div class="reply-author">' +
-	    profileImg +
-	    '<div class="reply-main-content">' +
-	    '<div class="author-info">' +
-	    '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
-	    '</div>' +
-	    '<div class="reply-content" data-original="' + escapeHtml(reply.replyContent) + '">' +
-	    escapeHtml(reply.replyContent) +
-	    '</div>' +
-	    '<span class="reply-time">' + timeText + '</span>' + '    ' + 
-	    replyButton + 
-	    likeButton +
-	    '</div>' +
-	    childForm +
-	    '</div>' +
-	    '</div>' +
-	    actionButtons +  // 여기로 이동 (reply-item-header 내부에서 맨 마지막)
-	    '</div>' +
-	    '</div>';
-	}
-
-/**
- * HTML 이스케이프 처리
- */
-function escapeHtml(text) {
-    if (!text) return '';
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-/**
- * 날짜 포맷 (2025.10.02 12:30)
- */
-function formatDateTime(dateStr) {
-    if (!dateStr) return '';
-    var date = new Date(dateStr);
-    var year = date.getFullYear();
-    var month = String(date.getMonth() + 1).padStart(2, '0');
-    var day = String(date.getDate()).padStart(2, '0');
-    var hours = String(date.getHours()).padStart(2, '0');
-    var minutes = String(date.getMinutes()).padStart(2, '0');
-    return year + '.' + month + '.' + day + ' ' + hours + ':' + minutes;
-}
-
-/**
- * 이미지 선택 처리
- */
-var selectedImages = [];
-
-function handleImageSelect(event) {
-    var files = event.target.files;
-    
-    for (var i = 0; i < files.length; i++) {
-        if (selectedImages.length >= 5) {
-            alert('이미지는 최대 5개까지 첨부할 수 있습니다.');
-            break;
-        }
-        
-        var file = files[i];
-        if (!file.type.startsWith('image/')) {
-            alert('이미지 파일만 첨부할 수 있습니다.');
-            continue;
-        }
-        
-        selectedImages.push(file);
-    }
-    
-    displayAttachedImages();
-    event.target.value = ''; // input 초기화
-}
-
-/**
- * 첨부된 이미지 표시
- */
-function displayAttachedImages() {
-    var container = jQuery('#attachedImages');
-    container.empty();
-    
-    if (selectedImages.length === 0) {
-        container.hide();
-        return;
-    }
-    
-    container.css('display', 'flex'); // flex로 표시
-    
-    for (var i = 0; i < selectedImages.length; i++) {
-        (function(index) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var imageHtml = '<div class="attached-image">' +
-                    '<img src="' + e.target.result + '" alt="첨부 이미지">' +
-                    '<button class="remove-image" onclick="removeImage(' + index + ')">×</button>' +
-                    '</div>';
-                container.append(imageHtml);
-            };
-            reader.readAsDataURL(selectedImages[index]);
-        })(i);
-    }
-}
-
-/**
- * 이미지 제거
- */
-function removeImage(index) {
-    selectedImages.splice(index, 1);
-    displayAttachedImages();
-}
-
-/**
- * 좋아요 토글
- */
-function toggleLike(replyId) {
-    console.log('좋아요 토글:', replyId);
-    // 좋아요 기능은 추후 구현
-    alert('좋아요 기능은 준비 중입니다.');
-}
-
-/**
- * 댓글 작성
- */
-function writeReply() {
-    console.log('writeReply 호출됨');
-    var content = jQuery('#replyContent').val().trim();
-    
-    if (!content) {
-        alert('댓글 내용을 입력해주세요.');
-        return;
-    }
-    
-    if (selectedImages.length > 0) {
-        alert('이미지 첨부 기능은 준비 중입니다.\n텍스트 댓글만 등록됩니다.');
-    }
-    
-    jQuery.ajax({
-        url: '${pageContext.request.contextPath}/reply/command',
-        type: 'POST',
-        dataType: 'json',
-        data: {
-            action: 'write',
-            roomBoardId: ROOM_BOARD_ID,
-            replyContent: content
-        },
-        success: function(response) {
-            console.log('댓글 작성 응답:', response);
-            if (response.success) {
-                jQuery('#replyContent').val('');
-                jQuery('#currentLength').text('0');
-                selectedImages = [];
-                displayAttachedImages();
+            addTestLog('✅ 테스트 페이지 로드 완료', 'success');
+            addTestLog('게시글 ID: ' + ROOM_BOARD_ID);
+            addTestLog('현재 사용자: ' + jQuery('#testUserId').val());
+            
+            // 초기 댓글 목록 로드
+            loadReplyList();
+            
+            // 글자 수 카운터
+            jQuery('#replyContent').on('input', function() {
+                jQuery('#currentLength').text(jQuery(this).val().length);
+            });
+            
+            // 정렬 버튼 클릭
+            jQuery('.sort-btn').on('click', function() {
+                jQuery('.sort-btn').removeClass('active');
+                jQuery(this).addClass('active');
+                currentOrder = jQuery(this).data('order');
+                addTestLog('정렬 변경: ' + currentOrder);
                 loadReplyList();
-                alert(response.message);
-            } else {
-                alert(response.message);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('댓글 작성 에러:', error);
-            alert('서버 오류가 발생했습니다: ' + error);
+            });
+            
+            // 게시글 ID 입력 필드 변경 감지
+            jQuery('#testRoomBoardId').on('change', function() {
+                ROOM_BOARD_ID = parseInt(jQuery(this).val());
+                addTestLog('게시글 ID 변경: ' + ROOM_BOARD_ID, 'warning');
+                testReloadAll();
+            });
+        });
+
+        /**
+         * 테스트 로그 추가
+         */
+        function addTestLog(message, type) {
+            var logClass = type === 'success' ? 'log-success' : 
+                          (type === 'error' ? 'log-error' : 
+                          (type === 'warning' ? 'log-warning' : ''));
+            var timestamp = new Date().toLocaleTimeString();
+            var logEntry = '<div class="log-entry ' + logClass + '">[' + timestamp + '] ' + message + '</div>';
+            jQuery('#testLog').append(logEntry);
+            
+            // 자동 스크롤
+            var logDiv = document.getElementById('testLog');
+            logDiv.scrollTop = logDiv.scrollHeight;
         }
-    });
-}
 
-/**
- * 대댓글 폼 토글
- */
-function toggleChildReplyForm(parentReplyId) {
-    var form = jQuery('#childForm' + parentReplyId);
-    form.toggle();
-    
-    if (form.is(':visible')) {
-        // 글자 수 카운터 설정
-        jQuery('#childContent' + parentReplyId).off('input').on('input', function() {
-            jQuery('#childLength' + parentReplyId).text(jQuery(this).val().length);
-        });
-    }
-}
-
-/**
- * 대댓글 작성
- */
-function writeChildReply(parentReplyId) {
-    var content = jQuery('#childContent' + parentReplyId).val().trim();
-    
-    if (!content) {
-        alert('답글 내용을 입력해주세요.');
-        return;
-    }
-    
-    jQuery.ajax({
-        url: '${pageContext.request.contextPath}/reply/command',
-        type: 'POST',
-        dataType: 'json',
-        data: {
-            action: 'write',
-            roomBoardId: ROOM_BOARD_ID,
-            replyContent: content,
-            parentReplyId: parentReplyId
-        },
-        success: function(response) {
-            if (response.success) {
-                jQuery('#childContent' + parentReplyId).val('');
-                toggleChildReplyForm(parentReplyId);
-                loadReplyList();
-                alert(response.message);
-            } else {
-                alert(response.message);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('답글 작성 에러:', error);
-            alert('서버 오류가 발생했습니다: ' + error);
+        /**
+         * 테스트 로그 초기화
+         */
+        function clearTestLog() {
+            jQuery('#testLog').html('<div class="log-entry">로그 초기화됨</div>');
+            addTestLog('테스트 로그가 초기화되었습니다');
         }
-    });
-}
 
-/**
- * 댓글 수정
- */
-function editReply(replyId) {
-	// 드롭다운 닫기
-    jQuery('.dropdown-menu').removeClass('show');
-	
-    var replyItem = jQuery('.reply-item[data-reply-id="' + replyId + '"]');
-    var contentDiv = replyItem.find('.reply-content');
-    var originalContent = contentDiv.data('original');
-    
-    contentDiv.html(
-        '<textarea class="reply-textarea" id="editContent' + replyId + '" style="margin-top:8px;">' + escapeHtml(originalContent) + '</textarea>' +
-        '<div class="reply-write-actions" style="margin-top:12px;">' +
-        '<div class="write-tools"></div>' +
-        '<span class="char-count"><span id="editLength' + replyId + '">' + originalContent.length + '</span>/3000</span>' +
-        '<button class="btn-cancel" onclick="loadReplyList()">취소</button>' +
-        '<button class="btn-submit" onclick="updateReply(' + replyId + ')">수정</button>' +
-        '</div>'
-    );
-    
-    // 글자 수 카운터
-    jQuery('#editContent' + replyId).on('input', function() {
-        jQuery('#editLength' + replyId).text(jQuery(this).val().length);
-    });
-}
+        /**
+         * 전체 새로고침 테스트
+         */
+        function testReloadAll() {
+            addTestLog('=== 전체 새로고침 테스트 시작 ===', 'warning');
+            loadReplyList();
+        }
 
-/**
- * 댓글 수정 완료
- */
-function updateReply(replyId) {
-    var content = jQuery('#editContent' + replyId).val().trim();
-    
-    if (!content) {
-        alert('댓글 내용을 입력해주세요.');
-        return;
-    }
-    
-    if (confirm('댓글을 수정하시겠습니까?')) {
-        jQuery.ajax({
-            url: '${pageContext.request.contextPath}/reply/command',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                action: 'update',
-                replyId: replyId,
-                replyContent: content
-            },
-            success: function(response) {
-                if (response.success) {
-                    loadReplyList();
-                    alert(response.message);
-                } else {
-                    alert(response.message);
+        /**
+         * 댓글 수만 조회 테스트
+         */
+        function testCountOnly() {
+            addTestLog('=== 댓글 수 조회 테스트 시작 ===', 'warning');
+            
+            jQuery.ajax({
+                url: '${pageContext.request.contextPath}/reply/count.ajax',
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    roomBoardId: ROOM_BOARD_ID
+                },
+                beforeSend: function() {
+                    addTestLog('📡 요청 URL: /reply/count.ajax');
+                    addTestLog('📤 파라미터: roomBoardId=' + ROOM_BOARD_ID);
+                },
+                success: function(response) {
+                    addTestLog('✅ 댓글 수 조회 성공!', 'success');
+                    addTestLog('📥 응답: ' + JSON.stringify(response));
+                    
+                    if (response.success) {
+                        jQuery('#replyTotalCount').text(response.count);
+                        addTestLog('📊 댓글 수: ' + response.count, 'success');
+                    } else {
+                        addTestLog('❌ 실패: ' + response.message, 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    addTestLog('❌ Ajax 에러!', 'error');
+                    addTestLog('상태: ' + status, 'error');
+                    addTestLog('에러: ' + error, 'error');
                 }
-            },
-            error: function(xhr, status, error) {
-                console.error('댓글 수정 에러:', error);
-                alert('서버 오류가 발생했습니다: ' + error);
-            }
-        });
-    }
-}
+            });
+        }
 
-/**
- * 댓글 삭제
- */
-function deleteReply(replyId) {
-	// 드롭다운 닫기
-    jQuery('.dropdown-menu').removeClass('show');
-	
-    if (confirm('댓글을 삭제하시겠습니까?')) {
-        jQuery.ajax({
-            url: '${pageContext.request.contextPath}/reply/command',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                action: 'delete',
-                replyId: replyId
-            },
-            success: function(response) {
-                if (response.success) {
-                    loadReplyList();
-                    alert(response.message);
-                } else {
-                    alert(response.message);
+        /**
+         * 빠른 댓글 작성 테스트 (자동 텍스트)
+         */
+        function testQuickWrite() {
+            var testTexts = [
+                '테스트 댓글입니다.',
+                '댓글 작성 기능 테스트 중입니다!',
+                '이것은 자동 생성된 테스트 댓글입니다.',
+                'ReplyWriteController 테스트 ✅',
+                '정상 작동 확인용 댓글'
+            ];
+            
+            var randomText = testTexts[Math.floor(Math.random() * testTexts.length)];
+            var timestamp = new Date().toLocaleTimeString();
+            var fullText = randomText + ' (' + timestamp + ')';
+            
+            jQuery('#replyContent').val(fullText);
+            jQuery('#currentLength').text(fullText.length);
+            
+            addTestLog('⚡ 빠른 작성 모드: 자동 텍스트 입력', 'warning');
+            addTestLog('📝 내용: ' + fullText);
+            
+            // 자동으로 작성
+            setTimeout(function() {
+                writeReply();
+            }, 500);
+        }
+
+        /**
+         * 댓글 목록 불러오기
+         */
+        function loadReplyList() {
+            addTestLog('--- 댓글 목록 조회 시작 ---');
+            
+            jQuery.ajax({
+                url: '${pageContext.request.contextPath}/reply/list.ajax',
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    roomBoardId: ROOM_BOARD_ID,
+                    orderBy: currentOrder
+                },
+                beforeSend: function() {
+                    addTestLog('📡 요청 URL: /reply/list.ajax');
+                    addTestLog('📤 파라미터: roomBoardId=' + ROOM_BOARD_ID + ', orderBy=' + currentOrder);
+                    jQuery('#replyList').html('<div class="loading">댓글을 불러오는 중...</div>');
+                },
+                success: function(response) {
+                    addTestLog('✅ 댓글 목록 조회 성공!', 'success');
+                    
+                    if (response.success) {
+                        addTestLog('📊 총 댓글: ' + response.totalCount + '개', 'success');
+                        addTestLog('📥 반환 댓글: ' + response.replies.length + '개', 'success');
+                        
+                        displayReplyList(response.replies);
+                        jQuery('#replyTotalCount').text(response.totalCount);
+                    } else {
+                        addTestLog('❌ 실패: ' + response.message, 'error');
+                        jQuery('#replyList').html('<div class="empty-state">' + response.message + '</div>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    addTestLog('❌ Ajax 에러!', 'error');
+                    addTestLog('에러: ' + error, 'error');
+                    jQuery('#replyList').html('<div class="empty-state">서버 오류: ' + error + '</div>');
                 }
-            },
-            error: function(xhr, status, error) {
-                console.error('댓글 삭제 에러:', error);
-                alert('서버 오류가 발생했습니다: ' + error);
+            });
+        }
+
+        /**
+         * 댓글 작성
+         */
+        function writeReply() {
+            var content = jQuery('#replyContent').val().trim();
+            
+            if (!content) {
+                alert('댓글 내용을 입력해주세요.');
+                addTestLog('⚠️ 댓글 내용 없음', 'warning');
+                return;
             }
-        });
-    }
-}
-
-/**
- * 드롭다운 메뉴 토글
- */
-function toggleDropdown(event, replyId) {
-    event.stopPropagation(); // 이벤트 전파 방지
-    
-    var dropdown = jQuery('#dropdown' + replyId);
-    var isVisible = dropdown.hasClass('show');
-    
-    // 모든 드롭다운 닫기
-    jQuery('.dropdown-menu').removeClass('show');
-    
-    // 클릭한 드롭다운만 토글
-    if (!isVisible) {
-        dropdown.addClass('show');
-    }
-}
-
-/**
- * 댓글 신고
- */
-function reportReply(replyId) {
-    // 드롭다운 닫기
-    jQuery('.dropdown-menu').removeClass('show');
-    
-    if (confirm('이 댓글을 신고하시겠습니까?')) {
-        // TODO: 신고 기능 구현
-        alert('신고 기능은 준비 중입니다.');
-        
-        /* 실제 구현 시:
-        jQuery.ajax({
-            url: '${pageContext.request.contextPath}/reply/report',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                replyId: replyId,
-                reason: '신고 사유'
-            },
-            success: function(response) {
-                if (response.success) {
-                    alert('신고가 접수되었습니다.');
-                } else {
-                    alert(response.message);
+            
+            addTestLog('=== 댓글 작성 테스트 시작 ===', 'warning');
+            
+            jQuery.ajax({
+                url: '${pageContext.request.contextPath}/reply/write.ajax',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    roomBoardId: ROOM_BOARD_ID,
+                    replyContent: content
+                },
+                beforeSend: function() {
+                    addTestLog('📡 요청 URL: /reply/write.ajax');
+                    addTestLog('📤 파라미터: roomBoardId=' + ROOM_BOARD_ID);
+                    addTestLog('📝 댓글 내용: ' + content.substring(0, 50) + (content.length > 50 ? '...' : ''));
+                    
+                    // 버튼 비활성화
+                    jQuery('.btn-submit').prop('disabled', true).text('작성 중...');
+                },
+                success: function(response) {
+                    addTestLog('✅ 댓글 작성 완료!', 'success');
+                    addTestLog('📥 응답: ' + JSON.stringify(response));
+                    
+                    if (response.success) {
+                        addTestLog('✅ ' + response.message, 'success');
+                        addTestLog('📊 새 댓글 수: ' + response.totalCount, 'success');
+                        
+                        // 입력창 초기화
+                        jQuery('#replyContent').val('');
+                        jQuery('#currentLength').text('0');
+                        
+                        // 목록 새로고침
+                        loadReplyList();
+                        
+                        alert('✅ ' + response.message);
+                    } else {
+                        addTestLog('❌ 실패: ' + response.message, 'error');
+                        alert('❌ ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    addTestLog('❌ Ajax 에러!', 'error');
+                    addTestLog('상태: ' + status, 'error');
+                    addTestLog('에러: ' + error, 'error');
+                    addTestLog('응답: ' + xhr.responseText, 'error');
+                    
+                    alert('서버 오류가 발생했습니다: ' + error);
+                },
+                complete: function() {
+                    // 버튼 활성화
+                    jQuery('.btn-submit').prop('disabled', false).text('✅ 댓글 작성 테스트');
                 }
-            },
-            error: function(xhr, status, error) {
-                console.error('신고 처리 에러:', error);
-                alert('서버 오류가 발생했습니다.');
+            });
+        }
+
+        /**
+         * 댓글 목록 표시
+         */
+        function displayReplyList(replies) {
+            var replyList = jQuery('#replyList');
+            replyList.empty();
+            
+            if (replies.length === 0) {
+                replyList.html('<div class="empty-state">첫 댓글을 작성해보세요!</div>');
+                addTestLog('댓글 없음 - 빈 상태 표시');
+                return;
             }
-        });
-        */
-    }
-}
+            
+            addTestLog('댓글 렌더링 시작...');
+            
+            // 재귀 함수로 모든 깊이의 답글 처리
+            function renderReply(reply, isChild) {
+                replyList.append(createReplyHtml(reply, isChild));
+                
+                if (reply.replies && reply.replies.length > 0) {
+                    for (var j = 0; j < reply.replies.length; j++) {
+                        renderReply(reply.replies[j], true);
+                    }
+                }
+            }
+            
+            for (var i = 0; i < replies.length; i++) {
+                renderReply(replies[i], false);
+            }
+            
+            addTestLog('✅ 댓글 렌더링 완료', 'success');
+        }
 
-// 페이지 어디든 클릭하면 드롭다운 닫기
-jQuery(document).on('click', function(e) {
-    if (!jQuery(e.target).closest('.reply-more-menu').length) {
-        jQuery('.dropdown-menu').removeClass('show');
-    }
-});
+        /**
+         * 댓글 HTML 생성
+         */
+        function createReplyHtml(reply, isChild) {
+            var childClass = isChild ? 'child-reply' : '';
+            var contextPath = '${pageContext.request.contextPath}';
+            
+            var profileImgSrc = reply.userPhoto ? 
+                contextPath + reply.userPhoto : 
+                contextPath + '/images/default-avatar.png';
+            var defaultImgSrc = contextPath + '/images/default-avatar.png';
+            var profileImg = '<img src="' + profileImgSrc + '" alt="프로필" class="profile-img" ' +
+                'onerror="this.onerror=null; this.src=\'' + defaultImgSrc + '\';">';
+            
+            // 삭제된 댓글 처리
+            if (reply.status === 'DELETED') {
+                if (reply.parentReplyId == null) {
+                    return '<div class="reply-item ' + childClass + '">' +
+                        '<div class="reply-content" style="color: #999; font-style: italic;">삭제된 댓글입니다.</div>' +
+                        '</div>';
+                }
+                return '';
+            }
+            
+            var timeText = formatDateTime(reply.replyCreatedAt);
+            if (reply.replyUpdatedAt && reply.replyUpdatedAt !== reply.replyCreatedAt) {
+                timeText = '(수정됨) ' + formatDateTime(reply.replyUpdatedAt);
+            }
+            
+            var ownerBadge = reply.owner ? 
+                ' <span class="status-badge enabled">내 댓글</span>' : '';
+            
+            return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
+                '<div class="reply-item-header">' +
+                '<div class="reply-author">' +
+                profileImg +
+                '<div class="reply-main-content">' +
+                '<div class="author-info">' +
+                '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
+                ownerBadge +
+                '</div>' +
+                '<div class="reply-content">' + escapeHtml(reply.replyContent) + '</div>' +
+                '<span class="reply-time">' + timeText + '</span>' +
+                '</div></div></div></div>';
+        }
 
-</script>
+        function escapeHtml(text) {
+            if (!text) return '';
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '';
+            var date = new Date(dateStr);
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            var hours = String(date.getHours()).padStart(2, '0');
+            var minutes = String(date.getMinutes()).padStart(2, '0');
+            return year + '.' + month + '.' + day + ' ' + hours + ':' + minutes;
+        }
+    </script>
 </body>
 </html>
