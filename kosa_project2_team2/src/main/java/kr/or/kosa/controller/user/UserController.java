@@ -107,6 +107,7 @@ public class UserController extends HttpServlet {
             forward.setPath(USER_VIEW_PATH + "mypageInfo.jsp");
         }
         
+        
         else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
