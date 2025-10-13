@@ -33,7 +33,7 @@ public class CertificationController extends HttpServlet {
         Action action = null;
         ActionForward forward = null;
 
-        // 목록 전체
+        // 현재 연도 최신 회차 기준 목록 JSP 출력
         if (urlCommand.equals("/certificationList.cert")) {
             action = new CertificationListService();
             forward = action.execute(request, response);
@@ -47,12 +47,6 @@ public class CertificationController extends HttpServlet {
         } else if (urlCommand.equals("/certificationSync.cert")) {
             action = new CertificationSyncActionService();
             forward = action.execute(request, response);
-            
-            
-        } else if (urlCommand.equals("/certificationAjax.cert")) {
-            action = new CertificationAjaxListService();
-            forward = action.execute(request, response);
-       
 
         // 그 외 → 에러 페이지 또는 404
         } else {

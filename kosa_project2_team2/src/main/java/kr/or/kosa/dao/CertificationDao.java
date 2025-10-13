@@ -3,142 +3,96 @@ package kr.or.kosa.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
-
-import kr.or.kosa.dto.Certification;
+import kr.or.kosa.dto.CertificationSummaryDto;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
-/**
- * DB에 자격증 정보를 CRUD하는 DAO
- * - API에서 받아온 데이터를 DB에 upsert(삽입 또는 갱신)
- * - 로컬 DB 조회용
- */
 public class CertificationDao {
-	
-	// 실제 API 서버 주소
-    private static final String API_URL = "http://192.168.2.24:8091/qualifications_api_server/certifications";
-    
-    /**
-     * 전체 자격증 목록 조회 (DB)
-     * 컬럼 Alias를 사용하여 camelCase와 매핑
-     */
-    public List<Certification> getAllCertifications() {
-        List<Certification> list = new ArrayList<>();
+
+    // 현재 연도 최신 회차 + 통계 + 일정 + 카테고리 JOIN 조회
+    public List<CertificationSummaryDto> getCurrentYearLatestCertifications() {
+        List<CertificationSummaryDto> list = new ArrayList<>();
 
         String sql =
             "SELECT " +
-            "   jmcd, " +
-            "   year, " +
-            "   impl_seq AS implSeq, " +
-            "   jm_name AS jmName, " +
-            "   organ_name AS organName " +
-            "FROM certification " +
-            "ORDER BY jm_name ASC";
+            "    m.JMCD, " +
+            "    m.JMNAME, " +
+            "    c.GRADE, " +
+            "    c.FIELD, " +
+            "    m.YEAR, " +
+            "    m.IMPLSEQ, " +
+            "    s_doc.PASSRATE AS docPassRate, " +
+            "    s_doc.APPLICANTS AS docApplicants, " +
+            "    s_prac.PASSRATE AS pracPassRate, " +
+            "    s_prac.APPLICANTS AS pracApplicants, " +
+            "    sch.EXAMFEE, " +
+            "    m.ORGANNAME " +
+            "FROM CERTIFICATION_MASTER m " +
+            "JOIN CERTIFICATION_CATEGORY c " +
+            "    ON m.JMCD = c.JMCD " +
+            "LEFT JOIN CERTIFICATION_SCHEDULE sch " +
+            "    ON m.JMCD = sch.JMCD " +
+            "   AND m.YEAR = sch.YEAR " +
+            "   AND m.IMPLSEQ = sch.IMPLSEQ " +
+            "LEFT JOIN CERTIFICATION_STATS s_doc " +
+            "    ON m.JMCD = s_doc.JMCD " +
+            "   AND m.YEAR = s_doc.YEAR " +
+            "   AND m.IMPLSEQ = s_doc.IMPLSEQ " +
+            "   AND s_doc.EXAMGB = '필기' " +
+            "LEFT JOIN CERTIFICATION_STATS s_prac " +
+            "    ON m.JMCD = s_prac.JMCD " +
+            "   AND m.YEAR = s_prac.YEAR " +
+            "   AND m.IMPLSEQ = s_prac.IMPLSEQ " +
+            "   AND s_prac.EXAMGB = '실기' " +
+            "WHERE " +
+            "    m.YEAR = EXTRACT(YEAR FROM SYSDATE) " +
+            "AND (m.JMCD, m.IMPLSEQ) IN ( " +
+            "    SELECT JMCD, MAX(IMPLSEQ) " +
+            "    FROM CERTIFICATION_MASTER " +
+            "    WHERE YEAR = EXTRACT(YEAR FROM SYSDATE) " +
+            "    GROUP BY JMCD " +
+            ") " +
+            "ORDER BY m.JMNAME";
 
-        try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+        try (
+            Connection conn = ConnectionPoolHelper.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
+        ) {
 
             while (rs.next()) {
-                Certification c = new Certification();
-                c.setJmcd(rs.getInt("jmcd"));
-                c.setYear(rs.getInt("year"));
-                c.setImplSeq(rs.getInt("implSeq"));
-                c.setJmName(rs.getString("jmName"));
-                c.setOrganName(rs.getString("organName"));
-                list.add(c);
-            }
+                CertificationSummaryDto dto = new CertificationSummaryDto();
 
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
+                dto.setJmcd(rs.getInt("JMCD"));
+                dto.setJmName(rs.getString("JMNAME"));
+                dto.setGrade(rs.getString("GRADE"));
+                dto.setField(rs.getString("FIELD"));
+                dto.setYear(rs.getInt("YEAR"));
+                dto.setImplSeq(rs.getInt("IMPLSEQ"));
 
-    // 자격증 상세 조회 (PK: jmcd)
-    public Certification getCertificationById(int id) {
-        Certification cert = null;
-        String sql = "SELECT jmcd, year, impl_seq AS implSeq, jm_name AS jmName, organ_name AS organName "
-                   + "FROM certification WHERE jmcd = ?";
+                // 필기 통계
+                dto.setDocPassRate(rs.getBigDecimal("docPassRate"));    // null 가능
+                dto.setDocApplicants(rs.getInt("docApplicants"));       // 0 처리 자동
 
-        try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                // 실기 통계
+                dto.setPracPassRate(rs.getBigDecimal("pracPassRate"));
+                dto.setPracApplicants(rs.getInt("pracApplicants"));
 
-            pstmt.setInt(1, id);
-            ResultSet rs = pstmt.executeQuery();
+                // 응시료
+                dto.setExamFee(rs.getBigDecimal("EXAMFEE"));            // null 가능
 
-            if (rs.next()) {
-                cert = new Certification();
-                cert.setJmcd(rs.getInt("jmcd"));
-                cert.setYear(rs.getInt("year"));
-                cert.setImplSeq(rs.getInt("implSeq"));
-                cert.setJmName(rs.getString("jmName"));
-                cert.setOrganName(rs.getString("organName"));
+                // 시행기관
+                dto.setOrganName(rs.getString("ORGANNAME"));
+
+                list.add(dto);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return cert;
+
+        return list;
     }
-
-
-    /**
-     * API 데이터 upsert (리스트 기반)
-     * MERGE INTO 사용
-     */
-    public int upsertCertifications(List<Certification> list) {
-        String sql =
-            "MERGE INTO certification c " +
-            "USING (SELECT ? AS jmcd, ? AS jm_name, ? AS organ_name, ? AS year, ? AS impl_seq FROM dual) d " +
-            "ON (c.jmcd = d.jmcd) " +
-            "WHEN MATCHED THEN " +
-            "    UPDATE SET c.jm_name = d.jm_name, c.organ_name = d.organ_name, " +
-            "               c.year = d.year, c.impl_seq = d.impl_seq, " +
-            "               c.last_updated = SYSDATE " +
-            "WHEN NOT MATCHED THEN " +
-            "    INSERT (jmcd, jm_name, organ_name, year, impl_seq) " +
-            "    VALUES (d.jmcd, d.jm_name, d.organ_name, d.year, d.impl_seq)";
-
-        int count = 0;
-
-        try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            for (Certification c : list) {
-                pstmt.setInt(1, c.getJmcd());
-                pstmt.setString(2, c.getJmName());
-                pstmt.setString(3, c.getOrganName());
-                pstmt.setInt(4, c.getYear());
-                pstmt.setInt(5, c.getImplSeq());
-                pstmt.addBatch();
-            }
-
-            int[] results = pstmt.executeBatch();
-            for (int r : results) {
-                if (r >= 0) count++;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return count;
-    }
-    
-    
 }

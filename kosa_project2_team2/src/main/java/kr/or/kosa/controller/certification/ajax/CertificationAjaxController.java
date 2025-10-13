@@ -14,11 +14,6 @@ import kr.or.kosa.dao.ApiCertificationDao;
 import kr.or.kosa.dao.CertificationDao;
 import kr.or.kosa.dto.Certification;
 
-/**
- * - Ajax 전용 Controller (JSON 응답)
- * - DB 우선 조회 + DB가 비어있다면 API 호출 후 DB 저장 (fallback)
- * - Action / ActionForward 사용 ❌
- */
 @WebServlet("/certificationAjax")
 public class CertificationAjaxController extends HttpServlet {
     
