@@ -12,9 +12,9 @@ import kr.or.kosa.utils.ConnectionPoolHelper;
 
 public class AdminMemberDao {
 
-    //전체 회원 수 조회 (기존 코드 호환용)
+    // 전체 회원 수 조회 
     public int getUserCount() {
-        String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_status != 'DELETED'";
+        String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_status NOT IN ('DELETED', 'ADMIN')";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
@@ -25,9 +25,9 @@ public class AdminMemberDao {
         return 0;
     }
 
-    // ✅ 검색 포함 회원 수 조회
+    //  검색 포함 회원 수 조회
     public int getUserCount(String nickname) {
-        String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_status != 'DELETED' AND user_nickname LIKE ?";
+        String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_status NOT IN ('DELETED', 'ADMIN') AND user_nickname LIKE ?";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, "%" + nickname + "%");
@@ -40,13 +40,13 @@ public class AdminMemberDao {
         return 0;
     }
 
-    //전체 목록 조회 (기존 코드 호환용)
+    // 전체 목록 조회 
     public List<UserDto> getPagedUsers(int offset, int limit) {
         List<UserDto> userList = new ArrayList<>();
         String sql =
-            "SELECT user_id, user_login_id, user_status, user_nickname, user_phonenumber, user_photo " +
+            "SELECT user_id, user_login_id, user_status, user_nickname, user_phonenumber, user_photo, user_bio " +
             "FROM \"USER\" " +
-            "WHERE user_status != 'DELETED' " +
+            "WHERE user_status NOT IN ('DELETED', 'ADMIN') " +
             "ORDER BY user_id " +
             "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
@@ -63,6 +63,7 @@ public class AdminMemberDao {
                     user.setUser_nickname(rs.getString("user_nickname"));
                     user.setUser_phonenumber(rs.getString("user_phonenumber"));
                     user.setUser_photo(rs.getString("user_photo"));
+                    user.setUser_bio(rs.getString("user_bio")); 
                     userList.add(user);
                 }
             }
@@ -72,13 +73,13 @@ public class AdminMemberDao {
         return userList;
     }
 
-    // ✅ 검색 포함 목록 조회
+    //  검색 포함 목록 조회
     public List<UserDto> getPagedUsers(int offset, int limit, String nickname) {
         List<UserDto> userList = new ArrayList<>();
         String sql =
-            "SELECT user_id, user_login_id, user_status, user_nickname, user_phonenumber, user_photo " +
+            "SELECT user_id, user_login_id, user_status, user_nickname, user_phonenumber, user_photo, user_bio " +
             "FROM \"USER\" " +
-            "WHERE user_status != 'DELETED' AND user_nickname LIKE ? " +
+            "WHERE user_status NOT IN ('DELETED', 'ADMIN') AND user_nickname LIKE ? " +
             "ORDER BY user_id " +
             "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
@@ -96,6 +97,7 @@ public class AdminMemberDao {
                     user.setUser_nickname(rs.getString("user_nickname"));
                     user.setUser_phonenumber(rs.getString("user_phonenumber"));
                     user.setUser_photo(rs.getString("user_photo"));
+                    user.setUser_bio(rs.getString("user_bio")); 
                     userList.add(user);
                 }
             }
