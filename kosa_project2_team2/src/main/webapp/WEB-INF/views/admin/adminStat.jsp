@@ -172,103 +172,150 @@
             height: 100%;
             background: #FF7272;
         }
+        
+        
+        /* ===== sideBar 전체 레이아웃 ===== */
+		.layout-wrap {
+		    display: grid;
+		    grid-template-columns: auto 1fr; /* 왼쪽: 사이드바 / 오른쪽: 메인 */
+		    gap: 0; /* 간격 제거 */
+		    align-items: flex-start;
+		    margin: 0;
+		    padding: 0;
+		}
+		
+		main {
+		    background: #fff; /* 흰색으로 변경 */
+		    border-left: 1px solid #e5e7eb;
+		    padding: 24px 28px;
+		    min-height: 100vh;
+		}
+		
+		/* ===== 반응형 ===== */
+		@media (max-width: 900px) {
+		    .layout-wrap {
+		        grid-template-columns: 1fr;
+		    }
+		    main {
+		        border-left: none;
+		        border-top: 1px solid #e5e7eb;
+		        padding: 16px;
+		    }
+		}
+		
+		
     </style>
 </head>
 
 <body>
 	<jsp:include page="/include/nav.jsp" />
-
-    <!-- 페이지 제목 -->
-    <h2>통계</h2>
-
-    <div class="stat-container">
-        <div class="stat-header">
-            <div class="update-time">업데이트: 2025년 10월 2일 18:00</div>
-        </div>
-
-        <!-- 상단 카드 -->
-        <div class="stat-cards">
-            <div class="stat-card">
-                <i class="fa-solid fa-user-group"></i>
-                <div class="number">1,000</div>
-                <small>총 가입자 수</small>
-                <div class="trend-up">▲ 10% 이전 달 대비</div>
-            </div>
-            <div class="stat-card">
-                <i class="fa-solid fa-layer-group"></i>
-                <div class="number">500</div>
-                <small>총 모임 수</small>
-                <div class="trend-down">▼ 5% 이전 달 대비</div>
-            </div>
-            <div class="stat-card">
-                <i class="fa-solid fa-user-check"></i>
-                <div class="number">640</div>
-                <small>모임 참여자 수</small>
-                <div class="trend-up">▲ 30% 이전 달 대비</div>
-            </div>
-            <div class="stat-card">
-                <i class="fa-solid fa-user-xmark"></i>
-                <div class="number">360</div>
-                <small>모임 미참여자 수</small>
-                <div class="trend-down">▼ 5% 이전 달 대비</div>
-            </div>
-        </div>
-
-        <!-- 차트 -->
-        <div class="charts">
-            <div class="chart-box">
-                <div id="ageChart" style="height:300px;"></div>
-            </div>
-            <div class="chart-box">
-                <div id="participationChart" style="height:300px;"></div>
-            </div>
-        </div>
-
-        <!-- 인기 자격증 -->
-        <div class="top-list">
-            <h5>인기 자격증 카테고리 TOP 5</h5>
-
-            <div class="rank-item">
-                <div class="rank-left">
-                    <div class="rank-num">1</div>
-                    <div class="rank-title">정보처리기사</div>
-                </div>
-                <div class="rank-bar"><div class="rank-fill" style="width:80%;"></div></div>
-            </div>
-
-            <div class="rank-item">
-                <div class="rank-left">
-                    <div class="rank-num">2</div>
-                    <div class="rank-title">정보보안기사</div>
-                </div>
-                <div class="rank-bar"><div class="rank-fill" style="width:60%;"></div></div>
-            </div>
-
-            <div class="rank-item">
-                <div class="rank-left">
-                    <div class="rank-num">3</div>
-                    <div class="rank-title">전기기사</div>
-                </div>
-                <div class="rank-bar"><div class="rank-fill" style="width:45%;"></div></div>
-            </div>
-
-            <div class="rank-item">
-                <div class="rank-left">
-                    <div class="rank-num">4</div>
-                    <div class="rank-title">건축기사</div>
-                </div>
-                <div class="rank-bar"><div class="rank-fill" style="width:30%; background:#bdbdbd;"></div></div>
-            </div>
-
-            <div class="rank-item">
-                <div class="rank-left">
-                    <div class="rank-num">5</div>
-                    <div class="rank-title">네트워크관리사</div>
-                </div>
-                <div class="rank-bar"><div class="rank-fill" style="width:28%; background:#bdbdbd;"></div></div>
-            </div>
-        </div>
+	
+	<!-- 사이드바 + 메인 레이아웃 -->
+    <div class="layout-wrap">
+        
+        <!-- 좌측 사이드바 -->
+        <jsp:include page="/include/adminSidebar.jsp">
+            <jsp:param name="current" value="adminStat"/>
+        </jsp:include>
+        
+        <!-- 우측 본문 -->
+        <main>
+		            
+		    <!-- 페이지 제목 -->
+		    <h2>통계</h2>
+		
+		    <div class="stat-container">
+		        <div class="stat-header">
+		            <div class="update-time">업데이트: 2025년 10월 2일 18:00</div>
+		        </div>
+		
+		        <!-- 상단 카드 -->
+		        <div class="stat-cards">
+		            <div class="stat-card">
+		                <i class="fa-solid fa-user-group"></i>
+		                <div class="number">1,000</div>
+		                <small>총 가입자 수</small>
+		                <div class="trend-up">▲ 10% 이전 달 대비</div>
+		            </div>
+		            <div class="stat-card">
+		                <i class="fa-solid fa-layer-group"></i>
+		                <div class="number">500</div>
+		                <small>총 모임 수</small>
+		                <div class="trend-down">▼ 5% 이전 달 대비</div>
+		            </div>
+		            <div class="stat-card">
+		                <i class="fa-solid fa-user-check"></i>
+		                <div class="number">640</div>
+		                <small>모임 참여자 수</small>
+		                <div class="trend-up">▲ 30% 이전 달 대비</div>
+		            </div>
+		            <div class="stat-card">
+		                <i class="fa-solid fa-user-xmark"></i>
+		                <div class="number">360</div>
+		                <small>모임 미참여자 수</small>
+		                <div class="trend-down">▼ 5% 이전 달 대비</div>
+		            </div>
+		        </div>
+		
+		        <!-- 차트 -->
+		        <div class="charts">
+		            <div class="chart-box">
+		                <div id="ageChart" style="height:300px;"></div>
+		            </div>
+		            <div class="chart-box">
+		                <div id="participationChart" style="height:300px;"></div>
+		            </div>
+		        </div>
+		
+		        <!-- 인기 자격증 -->
+		        <div class="top-list">
+		            <h5>인기 자격증 카테고리 TOP 5</h5>
+		
+		            <div class="rank-item">
+		                <div class="rank-left">
+		                    <div class="rank-num">1</div>
+		                    <div class="rank-title">정보처리기사</div>
+		                </div>
+		                <div class="rank-bar"><div class="rank-fill" style="width:80%;"></div></div>
+		            </div>
+		
+		            <div class="rank-item">
+		                <div class="rank-left">
+		                    <div class="rank-num">2</div>
+		                    <div class="rank-title">정보보안기사</div>
+		                </div>
+		                <div class="rank-bar"><div class="rank-fill" style="width:60%;"></div></div>
+		            </div>
+		
+		            <div class="rank-item">
+		                <div class="rank-left">
+		                    <div class="rank-num">3</div>
+		                    <div class="rank-title">전기기사</div>
+		                </div>
+		                <div class="rank-bar"><div class="rank-fill" style="width:45%;"></div></div>
+		            </div>
+		
+		            <div class="rank-item">
+		                <div class="rank-left">
+		                    <div class="rank-num">4</div>
+		                    <div class="rank-title">건축기사</div>
+		                </div>
+		                <div class="rank-bar"><div class="rank-fill" style="width:30%; background:#bdbdbd;"></div></div>
+		            </div>
+		
+		            <div class="rank-item">
+		                <div class="rank-left">
+		                    <div class="rank-num">5</div>
+		                    <div class="rank-title">네트워크관리사</div>
+		                </div>
+		                <div class="rank-bar"><div class="rank-fill" style="width:28%; background:#bdbdbd;"></div></div>
+		            </div>
+		        </div>
+		    </div>
+            
+        </main>
     </div>
+
 
     <!-- 차트 스크립트 -->
     <script>

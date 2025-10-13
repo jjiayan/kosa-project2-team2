@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
 
 <style>
 /* ===== 댓글 영역 스타일 ===== */
@@ -238,7 +239,7 @@
 /* 댓글 아이템 */
 .reply-item { 
     background: white; 
-    padding: 10px 24px 10px 20px;
+    padding: 10px 24px 0px 20px;
     border-bottom: 1px solid #f5f5f5;
     transition: background 0.2s;
     position: relative;
@@ -251,7 +252,6 @@
 .reply-item.child-reply { 
     margin-left: 52px; 
     background: #ffffff; 
-    border-left: 2px solid #e8e8e8;
     padding-left: 20px;
 }
 
@@ -297,7 +297,7 @@
 }
 
 .reply-content { 
-    margin: 8px 0 10px; 
+    margin: 0px 0 0px; 
     line-height: 1.5; 
     white-space: pre-wrap; 
     word-break: break-word;
@@ -472,10 +472,7 @@
     <!-- 댓글 작성 폼 -->
     <div class="reply-write-form">
         <div class="write-form-header">
-            <%-- <img src="${pageContext.request.contextPath}/images/default-avatar.png" alt="프로필" class="profile-img">
-            <span class="author-name">닉네임</span> --%>
-            <c:set var="userPhoto" value="${sessionScope.LOGIN_USER.user_photo}" />
-    		<c:set var="userNickname" value="${sessionScope.LOGIN_USER.user_nickname}" />
+            
             <c:choose>
                 <c:when test="${not empty sessionScope.LOGIN_USER.user_photo}">
                     <img src="${pageContext.request.contextPath}${sessionScope.LOGIN_USER.user_photo}" 
@@ -591,9 +588,16 @@ function displayReplyList(replies) {
 function createReplyHtml(reply, isChild) {
     var childClass = isChild ? 'child-reply' : '';
     var contextPath = '${pageContext.request.contextPath}';
-    var profileImg = reply.userPhoto ? 
+    /* var profileImg = reply.userPhoto ? 
         '<img src="' + contextPath + reply.userPhoto + '" alt="프로필" class="profile-img">' :
-        '<img src="' + contextPath + '/images/default-avatar.png" alt="프로필" class="profile-img">';
+        '<img src="' + contextPath + '/images/default-avatar.png" alt="프로필" class="profile-img">'; */
+    var profileImgSrc = reply.userPhoto ? 
+     	    contextPath + reply.userPhoto : 
+     	    contextPath + '/images/default-avatar.png';
+   	/* var profileImg = '<img src="' + profileImgSrc + '" alt="프로필" class="profile-img">'; */
+   	var defaultImgSrc = contextPath + '/images/default-avatar.png';
+    var profileImg = '<img src="' + profileImgSrc + '" alt="프로필" class="profile-img" ' +
+        'onerror="this.onerror=null; this.src=\'' + defaultImgSrc + '\';">';
     
     // 삭제된 댓글 처리
     if (reply.status === 'DELETED' && reply.parentReplyId == null) {
