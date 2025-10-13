@@ -5,7 +5,7 @@ import java.util.List;
 import kr.or.kosa.dao.CertificationDao;
 import kr.or.kosa.dto.CertificationSummaryDto;
 
-public class certificationService {
+public class CertificationService {
 
     private CertificationDao certificationDao = new CertificationDao();
 
