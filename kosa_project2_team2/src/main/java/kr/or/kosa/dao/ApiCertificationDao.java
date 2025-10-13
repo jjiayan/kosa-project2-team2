@@ -26,12 +26,12 @@ public class ApiCertificationDao {
     }
 
     public List<CertificationScheduleDto> loadSchedules() {
-        String url = BASE_URL + "/schedules";
+        String url = BASE_URL + "/certifications/schedule";
         return fetchList(url, new TypeToken<List<CertificationScheduleDto>>(){}.getType(), "시험 일정");
     }
 
     public List<CertificationStatsDto> loadStats() {
-        String url = BASE_URL + "/stats";
+        String url = BASE_URL + "/certifications/stats";
         return fetchList(url, new TypeToken<List<CertificationStatsDto>>(){}.getType(), "시험 통계");
     }
 

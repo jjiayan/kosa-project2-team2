@@ -1,24 +1,23 @@
-package kr.or.kosa.service.certification.sync;
+package kr.or.kosa.service.certification.ajax;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 
-public class CertificationMasterSyncService implements Action {
+public class CertificationStatsAjaxService implements Action {
 
     @Override
     public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
 
-        // 1. API 호출 ( /certifications )
-        // 2. JSON → List<CertificationMasterDto>
+        // 1. API 호출 ( /certifications/stats )
+        // 2. JSON → List<CertificationStatsDto>
         // 3. DAO 호출 → INSERT or MERGE
-        // 4. 결과를 request.setAttribute 등으로 담기
+        // 4. 결과 setAttribute
 
-        System.out.println("[CertificationMasterSyncService] 자격증 기본정보 동기화 시작");
+        System.out.println("[CertificationStatsSyncService] 시험 통계 동기화 시작");
 
-        // 예시: 성공 여부만 세팅
-        request.setAttribute("message", "MASTER 동기화 완료!");
+        request.setAttribute("message", "STATS 동기화 완료!");
 
         ActionForward forward = new ActionForward();
         forward.setRedirect(false);

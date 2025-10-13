@@ -1,4 +1,4 @@
-package kr.or.kosa.controller.certification.sync;
+package kr.or.kosa.controller.certification.ajax;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
@@ -9,17 +9,17 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
-import kr.or.kosa.service.certification.sync.CertificationMasterSyncService;
-import kr.or.kosa.service.certification.sync.CertificationScheduleSyncService;
-import kr.or.kosa.service.certification.sync.CertificationStatsSyncService;
+import kr.or.kosa.service.certification.ajax.CertificationMasterAjaxService;
+import kr.or.kosa.service.certification.ajax.CertificationScheduleAjaxService;
+import kr.or.kosa.service.certification.ajax.CertificationStatsAjaxService;
 
 import java.io.IOException;
 
 @WebServlet("*.sync")   // 예: /syncMaster.sync, /syncSchedule.sync, /syncStats.sync
-public class CertificationSyncController extends HttpServlet {
+public class CertificationAjaxController extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
-    public CertificationSyncController() {
+    public CertificationAjaxController() {
         super();
     }
 
@@ -37,17 +37,17 @@ public class CertificationSyncController extends HttpServlet {
 
         // 자격증 기본정보 동기화  (/syncMaster.sync)
         if (urlCommand.equals("/syncMaster.sync")) {
-            action = new CertificationMasterSyncService();
+            action = new CertificationMasterAjaxService();
             forward = action.execute(request, response);
 
         // 시험 일정 동기화 (/syncSchedule.sync)
         } else if (urlCommand.equals("/syncSchedule.sync")) {
-            action = new CertificationScheduleSyncService();
+            action = new CertificationScheduleAjaxService();
             forward = action.execute(request, response);
 
         // 시험 통계 동기화 (/syncStats.sync)
         } else if (urlCommand.equals("/syncStats.sync")) {
-            action = new CertificationStatsSyncService();
+            action = new CertificationStatsAjaxService();
             forward = action.execute(request, response);
         }
 

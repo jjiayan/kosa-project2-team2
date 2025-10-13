@@ -225,6 +225,77 @@ public class CertificationDao {
         }
         return total;
     }
+    
+//    public int upsertStats(List<CertificationStatsDto> list) throws Exception {
+//        // ✅ 1) UPDATE SQL (공백/대소문자 통일 + null 방지)
+//        String updateSql =
+//            "UPDATE CERTIFICATION_STATS "
+//          + "SET applicants = ?, passedCnt = ?, failedCnt = ?, passRate = ? "
+//          + "WHERE jmcd = ? AND year = ? AND implSeq = ? "
+//          + "  AND UPPER(TRIM(examGb)) = UPPER(TRIM(?))";
+//
+//        // ✅ 2) INSERT SQL
+//        String insertSql =
+//            "INSERT INTO CERTIFICATION_STATS "
+//          + "  (jmcd, year, implSeq, examGb, applicants, passedCnt, failedCnt, passRate) "
+//          + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+//
+//        int total = 0;
+//
+//        try (Connection conn = ConnectionPoolHelper.getConnection();
+//             PreparedStatement psUpdate = conn.prepareStatement(updateSql);
+//             PreparedStatement psInsert = conn.prepareStatement(insertSql)) {
+//
+//            for (CertificationStatsDto dto : list) {
+//
+//                // ✅ examGb 정규화 (null 방지 + trim + upper)
+//                String examGb = dto.getExamGb();
+//                if (examGb == null || examGb.trim().isEmpty()) {
+//                    // 혹시 null이면 기본값 (예: "필기") 지정할 수도 있음
+//                    examGb = "";
+//                }
+//                examGb = examGb.trim().toUpperCase();
+//
+//                // ✅ 1) UPDATE 시도
+//                psUpdate.setInt(1, dto.getApplicants());
+//                psUpdate.setInt(2, dto.getPassedCnt());
+//                psUpdate.setInt(3, dto.getFailedCnt());
+//                psUpdate.setDouble(4, dto.getPassRate());
+//                psUpdate.setInt(5, dto.getJmcd());
+//                psUpdate.setInt(6, dto.getYear());
+//                psUpdate.setInt(7, dto.getImplSeq());
+//                psUpdate.setString(8, examGb);
+//
+//                int updatedCount = psUpdate.executeUpdate();
+//
+//                if (updatedCount == 0) {
+//                    // ✅ 2) UPDATE 안 되었으면 INSERT
+//                    psInsert.setInt(1, dto.getJmcd());
+//                    psInsert.setInt(2, dto.getYear());
+//                    psInsert.setInt(3, dto.getImplSeq());
+//                    psInsert.setString(4, examGb);        // 정규화된 값
+//                    psInsert.setInt(5, dto.getApplicants());
+//                    psInsert.setInt(6, dto.getPassedCnt());
+//                    psInsert.setInt(7, dto.getFailedCnt());
+//                    psInsert.setDouble(8, dto.getPassRate());
+//                    try {
+//                        psInsert.executeUpdate();
+//                    } catch (java.sql.SQLIntegrityConstraintViolationException e) {
+//                        // ✅ 혹시라도 예상치 못한 PK 충돌이 발생하면
+//                        // 이미 존재하는 경우이므로 무시하고 계속 진행
+//                        System.err.println("[upsertStats] PK 충돌 발생 → 기존 데이터로 간주하고 무시");
+//                    }
+//                }
+//
+//                total++;
+//            }
+//
+//            System.out.printf("[CertificationDao] STATS %d건 반영 완료%n", total);
+//        }
+//
+//        return total;
+//    }
+
 
 
     public CertificationSummaryDto getCertificationDetail(int jmcd, int year, int implSeq) {
