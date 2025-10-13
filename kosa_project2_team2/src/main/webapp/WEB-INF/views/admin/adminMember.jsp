@@ -288,6 +288,17 @@
 	  const users = Array.isArray(res.data) ? res.data : [];
 	  resData = users;
 	  let cards = "";
+
+	  if (users.length === 0) {
+	    $("#memberListArea .member-grid").html(`
+	      <div class="text-center py-5 text-muted" style="grid-column: 1 / -1;">
+	        <i class="fa-regular fa-face-frown fa-2x mb-3" style="color:#FF7272;"></i>
+	        <div>검색 결과가 없습니다</div>
+	      </div>
+	    `);
+	    $("#memberListArea .pagination").empty();
+	    return;
+	  }
 	  users.forEach(u => {
 	    let photo = u.user_photo;
 	    if (!photo || photo.trim() === "" || photo.includes("default_profile")) {
@@ -371,9 +382,18 @@
 	  modal.show();
 	});
 
+	// ✅ 실시간 검색 (입력 시마다 즉시 검색)
 	$(document).on("keyup", ".search-box input", function(e) {
-	  if (e.key === "Enter") fetchPage(1);
+	  const keyword = $(this).val().trim();
+	  if (keyword === "") {
+	    // 입력이 없으면 전체 목록
+	    fetchPage(1);
+	  } else {
+	    // 검색어 있으면 필터 적용
+	    fetchPage(1);
+	  }
 	});
+
 
 	$(function() { fetchPage(1); });
 	</script>
