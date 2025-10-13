@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.user.UserEditOkService;
 import kr.or.kosa.service.user.UserFindIdService;
 import kr.or.kosa.service.user.UserFindPwdService;
 import kr.or.kosa.service.user.UserLoginService;
@@ -97,6 +98,9 @@ public class UserController extends HttpServlet {
         	forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "mypageEdit.jsp");
+        }else if (command.equals("/mypage/editOk.user")) {
+            action = new UserEditOkService();
+            forward = action.execute(request, response);
         }
         
         else {
