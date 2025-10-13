@@ -282,6 +282,12 @@ main {
                 <div class="post-content">
                     ${roomBoardDetail.roomBoardContent}
                 </div>
+                
+                <!-- 댓글 살포시 추가해보겠슴 -->
+                <jsp:include page="/WEB-INF/views/reply/replies.jsp">
+                    <jsp:param name="roomBoardId" value="${roomBoardDetail.roomBoardId}" />
+                </jsp:include>
+                
             </div>
         </main>
     </div>
