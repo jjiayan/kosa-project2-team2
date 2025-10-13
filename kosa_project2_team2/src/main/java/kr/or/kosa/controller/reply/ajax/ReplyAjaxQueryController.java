@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import kr.or.kosa.dto.ReplyDto;
+import kr.or.kosa.dto.UserDto;
 import kr.or.kosa.service.reply.ReplyService;
 
 // query: 댓글 목록 조회, 댓글 총 개수 
@@ -139,7 +140,8 @@ public class ReplyAjaxQueryController extends HttpServlet {
 	private Long getCurrentUserId(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
 		if (session != null) {
-			return (Long) session.getAttribute("userId");
+			UserDto userDto = (UserDto) session.getAttribute("LOGIN_USER");
+			return Long.valueOf(userDto.getUser_id());
 		}
 		return null;
 	}

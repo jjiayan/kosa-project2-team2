@@ -73,7 +73,11 @@ public class ReplyDao {
 			} else {
 				pstmt.setNull(4, Types.NUMERIC);
 			}
-			
+			System.out.println("=== 댓글 저장 디버깅 ===");
+		    System.out.println("부모 댓글 ID: " + reply.getParentReplyId());
+		    System.out.println("게시글 ID: " + reply.getRoomBoardId());
+		    System.out.println("내용: " + reply.getReplyContent());
+		    
 			row = pstmt.executeUpdate();
 					
 		} catch (Exception e) {

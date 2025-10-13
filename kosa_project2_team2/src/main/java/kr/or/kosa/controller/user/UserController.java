@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.user.UserEditOkService;
 import kr.or.kosa.service.user.UserFindIdService;
 import kr.or.kosa.service.user.UserFindPwdService;
 import kr.or.kosa.service.user.UserLoginService;
@@ -93,7 +94,15 @@ public class UserController extends HttpServlet {
         else if (command.equals("/photoTest.user")) {
             action = new kr.or.kosa.service.user.UserPhotoTestService();
             forward = action.execute(request, response);
+        }else if (command.equals("/mypage/edit.user")) {              
+        	forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath(USER_VIEW_PATH + "mypageEdit.jsp");
+        }else if (command.equals("/mypage/editOk.user")) {
+            action = new UserEditOkService();
+            forward = action.execute(request, response);
         }
+        
         else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;

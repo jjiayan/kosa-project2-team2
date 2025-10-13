@@ -362,30 +362,44 @@ public class RoomDao {
 		int userId = 13;
 		RoomBoardDto roomBoard = null;
 		
-		String sql = """
-			    SELECT 
-			    	rb.ROOM_BOARD_ID as ROOM_BOARD_ID,
-			        rb.ROOM_BOARD_TITLE as ROOM_BOARD_TITLE,  
-			        rb.ROOM_BOARD_CONTENT as ROOM_BOARD_CONTENT, 
-			        rb.UPDATED_AT as UPDATED_AT, 
-			        rb.ROOM_BOARD_VIEW_CNT as ROOM_BOARD_VIEW_CNT,
-			        u.USER_PHOTO as USER_PHOTO, 
-			        (SELECT COUNT(*) 
-			         FROM LIKE_ROOM_BOARD 
-			         WHERE ROOM_BOARD_ID = rb.ROOM_BOARD_ID) AS like_count,
-			        NVL(lrb.USER_ID, 0) AS like_status,
-			        (SELECT CASE 
-			             WHEN rb.USER_ID = ? THEN 1 
-			             ELSE 0 
-			         END 
-			         FROM DUAL) AS is_my_post
-			    FROM ROOM_BOARD rb
-			    JOIN "USER" u ON u.USER_ID = rb.USER_ID
-			    LEFT JOIN LIKE_ROOM_BOARD lrb 
-			        ON lrb.USER_ID = ? 
-			        AND lrb.ROOM_BOARD_ID = rb.ROOM_BOARD_ID
-			    WHERE rb.ROOM_BOARD_ID = ?
-			    """;
+//		String sql = """
+//			    SELECT 
+//			    	rb.ROOM_BOARD_ID as ROOM_BOARD_ID,
+//			        rb.ROOM_BOARD_TITLE as ROOM_BOARD_TITLE,  
+//			        rb.ROOM_BOARD_CONTENT as ROOM_BOARD_CONTENT, 
+//			        rb.UPDATED_AT as UPDATED_AT, 
+//			        rb.ROOM_BOARD_VIEW_CNT as ROOM_BOARD_VIEW_CNT,
+//			        u.USER_PHOTO as USER_PHOTO, 
+//			        (SELECT COUNT(*) 
+//			         FROM LIKE_ROOM_BOARD 
+//			         WHERE ROOM_BOARD_ID = rb.ROOM_BOARD_ID) AS like_count,
+//			        NVL(lrb.USER_ID, 0) AS like_status,
+//			        (SELECT CASE 
+//			             WHEN rb.USER_ID = ? THEN 1 
+//			             ELSE 0 
+//			         END 
+//			         FROM DUAL) AS is_my_post
+//			    FROM ROOM_BOARD rb
+//			    JOIN "USER" u ON u.USER_ID = rb.USER_ID
+//			    LEFT JOIN LIKE_ROOM_BOARD lrb 
+//			        ON lrb.USER_ID = ? 
+//			        AND lrb.ROOM_BOARD_ID = rb.ROOM_BOARD_ID
+//			    WHERE rb.ROOM_BOARD_ID = ?
+//			    """;
+		String sql = "SELECT " +
+			    "rb.ROOM_BOARD_ID as ROOM_BOARD_ID, " +
+			    "rb.ROOM_BOARD_TITLE as ROOM_BOARD_TITLE, " +
+			    "rb.ROOM_BOARD_CONTENT as ROOM_BOARD_CONTENT, " +
+			    "rb.UPDATED_AT as UPDATED_AT, " +
+			    "rb.ROOM_BOARD_VIEW_CNT as ROOM_BOARD_VIEW_CNT, " +
+			    "u.USER_PHOTO as USER_PHOTO, " +
+			    "(SELECT COUNT(*) FROM LIKE_ROOM_BOARD WHERE ROOM_BOARD_ID = rb.ROOM_BOARD_ID) AS like_count, " +
+			    "NVL(lrb.USER_ID, 0) AS like_status, " +
+			    "CASE WHEN rb.USER_ID = ? THEN 1 ELSE 0 END AS is_my_post " +
+			    "FROM ROOM_BOARD rb " +
+			    "JOIN \"USER\" u ON u.USER_ID = rb.USER_ID " +
+			    "LEFT JOIN LIKE_ROOM_BOARD lrb ON lrb.USER_ID = ? AND lrb.ROOM_BOARD_ID = rb.ROOM_BOARD_ID " +
+			    "WHERE rb.ROOM_BOARD_ID = ?";
 		
 		try {
 			conn = ConnectionPoolHelper.getConnection();
