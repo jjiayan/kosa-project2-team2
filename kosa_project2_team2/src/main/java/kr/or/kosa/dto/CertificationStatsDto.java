@@ -10,7 +10,6 @@ public class CertificationStatsDto implements Serializable {
     private int jmcd;
     private int year;
     private int implSeq;
-
     private String examGb;      // 필기/실기 구분
     private Integer applicants; // 응시자수
     private Integer passedCnt;  // 합격자수
