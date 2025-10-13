@@ -33,33 +33,26 @@ public class ReplyCountController {
         String roomBoardIdStr = request.getParameter("roomBoardId");
         Map<String, Object> result = new HashMap<>();
         
-        try (PrintWriter out= response.getWriter()) {
-        	if (roomBoardIdStr == null || roomBoardIdStr.trim().isEmpty()) {
-                result.put("success", false);
-                result.put("message", "게시글 ID가 필요합니다");
-                result.put("count", 0);
-                out.print(gson.toJson(result));
-                return;
-            }
-        	
-        	Long roomBoardId = Long.parseLong(roomBoardIdStr);
-        	int count = replyDao.getReplyCnt(roomBoardId);
-        	
-        	result.put("success", true);
-        	result.put("count", count);
-        	
-        	out.print(gson.toJson(result));
-        	
-        } catch (Exception e) {
-            e.printStackTrace();
+
+    	if (roomBoardIdStr == null || roomBoardIdStr.trim().isEmpty()) {
             result.put("success", false);
-            result.put("message", "댓글 수를 불러올 수 없습니다");
+            result.put("message", "게시글 ID가 필요합니다");
             result.put("count", 0);
-            
-            try (PrintWriter out = response.getWriter()){
-            	out.print(gson.toJson(result));
-            }
+        } else {
+        	try {
+        		Long roomBoardId = Long.parseLong(roomBoardIdStr);
+            	int count = replyDao.getReplyCnt(roomBoardId);
+            	
+            	result.put("success", true);
+            	result.put("count", count);
+        	} catch (Exception e) {
+		        e.printStackTrace();
+		        result.put("success", false);
+		        result.put("message", "댓글 수를 불러올 수 없습니다");
+		        result.put("count", 0);
+        	}
         }
+    	response.getWriter().write(gson.toJson(result));
    }
 
 
