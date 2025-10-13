@@ -93,7 +93,12 @@ public class UserController extends HttpServlet {
         else if (command.equals("/photoTest.user")) {
             action = new kr.or.kosa.service.user.UserPhotoTestService();
             forward = action.execute(request, response);
+        }else if (command.equals("/mypage/edit.user")) {              
+        	forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath(USER_VIEW_PATH + "mypageEdit.jsp");
         }
+        
         else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
