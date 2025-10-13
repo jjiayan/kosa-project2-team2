@@ -200,64 +200,110 @@
 		}
 		@media (max-width: 900px) { .member-grid { grid-template-columns: repeat(2, 1fr); } }
 		@media (max-width: 600px) { .member-grid { grid-template-columns: 1fr; } }
+		
+		/* ===== sideBar 전체 레이아웃 ===== */
+		.layout-wrap {
+		    display: grid;
+		    grid-template-columns: auto 1fr; /* 왼쪽: 사이드바 / 오른쪽: 메인 */
+		    gap: 0; /* 간격 제거 */
+		    align-items: flex-start;
+		    margin: 0;
+		    padding: 0;
+		}
+		
+		main {
+		    background: #fff; /* 흰색으로 변경 */
+		    border-left: 1px solid #e5e7eb;
+		    padding: 24px 28px;
+		    min-height: 100vh;
+		}
+		
+		/* ===== 반응형 ===== */
+		@media (max-width: 900px) {
+		    .layout-wrap {
+		        grid-template-columns: 1fr;
+		    }
+		    main {
+		        border-left: none;
+		        border-top: 1px solid #e5e7eb;
+		        padding: 16px;
+		    }
+		}
 	</style>
 </head>
 
 <body>
 	<jsp:include page="/include/nav.jsp" />
-
-	<div class="member-container">
-		<h2>회원관리</h2>
-
-		<!-- 검색창 -->
-		<div class="search-box">
-			<input type="text" placeholder="닉네임을 입력해주세요.">
-			<i class="fa fa-search"></i>
-		</div>
-
-		<!-- 회원 목록 영역 -->
-		<div id="memberListArea">
-			<div class="member-grid"></div>
-			<div class="pagination"></div>
-		</div>
-	</div>
-
-	<!-- 회원 상세 모달 -->
-	<div class="modal fade" id="userDetailModal" tabindex="-1" aria-hidden="true">
-	  <div class="modal-dialog modal-dialog-centered">
-	    <div class="modal-content">
-	      <div class="modal-header justify-content-center">
-	        <h5 class="modal-title text-center fw-bold">
-	          회원 상세 정보
-	        </h5>
-	        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="닫기"></button>
-	      </div>
-
-	      <div class="modal-body text-center">
-	        <div class="profile-photo-wrap mx-auto mb-3">
-	          <div class="profile-photo-ring"></div>
-	          <img id="detail-photo" class="profile-photo" src="" alt="회원 사진">
-	        </div>
-
-	        <h5 id="detail-nickname" class="fw-bold mb-1"></h5>
-	        <p class="text-muted small mb-4" id="detail-login-id"></p>
-
-	        <div class="d-flex flex-column align-items-center gap-2">
-	          <div class="chip w-auto">
-	            <i class="fa-solid fa-phone me-1"></i><span id="detail-phonenumber">-</span>
-	          </div>
-	          <div class="chip w-auto">
-	            <i class="fa-regular fa-calendar me-1"></i><span id="detail-created-at">-</span>
-	          </div>
-	        </div>
-
-	        <div class="mt-4 p-3 rounded-4" style="background:#fff6f6; border:1px solid #ffd6da;">
-	          <p id="detail-bio" class="mb-0 text-secondary" style="white-space: pre-line;"></p>
-	        </div>
-	      </div>
-	    </div>
-	  </div>
-	</div>
+	
+    
+    <!-- 사이드바 + 메인 레이아웃 -->
+    <div class="layout-wrap">
+        
+        <!-- 좌측 사이드바 -->
+        <jsp:include page="/include/adminSidebar.jsp">
+            <jsp:param name="current" value="adminMember"/>
+   		</jsp:include>
+        
+        <!-- 우측 본문 -->
+        <main>
+            <div class="member-container">
+				<h2>회원관리</h2>
+		
+				<!-- 검색창 -->
+				<div class="search-box">
+					<input type="text" placeholder="닉네임을 입력해주세요.">
+					<i class="fa fa-search"></i>
+				</div>
+		
+				<!-- 회원 목록 영역 -->
+				<div id="memberListArea">
+					<div class="member-grid"></div>
+					<div class="pagination"></div>
+				</div>
+			</div>
+		
+			<!-- 회원 상세 모달 -->
+			<div class="modal fade" id="userDetailModal" tabindex="-1" aria-hidden="true">
+			  <div class="modal-dialog modal-dialog-centered">
+			    <div class="modal-content">
+			      <div class="modal-header justify-content-center">
+			        <h5 class="modal-title text-center fw-bold">
+			          회원 상세 정보
+			        </h5>
+			        <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="닫기"></button>
+			      </div>
+		
+			      <div class="modal-body text-center">
+			        <div class="profile-photo-wrap mx-auto mb-3">
+			          <div class="profile-photo-ring"></div>
+			          <img id="detail-photo" class="profile-photo" src="" alt="회원 사진">
+			        </div>
+		
+			        <h5 id="detail-nickname" class="fw-bold mb-1"></h5>
+			        <p class="text-muted small mb-4" id="detail-login-id"></p>
+		
+			        <div class="d-flex flex-column align-items-center gap-2">
+			          <div class="chip w-auto">
+			            <i class="fa-solid fa-phone me-1"></i><span id="detail-phonenumber">-</span>
+			          </div>
+			          <div class="chip w-auto">
+			            <i class="fa-regular fa-calendar me-1"></i><span id="detail-created-at">-</span>
+			          </div>
+			        </div>
+		
+			        <div class="mt-4 p-3 rounded-4" style="background:#fff6f6; border:1px solid #ffd6da;">
+			          <p id="detail-bio" class="mb-0 text-secondary" style="white-space: pre-line;"></p>
+			        </div>
+			      </div>
+			    </div>
+			  </div>
+			</div>
+            
+        </main>
+    </div>
+    
+    
+	
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
