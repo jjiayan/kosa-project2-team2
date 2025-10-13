@@ -101,7 +101,12 @@ public class UserController extends HttpServlet {
         }else if (command.equals("/mypage/editOk.user")) {
             action = new UserEditOkService();
             forward = action.execute(request, response);
+        }else if (command.equals("/mypage/info.user")) {              
+        	forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath(USER_VIEW_PATH + "mypageInfo.jsp");
         }
+        
         
         else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
