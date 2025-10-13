@@ -24,7 +24,8 @@ public class RoomDto {
     private boolean isLiked;
     private String certName;
     private boolean updateCheck;
-    private boolean joinUserCheck;
+    private String joinUserStatus;
+    private boolean leaderCheck;
     private double roomScore;
     private String userNickName;
     private Date createdAt;
