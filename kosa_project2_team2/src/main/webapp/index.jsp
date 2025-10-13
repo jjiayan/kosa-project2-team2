@@ -71,7 +71,7 @@
       <button type="button"
               class="btn-test"
               onclick="location.href='<c:url value="/photoTest.user"/>'">
-        🧪 테스트 유저 사진 보기
+        🧪 테스트 유저 사진 보기!
       </button>
     </main>
   </div>
