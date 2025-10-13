@@ -14,7 +14,7 @@ public class AdminMemberDao {
 
     // 전체 회원 수 구하기
     public int getUserCount() {
-        String sql = "SELECT COUNT(*) FROM \"USER\"";
+    	String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_status != 'DELETED'";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
@@ -36,7 +36,8 @@ public class AdminMemberDao {
         String sql = 
             "SELECT user_id, user_login_id, user_status, user_nickname, user_phonenumber, user_photo " +
             "FROM \"USER\" " +
-            "ORDER BY user_id " + // ← 여기 끝에 공백 중요!
+            "WHERE user_status != 'DELETED' " + 
+            "ORDER BY user_id " + 
             "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
         try (Connection conn = ConnectionPoolHelper.getConnection();
@@ -63,6 +64,20 @@ public class AdminMemberDao {
         }
 
         return userList;
+    }
+    // 회원탈퇴 (user_status->DELETED)로 변경
+    public int deleteUser(int userId) {
+        String sql = "UPDATE \"USER\" SET user_status = 'DELETED' WHERE user_id = ?";
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+            return pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
 }
