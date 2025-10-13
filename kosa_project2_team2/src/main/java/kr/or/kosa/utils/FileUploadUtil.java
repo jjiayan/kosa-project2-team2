@@ -31,6 +31,7 @@ public class FileUploadUtil {
    */
   public static String saveImageToUpload(Part part, ServletContext ctx) {
     try {
+    	
       if (part == null || part.getSize() == 0) return null;
       String contentType = part.getContentType();
       if (contentType == null || !contentType.startsWith("image/")) return null; // 간단 화이트리스트
