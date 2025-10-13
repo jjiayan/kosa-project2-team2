@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/style/default.css">
-
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -204,17 +204,19 @@
         <!-- 회원 목록 출력 -->
         <div class="member-grid">
             <c:forEach var="user" items="${memberList}">
-                <div class="member-card">
-                    <div class="member-info">
-                        <img src="${empty user.user_photo ? 'https://via.placeholder.com/50' : user.user_photo}" alt="프로필">
-                        <div>
-                            <div class="name">${user.user_nickname}</div>
-                            <div class="date">가입일 2025.10.02</div>
-                        </div>
-                    </div>
-                    <button class="btn-delete">탈퇴</button>
-                </div>
-            </c:forEach>
+			    <div class="member-card">
+			        <div class="member-info">
+			            <img src="${empty user.user_photo ? pageContext.request.contextPath += '/images/default-avatar.png' : user.user_photo}" alt="프로필">
+			            <div>
+			                <div class="name">${user.user_nickname}</div>
+			                <div class="date">ID: ${user.user_login_id}</div>
+			            </div>
+			        </div>
+			        <button class="btn-delete"
+			                onclick="location.href='${pageContext.request.contextPath}/adminMemberDelete.admin?userId=${user.user_id}'"> 탈퇴
+			        </button>
+			    </div>
+			</c:forEach>
         </div>
 
         <!-- 페이지네이션 -->
