@@ -112,57 +112,85 @@
 		/**
 		 * 댓글 HTML 생성
 		 */
-		function createReplyHtml(reply, isChild) {
-			const childClass = isChild ? 'child-reply' : '';
-			const contextPath = '${pageContext.request.contextPath}';
-			const profileImg = reply.userPhoto ? 
-				'<img src="' + contextPath + reply.userPhoto + '" alt="프로필" class="profile-img">' :
-				'<img src="' + contextPath + '/images/default-avatar.png" alt="프로필" class="profile-img">';
-			
-			const actionButtons = reply.owner ? 
-				'<button class="btn-action" onclick="editReply(' + reply.replyId + ')">수정</button>' +
-				'<button class="btn-action" onclick="deleteReply(' + reply.replyId + ')">삭제</button>' : '';
-			
-			const replyButton = !isChild ? 
-				'<button class="btn-reply-write" onclick="toggleChildReplyForm(' + reply.replyId + ')">' +
-				'답글쓰기 ' + (reply.replyCount > 0 ? '(' + reply.replyCount + ')' : '') +
-				'</button>' : '';
-			
-			let childForm = '';
-			if (!isChild) {
-				childForm = '<div class="child-reply-form" id="childForm' + reply.replyId + '" style="display:none;">' +
-					'<textarea class="reply-textarea" id="childContent' + reply.replyId + '" ' +
-					'placeholder="답글을 입력하세요..." maxlength="1000"></textarea>' +
-					'<div class="reply-write-actions">' +
-					'<span></span>' +
-					'<div>' +
-					'<button class="btn-cancel" onclick="toggleChildReplyForm(' + reply.replyId + ')">취소</button>' +
-					'<button class="btn-submit" onclick="writeChildReply(' + reply.replyId + ')">답글 등록</button>' +
-					'</div>' +
-					'</div>' +
-					'</div>';
-			}
-			
-			return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
-				'<div class="reply-item-header">' +
-				'<div class="reply-author">' +
-				profileImg +
-				'<div class="author-info">' +
-				'<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
-				'<span class="reply-time">' + (reply.timeAgo || '') + '</span>' +
-				'</div>' +
-				'</div>' +
-				'<div class="reply-actions">' + actionButtons + '</div>' +
-				'</div>' +
-				'<div class="reply-content" data-original="' + escapeHtml(reply.replyContent) + '">' +
-				escapeHtml(reply.replyContent) +
-				'</div>' +
-				'<div class="reply-footer">' +
-				replyButton +
-				'</div>' +
-				childForm +
-				'</div>';
-		}
+		 /**
+		  * 댓글 HTML 생성
+		  */
+		 function createReplyHtml(reply, isChild) {
+		     var childClass = isChild ? 'child-reply' : '';
+		     var contextPath = '${pageContext.request.contextPath}';
+		     var profileImg = reply.userPhoto ? 
+		         '<img src="' + contextPath + reply.userPhoto + '" alt="프로필" class="profile-img">' :
+		         '<img src="' + contextPath + '/images/default-avatar.png" alt="프로필" class="profile-img">';
+		     
+		     // 삭제된 댓글 처리
+		     if (reply.status === 'DELETED') {
+		         var html = '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">';
+		         html += '<div class="reply-item-header">';
+		         html += '<div class="reply-author">';
+		         html += profileImg;
+		         html += '<div class="author-info">';
+		         html += '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>';
+		         html += '<span class="reply-time">' + (reply.timeAgo || '') + '</span>';
+		         html += '</div>';
+		         html += '</div>';
+		         html += '</div>';
+		         html += '<div class="reply-content" style="color: #999; font-style: italic;">';
+		         html += '삭제된 댓글입니다.';
+		         html += '</div>';
+		         html += '</div>';
+		         
+		         return html;
+		     }
+		     
+		     // 정상 댓글 처리
+		     var actionButtons = '';
+		     if (reply.owner) {
+		         actionButtons = '<button class="btn-action" onclick="editReply(' + reply.replyId + ')">수정</button>' +
+		             '<button class="btn-action" onclick="deleteReply(' + reply.replyId + ')">삭제</button>';
+		     }
+		     
+		     var replyButton = '';
+		     if (!isChild) {
+		         replyButton = '<button class="btn-reply-write" onclick="toggleChildReplyForm(' + reply.replyId + ')">' +
+		             '답글쓰기 ' + (reply.replyCount > 0 ? '(' + reply.replyCount + ')' : '') +
+		             '</button>';
+		     }
+		     
+		     var childForm = '';
+		     if (!isChild) {
+		         childForm = '<div class="child-reply-form" id="childForm' + reply.replyId + '" style="display:none;">' +
+		             '<textarea class="reply-textarea" id="childContent' + reply.replyId + '" ' +
+		             'placeholder="답글을 입력하세요..." maxlength="1000"></textarea>' +
+		             '<div class="reply-write-actions">' +
+		             '<span></span>' +
+		             '<div>' +
+		             '<button class="btn-cancel" onclick="toggleChildReplyForm(' + reply.replyId + ')">취소</button>' +
+		             '<button class="btn-submit" onclick="writeChildReply(' + reply.replyId + ')">답글 등록</button>' +
+		             '</div>' +
+		             '</div>' +
+		             '</div>';
+		     }
+		     
+		     return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
+		         '<div class="reply-item-header">' +
+		         '<div class="reply-author">' +
+		         profileImg +
+		         '<div class="author-info">' +
+		         '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
+		         '<span class="reply-time">' + (reply.timeAgo || '') + '</span>' +
+		         '</div>' +
+		         '</div>' +
+		         '<div class="reply-actions">' + actionButtons + '</div>' +
+		         '</div>' +
+		         '<div class="reply-content" data-original="' + escapeHtml(reply.replyContent) + '">' +
+		         escapeHtml(reply.replyContent) +
+		         '</div>' +
+		         '<div class="reply-footer">' +
+		         replyButton +
+		         '</div>' +
+		         childForm +
+		         '</div>';
+		 }
 		
 		/**
 		 * HTML 이스케이프 처리

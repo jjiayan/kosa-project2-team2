@@ -84,9 +84,12 @@ public class ReplyAjaxQueryController extends HttpServlet {
 			
 			List<ReplyDto> replies = replyService.getReplyList(roomBoardId, orderBy, currentUserId);
 			
+			int totalCount = replyService.getReplyCount(roomBoardId);
+			
 			result.put("success", true);
 			result.put("replies", replies);
-			result.put("totalCount", countTotalReplies(replies));
+//			result.put("totalCount", countTotalReplies(replies));
+			result.put("totalCount", totalCount);
 			result.put("orderBy", orderBy);
 			
 		} catch (Exception e) {
@@ -129,18 +132,6 @@ public class ReplyAjaxQueryController extends HttpServlet {
 		return result;
 	}
 	
-	/**
-	 * 전체 댓글 수 계산 (부모 댓글 + 대댓글)
-	 */
-	private int countTotalReplies(List<ReplyDto> replies) {
-		int count = replies.size();
-		for (ReplyDto reply : replies) {
-			if (reply.getReplies() != null && !reply.getReplies().isEmpty()) {
-				count += reply.getReplies().size();
-			}
-		}
-		return count;
-	}
 	
 	/**
 	 * 현재 로그인한 사용자 ID 가져오기

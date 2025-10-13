@@ -356,6 +356,30 @@
         background: #5a6268;
     }
     
+    .btn-like {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: #999;
+    padding: 4px 8px;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+	}
+	
+	.btn-like:hover {
+	    color: #ff6b6b;
+	}
+	
+	.btn-like.liked {
+	    color: #ff6b6b;
+	}
+	
+	.btn-like .heart-icon {
+	    font-size: 16px;
+	}
     .reply-item { 
         background: white; 
         padding: 20px;
@@ -379,11 +403,12 @@
     }
     
     .reply-item-header { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: flex-start;
-        margin-bottom: 8px; 
-    }
+    display: flex; 
+    justify-content: space-between; 
+    align-items: flex-start;
+    margin-bottom: 8px; 
+    position: relative; /* 추가 */
+	}
     
     .reply-author { 
         display: flex; 
@@ -430,18 +455,21 @@
     }
     
     .btn-more {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px 8px;
-        color: #999;
-        font-size: 18px;
-        line-height: 1;
-    }
-    
-    .btn-more:hover {
-        color: #666;
-    }
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    color: #999;
+    font-size: 20px;
+    line-height: 1;
+    border-radius: 4px;
+    transition: all 0.2s;
+	}
+	
+	.btn-more:hover {
+	    color: #666;
+	    background: #f5f5f5;
+	}
     
     .btn-action {
         background: none;
@@ -467,11 +495,11 @@
         font-size: 14px;
     }
     
-    .reply-footer { 
+    /* .reply-footer { 
         margin-top: 10px; 
         padding-top: 10px; 
         border-top: 1px solid #f0f0f0; 
-    }
+    } */
     
     .btn-reply-write { 
         font-size: 13px; 
@@ -509,6 +537,64 @@
         border: none;
         border-bottom: 1px solid #f0f0f0;
     }
+    /* 더보기 메뉴 스타일 */
+	.reply-more-menu {
+	    position: absolute; /* relative에서 absolute로 변경 */
+	    right: 0; /* 추가 */
+	    top: 10px; /* 추가 */
+	    display: inline-block;
+	}
+	
+	.dropdown-menu {
+	    display: none;
+	    position: absolute;
+	    right: 0;
+	    top: 100%;
+	    background: white;
+	    border: 1px solid #e0e0e0;
+	    border-radius: 8px;
+	    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	    min-width: 120px;
+	    z-index: 1000;
+	    margin-top: 4px;
+	}
+	
+	.dropdown-menu.show {
+	    display: block;
+	}
+	
+	.dropdown-item {
+	    padding: 12px 16px;
+	    cursor: pointer;
+	    border: none;
+	    background: none;
+	    width: 100%;
+	    text-align: left;
+	    font-size: 14px;
+	    color: #333;
+	    transition: background 0.2s;
+	}
+	
+	.dropdown-item:hover {
+	    background: #f5f5f5;
+	}
+	
+	.dropdown-item:first-child {
+	    border-radius: 8px 8px 0 0;
+	}
+	
+	.dropdown-item:last-child {
+	    border-radius: 0 0 8px 8px;
+	}
+	
+	.dropdown-item.danger {
+	    color: #dc3545;
+	}
+	
+	.dropdown-item.danger:hover {
+	    background: #fff5f5;
+	}
+    
 </style>
 </head>
 <body>
@@ -694,20 +780,83 @@ function createReplyHtml(reply, isChild) {
         '<img src="' + contextPath + reply.userPhoto + '" alt="프로필" class="profile-img">' :
         '<img src="' + contextPath + '/images/default-avatar.png" alt="프로필" class="profile-img">';
     
+    // 삭제된 댓글 처리
+    if (reply.status === 'DELETED' && reply.parentReplyId == null) {
+        // 댓글 지워지면 '삭제된 댓글'이라는 메세지 뜸 
+    	// var timeText = formatDateTime(reply.replyUpdatedAt || reply.replyCreatedAt);
+        
+        return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
+            '<div class="reply-item-header">' +
+            '<div class="reply-author">' +
+            // profileImg +
+            '<div class="reply-main-content">' +
+            '<div class="author-info">' +
+            // '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
+            '</div>' +
+            '<div class="reply-content" style="color: #999; font-style: italic;">' +
+            '삭제된 댓글입니다.' +
+            '</div>' +
+            // '<div class="reply-footer">' +
+            // '<span class="reply-time">' + timeText + '</span>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>';
+            
+    } else if (reply.status === 'DELETED' && reply.parentReplyId != null){
+    	// 대댓글 삭제되면 그냥 안보임 
+		// var timeText = formatDateTime(reply.replyUpdatedAt || reply.replyCreatedAt);
+        
+        /* return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
+            '<div class="reply-item-header">' +
+            '<div class="reply-author">' +
+            profileImg +
+            '<div class="reply-main-content">' +
+            '<div class="author-info">' +
+            '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
+            '</div>' +
+            '<div class="reply-content" style="color: #999; font-style: italic;">' +
+            '삭제된 댓글입니다.' +
+            '</div>' +
+            '<div class="reply-footer">' +
+            '<span class="reply-time">' + timeText + '</span>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>'; */
+		return;
+    } 
+    
+    // 정상 댓글 처리 (기존 코드)
     // 수정/삭제 버튼 (본인 댓글만)
     var actionButtons = '';
     if (reply.owner) {
-        actionButtons = '<div class="reply-actions-menu">' +
-            '<button class="btn-action" onclick="editReply(' + reply.replyId + ')">수정</button>' +
-            '<button class="btn-action" onclick="deleteReply(' + reply.replyId + ')">삭제</button>' +
+        // 본인 댓글: 수정/삭제 메뉴
+        actionButtons = '<div class="reply-more-menu">' +
+            '<button class="btn-more" onclick="toggleDropdown(event, ' + reply.replyId + ')">⋮</button>' +
+            '<div class="dropdown-menu" id="dropdown' + reply.replyId + '">' +
+            '<button class="dropdown-item" onclick="editReply(' + reply.replyId + ')">수정</button>' +
+            '<button class="dropdown-item danger" onclick="deleteReply(' + reply.replyId + ')">삭제</button>' +
+            '</div>' +
+            '</div>';
+    } else {
+        // 타인 댓글: 신고하기 메뉴
+        actionButtons = '<div class="reply-more-menu">' +
+            '<button class="btn-more" onclick="toggleDropdown(event, ' + reply.replyId + ')">⋮</button>' +
+            '<div class="dropdown-menu" id="dropdown' + reply.replyId + '">' +
+            '<button class="dropdown-item danger" onclick="reportReply(' + reply.replyId + ')">신고하기</button>' +
+            '</div>' +
             '</div>';
     }
     
     // 답글쓰기 버튼 (모든 댓글에 표시)
     var replyButton = '<button class="btn-reply-write" onclick="toggleChildReplyForm(' + reply.replyId + ')">답글쓰기</button>';
     
+ 	// 하트 버튼 - 예쁜 하트 아이콘으로 변경
     var likeButton = '<button class="btn-like" onclick="toggleLike(' + reply.replyId + ')">' +
-        '❤️ <span>0</span>' +
+        '<span class="heart-icon"> ♥ </span>' +
         '</button>';
     
     var childForm = '<div class="child-reply-form" id="childForm' + reply.replyId + '" style="display:none;">' +
@@ -720,40 +869,36 @@ function createReplyHtml(reply, isChild) {
         '<button class="btn-submit" onclick="writeChildReply(' + reply.replyId + ')">등록</button>' +
         '</div>' +
         '</div>';
-     // ✅ (수정된 부분 시작)
-     var timeText = '';
-     if (reply.replyUpdatedAt && reply.replyUpdatedAt !== reply.replyCreatedAt) {
-         // 수정된 댓글인 경우
-         timeText = '(수정됨) ' + formatDateTime(reply.replyUpdatedAt);
-     } else {
-         // 수정 이력 없음
-         timeText = formatDateTime(reply.replyCreatedAt);
-     }
-     // ✅ (수정된 부분 끝)
+        
+    var timeText = '';
+    if (reply.replyUpdatedAt && reply.replyUpdatedAt !== reply.replyCreatedAt) {
+        timeText = '(수정됨) ' + formatDateTime(reply.replyUpdatedAt);
+    } else {
+        timeText = formatDateTime(reply.replyCreatedAt);
+    }
         
     return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
-        '<div class="reply-item-header">' +
-        '<div class="reply-author">' +
-        profileImg +
-        '<div class="reply-main-content">' +
-        '<div class="author-info">' +
-        '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
-        '</div>' +
-        '<div class="reply-content" data-original="' + escapeHtml(reply.replyContent) + '">' +
-        escapeHtml(reply.replyContent) +
-        '</div>' +
-        '<div class="reply-footer">' +
-        '<span class="reply-time">' + timeText + '</span>' +
-        replyButton +
-        likeButton +
-        '</div>' +
-        childForm +
-        '</div>' +
-        '</div>' +
-        actionButtons +
-        '</div>' +
-        '</div>';
-}
+	    '<div class="reply-item-header">' +
+	    '<div class="reply-author">' +
+	    profileImg +
+	    '<div class="reply-main-content">' +
+	    '<div class="author-info">' +
+	    '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
+	    '</div>' +
+	    '<div class="reply-content" data-original="' + escapeHtml(reply.replyContent) + '">' +
+	    escapeHtml(reply.replyContent) +
+	    '</div>' +
+	    '<span class="reply-time">' + timeText + '</span>' + '    ' + 
+	    replyButton + 
+	    likeButton +
+	    '</div>' +
+	    childForm +
+	    '</div>' +
+	    '</div>' +
+	    actionButtons +  // 여기로 이동 (reply-item-header 내부에서 맨 마지막)
+	    '</div>' +
+	    '</div>';
+	}
 
 /**
  * HTML 이스케이프 처리
@@ -954,6 +1099,9 @@ function writeChildReply(parentReplyId) {
  * 댓글 수정
  */
 function editReply(replyId) {
+	// 드롭다운 닫기
+    jQuery('.dropdown-menu').removeClass('show');
+	
     var replyItem = jQuery('.reply-item[data-reply-id="' + replyId + '"]');
     var contentDiv = replyItem.find('.reply-content');
     var originalContent = contentDiv.data('original');
@@ -1015,6 +1163,9 @@ function updateReply(replyId) {
  * 댓글 삭제
  */
 function deleteReply(replyId) {
+	// 드롭다운 닫기
+    jQuery('.dropdown-menu').removeClass('show');
+	
     if (confirm('댓글을 삭제하시겠습니까?')) {
         jQuery.ajax({
             url: '${pageContext.request.contextPath}/reply/command',
@@ -1040,7 +1191,66 @@ function deleteReply(replyId) {
     }
 }
 
+/**
+ * 드롭다운 메뉴 토글
+ */
+function toggleDropdown(event, replyId) {
+    event.stopPropagation(); // 이벤트 전파 방지
+    
+    var dropdown = jQuery('#dropdown' + replyId);
+    var isVisible = dropdown.hasClass('show');
+    
+    // 모든 드롭다운 닫기
+    jQuery('.dropdown-menu').removeClass('show');
+    
+    // 클릭한 드롭다운만 토글
+    if (!isVisible) {
+        dropdown.addClass('show');
+    }
+}
 
+/**
+ * 댓글 신고
+ */
+function reportReply(replyId) {
+    // 드롭다운 닫기
+    jQuery('.dropdown-menu').removeClass('show');
+    
+    if (confirm('이 댓글을 신고하시겠습니까?')) {
+        // TODO: 신고 기능 구현
+        alert('신고 기능은 준비 중입니다.');
+        
+        /* 실제 구현 시:
+        jQuery.ajax({
+            url: '${pageContext.request.contextPath}/reply/report',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                replyId: replyId,
+                reason: '신고 사유'
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('신고가 접수되었습니다.');
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('신고 처리 에러:', error);
+                alert('서버 오류가 발생했습니다.');
+            }
+        });
+        */
+    }
+}
+
+// 페이지 어디든 클릭하면 드롭다운 닫기
+jQuery(document).on('click', function(e) {
+    if (!jQuery(e.target).closest('.reply-more-menu').length) {
+        jQuery('.dropdown-menu').removeClass('show');
+    }
+});
 
 </script>
 </body>
