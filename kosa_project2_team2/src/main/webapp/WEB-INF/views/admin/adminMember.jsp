@@ -301,9 +301,6 @@
             
         </main>
     </div>
-    
-    
-	
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -434,7 +431,7 @@
 	  modal.show();
 	});
 
-	// ✅ 실시간 검색 (입력 시마다 즉시 검색)
+	// 실시간 검색 (입력 시마다 즉시 검색)
 	$(document).on("keyup", ".search-box input", function(e) {
 	  const keyword = $(this).val().trim();
 	  if (keyword === "") {

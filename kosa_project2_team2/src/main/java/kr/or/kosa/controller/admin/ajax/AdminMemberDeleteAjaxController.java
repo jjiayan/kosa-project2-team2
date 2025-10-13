@@ -1,6 +1,7 @@
 package kr.or.kosa.controller.admin.ajax;
 
-import com.google.gson.Gson;
+import java.io.IOException;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -9,8 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import kr.or.kosa.dao.AdminMemberDao;
 import kr.or.kosa.dto.UserDto;
-
-import java.io.IOException;
 
 @WebServlet("/AdminMemberDeleteAjax")
 public class AdminMemberDeleteAjaxController extends HttpServlet {
