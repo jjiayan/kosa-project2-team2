@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%
-	// 테스트용~ 
+	// 테스트용~ 나중에 지울거~~
     // 게시글 ID 설정 (DB에 실제로 존재하는 ROOM_BOARD_ID)
     Long roomBoardId = 1L;
     
