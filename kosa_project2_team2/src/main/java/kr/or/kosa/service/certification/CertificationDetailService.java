@@ -41,7 +41,7 @@ public class CertificationDetailService implements Action {
 
             // 페이지 이동
             forward.setRedirect(false);
-            forward.setPath("/WEB-INF/views/certification/certification_detail.jsp");
+            forward.setPath("/WEB-INF/views/certification/certificationDetail.jsp");
 
         } catch (Exception e) {
             e.printStackTrace();

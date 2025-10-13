@@ -82,4 +82,5 @@ public class CertificationController extends HttpServlet {
             throws ServletException, IOException {
         doProcess(request, response);
     }
+
 }
