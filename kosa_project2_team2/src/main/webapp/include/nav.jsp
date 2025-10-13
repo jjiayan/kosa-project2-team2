@@ -1,5 +1,6 @@
-<%@ page contentType="text/html; charset=UTF-8" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c"  uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -58,6 +59,23 @@
 
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
+<%-- 안전한 유저 아바타 URL 생성 --%>
+<c:set var="rawPhoto" value="${sessionScope.LOGIN_USER.user_photo}" />
+<c:choose>
+  <c:when test="${empty rawPhoto}">
+    <c:set var="navPhotoUrl" value="${ctx}/images/default-avatar.png"/>
+  </c:when>
+  <c:when test="${fn:startsWith(rawPhoto,'http://') or fn:startsWith(rawPhoto,'https://')}">
+    <c:set var="navPhotoUrl" value="${rawPhoto}"/>
+  </c:when>
+  <c:when test="${fn:startsWith(rawPhoto,'/files/')}">
+    <c:set var="navPhotoUrl" value="${ctx}${rawPhoto}"/>
+  </c:when>
+  <c:otherwise>
+    <c:set var="navPhotoUrl" value="${ctx}/${rawPhoto}"/>
+  </c:otherwise>
+</c:choose>
+
 <header>
   <a href="${ctx}/index.user" class="left logo" id="logoArea">
     <img class="barcode" src="${ctx}/images/barcode.jpg" alt="바코드">
@@ -77,12 +95,10 @@
       <c:when test="${not empty sessionScope.LOGIN_USER}">
         <c:set var="displayName"
                value="${empty sessionScope.LOGIN_USER.user_nickname ? sessionScope.LOGIN_USER.user_login_id : sessionScope.LOGIN_USER.user_nickname}" />
-
         <div class="userbox">
           <a href="${ctx}/mypage/edit.user" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;">
-            <!-- ★ src를 EL 삼항으로: null/빈값이면 기본 이미지 -->
             <img class="avatar"
-                 src="${empty sessionScope.LOGIN_USER.user_photo ? ctx.concat('/images/default-avatar.png') : sessionScope.LOGIN_USER.user_photo}"
+                 src="${navPhotoUrl}"
                  alt="avatar"
                  onerror="this.onerror=null; this.src='${ctx}/images/default-avatar.png';">
             <span class="hello"><b>${displayName}</b> 님</span>
@@ -90,7 +106,6 @@
           <a class="logout" href="${ctx}/logout.user">로그아웃</a>
         </div>
       </c:when>
-
       <c:otherwise>
         <div class="login">
           <a href="${ctx}/login.user">

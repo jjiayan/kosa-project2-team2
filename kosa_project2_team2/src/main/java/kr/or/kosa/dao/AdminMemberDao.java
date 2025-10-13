@@ -9,7 +9,6 @@ import java.util.List;
 
 import kr.or.kosa.dto.UserDto;
 import kr.or.kosa.utils.ConnectionPoolHelper;
-
 public class AdminMemberDao {
 
     // 전체 회원 수 구하기
@@ -42,7 +41,6 @@ public class AdminMemberDao {
 
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
             pstmt.setInt(1, offset);
             pstmt.setInt(2, limit);
 

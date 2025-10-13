@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c"  uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -12,107 +13,47 @@
   :root{
     --ink:#111; --muted:#666; --line:#eee; --bg:#fafafa; --card:#fff;
     --brand:#ff6b6b; --brand-weak:#fff0f0; --brand-line:#f5b5b5; --radius:20px;
-
-    /* 정렬 기준 */
-    --label: 110px;       /* 라벨 폭 */
-    --gap: 12px;          /* 라벨-필드 간격 */
-    --field-width: 420px; /* 입력칸(시각) 폭 */
-
-    /* 상단 좌측 사진과 폼 사이 간격 */
-    --photo: 160px;
-    --between: 56px;
+    --label:110px; --gap:12px; --field-width:420px; --photo:160px; --between:56px;
   }
-
   *{box-sizing:border-box}
-  html,body{
-    margin:0;padding:0;
-    font-family:"Noto Sans KR",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-    color:var(--ink);background:var(--bg)
-  }
+  html,body{margin:0;padding:0;font-family:"Noto Sans KR",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue","Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg)}
   .mypage-container{display:flex;min-height:100vh;background:var(--bg)}
   .mypage-content{flex:1;padding:32px 48px}
   @media (max-width:960px){.mypage-content{padding:24px}}
 
-  .profile-edit-card{
-    background:var(--card); border-radius:var(--radius); box-shadow:0 10px 30px rgba(0,0,0,.06);
-    padding:28px; max-width:980px; margin:0 auto;
-  }
+  .profile-edit-card{background:var(--card); border-radius:var(--radius); box-shadow:0 10px 30px rgba(0,0,0,.06); padding:28px; max-width:980px; margin:0 auto;}
   .title-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
   .title-row h2{font-size:20px;margin:0}
   .hr{height:1px;background:var(--line);margin:14px 0}
 
-  /* 상단 레이아웃 */
-  .profile-top-inner{
-    display:flex; align-items:flex-start; justify-content:center;
-    gap:56px; width:100%; max-width:880px; margin:0 auto; padding:0 48px;
-  }
-  @media (max-width:1100px){
-    .profile-top-inner{flex-direction:column;align-items:center;gap:24px;padding:0 16px;max-width:720px}
-  }
+  .profile-top-inner{display:flex; align-items:flex-start; justify-content:center; gap:56px; width:100%; max-width:880px; margin:0 auto; padding:0 48px;}
+  @media (max-width:1100px){.profile-top-inner{flex-direction:column;align-items:center;gap:24px;padding:0 16px;max-width:720px}}
 
-  /* 사진 */
-  .profile-edit-card .profile-image-box{
-    position:relative; width:var(--photo); flex:0 0 var(--photo);
-    display:flex; flex-direction:column; align-items:center;
-  }
-  .profile-edit-card #preview.avatar{
-    width:100%; aspect-ratio:1/1; height:auto; max-height:180px; object-fit:cover;
-    border-radius:50%; border:4px solid #eee; background:#fff; display:block; margin:0 0 8px 0;
-  }
-  .profile-edit-card .img-actions{display:flex; gap:6px; white-space:nowrap;}
-  .profile-edit-card .img-btn{
-    display:inline-block; padding:5px 8px; font-size:12px; border-radius:6px; border:1px solid #ddd;
-    background:#f9f9f9; cursor:pointer; transition:background .15s,border .15s;
-  }
-  .profile-edit-card .img-btn:hover{border-color:var(--brand);background:#ffe8e8}
+  .profile-image-box{position:relative; width:var(--photo); flex:0 0 var(--photo); display:flex; flex-direction:column; align-items:center;}
+  #preview.avatar{width:100%; aspect-ratio:1/1; height:auto; max-height:180px; object-fit:cover; border-radius:50%; border:4px solid #eee; background:#fff; display:block; margin:0 0 8px 0;}
+  .img-actions{display:flex; gap:6px; white-space:nowrap;}
+  .img-btn{display:inline-block; padding:5px 8px; font-size:12px; border-radius:6px; border:1px solid #ddd; background:#f9f9f9; cursor:pointer; transition:background .15s,border .15s;}
+  .img-btn:hover{border-color:var(--brand);background:#ffe8e8}
 
-  /* 폼(우측) */
   .form-side{flex:1 1 auto; display:flex; flex-direction:column; max-width:560px}
   .form-stack{display:flex; flex-direction:column; gap:12px}
   .form-grid{display:grid; grid-template-columns:var(--label) 1fr; align-items:center; gap:8px var(--gap); margin:0}
   .form-grid label{font-size:14px;color:#333}
 
-  /* 입력 + 인라인 수정버튼(오른쪽 끝 고정) */
-  .field-wrap{
-    position:relative;
-    width:var(--field-width);
-  }
-  .input{
-    width:100%; padding:10px 88px 10px 12px; /* 버튼 자리 확보 (우측 88px) */
-    border-radius:10px; border:1px solid var(--brand-line);
-    background:var(--brand-weak); outline:none; transition:.15s; font-size:15px;
-  }
+  .field-wrap{position:relative; width:var(--field-width);}
+  .input{width:100%; padding:10px 88px 10px 12px; border-radius:10px; border:1px solid var(--brand-line); background:var(--brand-weak); outline:none; transition:.15s; font-size:15px;}
   .input:focus{box-shadow:0 0 0 3px rgba(255,107,107,.18); background:#fff; border-color:#ffc3c3}
-  .inline-edit-btn{
-    position:absolute; right:8px; top:50%; transform:translateY(-50%);
-    height:30px; padding:0 10px; border:1px solid #ddd; border-radius:8px; background:#fff;
-    font-size:12px; cursor:pointer;
-  }
+  .inline-edit-btn{position:absolute; right:8px; top:50%; transform:translateY(-50%); height:30px; padding:0 10px; border:1px solid #ddd; border-radius:8px; background:#fff; font-size:12px; cursor:pointer;}
   .inline-edit-btn:hover{border-color:#bbb}
 
-  /* 아래(자기소개/버튼): 폭 정렬 */
   .below-inner{width:100%; max-width:880px; margin:0 auto; padding:0 48px;}
   @media (max-width:1100px){ .below-inner{padding:0 16px; max-width:720px} }
-
-  .bio-block{
-    margin-top:12px;
-    width: calc(var(--photo) + var(--between) + var(--label) + var(--gap) + var(--field-width));
-  }
+  .bio-block{margin-top:12px; width: calc(var(--photo) + var(--between) + var(--label) + var(--gap) + var(--field-width));}
   .bio-block label{display:block;margin-bottom:6px;font-size:14px;color:#333}
-  .textarea{
-    width:100%; max-width:none; min-height:140px; resize:vertical;
-    padding:10px 12px; border-radius:10px; border:1px solid var(--brand-line);
-    background:var(--brand-weak); outline:none; transition:.15s; font-size:15px;
-  }
+  .textarea{width:100%; max-width:none; min-height:140px; resize:vertical; padding:10px 12px; border-radius:10px; border:1px solid var(--brand-line); background:var(--brand-weak); outline:none; transition:.15s; font-size:15px;}
   .textarea:focus{box-shadow:0 0 0 3px rgba(255,107,107,.18); background:#fff; border-color:#ffc3c3}
 
-  /* 저장/취소: 비밀번호 입력 오른쪽 끝에 맞춤 */
-  .btn-row{
-    display:flex; justify-content:flex-end; gap:10px;
-    margin-top:12px;
-    width: var(--field-width);
-    margin-left: calc(var(--photo) + var(--between) + var(--label) + var(--gap));
-  }
+  .btn-row{display:flex; justify-content:flex-end; gap:10px; margin-top:12px; width: var(--field-width); margin-left: calc(var(--photo) + var(--between) + var(--label) + var(--gap));}
   .btn{padding:10px 16px; border:none; border-radius:10px; font-size:15px; cursor:pointer}
   .btn.secondary{background:#eee}
   .btn.primary{background:#ff6b6b; color:#fff}
@@ -120,7 +61,6 @@
 
   .with-sidebar .mypage-content{padding-left:24px}
 
-  /* 모바일 */
   @media (max-width:720px){
     .form-side{max-width:none}
     .field-wrap{width:100%}
@@ -149,23 +89,35 @@
         <c:set var="user" value="${sessionScope.LOGIN_USER}" />
         <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
+        <%-- 안전한 초기 프로필 이미지 URL 생성 --%>
+        <c:set var="rawPhoto" value="${user.user_photo}" />
+        <c:choose>
+          <c:when test="${empty rawPhoto}">
+            <c:set var="editPhotoUrl" value="${ctx}/images/default-avatar.png"/>
+          </c:when>
+          <c:when test="${fn:startsWith(rawPhoto,'http://') or fn:startsWith(rawPhoto,'https://')}">
+            <c:set var="editPhotoUrl" value="${rawPhoto}"/>
+          </c:when>
+          <c:when test="${fn:startsWith(rawPhoto,'/files/')}">
+            <c:set var="editPhotoUrl" value="${ctx}${rawPhoto}"/>
+          </c:when>
+          <c:otherwise>
+            <c:set var="editPhotoUrl" value="${ctx}/${rawPhoto}"/>
+          </c:otherwise>
+        </c:choose>
+
         <form id="profileForm" action="${ctx}/mypage/editOk.user"
               method="post" enctype="multipart/form-data" novalidate>
 
           <input type="hidden" name="resetPhoto" id="resetPhoto" value="0"/>
 
-          <!-- 상단: 사진 + 폼 -->
           <div class="profile-top">
             <div class="profile-top-inner">
-              <!-- 사진 + 버튼 -->
               <div class="profile-image-box">
-                <img
-                  id="preview"
-                  class="avatar"
-                  src="${empty user.user_photo ? ctx.concat('/images/default-avatar.png') : user.user_photo}"
-                  alt="프로필 이미지"
-                  onerror="this.onerror=null; this.src='${ctx}/images/default-avatar.png';"
-                />
+                <img id="preview" class="avatar"
+                     src="${editPhotoUrl}"
+                     alt="프로필 이미지"
+                     onerror="this.onerror=null; this.src='${ctx}/images/default-avatar.png';" />
                 <div class="img-actions">
                   <button type="button" class="img-btn" id="defaultImgBtn">기본 이미지</button>
                   <button type="button" class="img-btn" id="addImgBtn">이미지 추가</button>
@@ -173,7 +125,6 @@
                 <input type="file" id="imgInput" name="profileImage" accept="image/*" hidden />
               </div>
 
-              <!-- 폼 -->
               <div class="form-side">
                 <div class="form-stack">
                   <div class="form-grid">
@@ -209,12 +160,12 @@
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
 
           <div class="hr"></div>
 
-          <!-- 자기소개 + 버튼 -->
           <div class="below-inner">
             <div class="bio-block">
               <label for="bio">자기소개</label>
@@ -248,7 +199,7 @@
   const nicknameEl   = document.getElementById("nickname");
   const phoneEl      = document.getElementById("phone");
 
-  // 이미지 선택/기본
+  // 이미지 선택/미리보기
   addImgBtn.addEventListener("click", () => imgInput.click());
   imgInput.addEventListener("change", (e) => {
     const file = e.target.files && e.target.files[0];
@@ -258,6 +209,8 @@
     reader.readAsDataURL(file);
     resetPhoto.value = "0";
   });
+
+  // 기본 이미지로 변경
   defaultImgBtn.addEventListener("click", () => {
     preview.src = ctx + "/images/default-avatar.png";
     imgInput.value = "";
@@ -270,7 +223,7 @@
     else location.href = ctx + "/index.user";
   });
 
-  // 비밀번호 검증
+  // 비밀번호 규칙 체크
   form.addEventListener("submit", (e) => {
     const pw  = document.getElementById("newPassword").value.trim();
     const pw2 = document.getElementById("confirmPassword").value.trim();
@@ -285,7 +238,7 @@
     }
   });
 
-  // 연락처 포맷
+  // 연락처 포맷 (010 입력 즉시 하이픈)
   function formatPhone(v){
     let d = (v||"").replace(/\D/g,"").slice(0,11);
     if (d.startsWith("010")){
@@ -306,7 +259,7 @@
     phoneEl.setSelectionRange(caretEnd + delta, caretEnd + delta);
   });
 
-  // 닉네임 인라인 수정 (★ 템플릿리터럴 → 문자열 연결)
+  // 닉네임 인라인 수정 → 중복검사 후 저장
   editNickBtn.addEventListener("click", async () => {
     const nickname = (nicknameEl.value || "").trim();
     if (!nickname) { alert("닉네임을 입력하세요."); nicknameEl.focus(); return; }
@@ -328,7 +281,7 @@
     }
   });
 
-  // 연락처 인라인 수정 (★ 템플릿리터럴 → 문자열 연결)
+  // 연락처 인라인 수정 → 형식/중복검사 후 저장
   editPhoneBtn.addEventListener("click", async () => {
     const display = phoneEl.value.trim();
     const raw = display.replace(/\D/g,"");
@@ -355,7 +308,6 @@
   });
 
 })();
-</script>
-
+  </script>
 </body>
 </html>

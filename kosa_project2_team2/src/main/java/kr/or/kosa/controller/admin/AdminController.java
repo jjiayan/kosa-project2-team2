@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
-import kr.or.kosa.service.admin.AdminMemberDeleteService;
 import kr.or.kosa.service.admin.AdminMemberService;
 
 
@@ -35,10 +34,7 @@ public class AdminController extends HttpServlet {
     			if(command.equals("/adminMember.admin")) { //관리자회원관리페이지
     				Action action = new AdminMemberService();  // Action 인터페이스 구현체로 호출
     			    forward = action.execute(request, response);
-    			} else if (command.equals("/adminMemberDelete.admin")) { //회원삭제
-    			    Action action = new AdminMemberDeleteService();
-    			    forward = action.execute(request, response);
-    			}else if(command.equals("/adminStat.admin")) { //관리자통계보드페이지 
+    			} else if(command.equals("/adminStat.admin")) { //관리자통계보드페이지 
     				forward = new ActionForward();
     				forward.setRedirect(false); 
     				forward.setPath("/WEB-INF/views/admin/adminStat.jsp");
