@@ -4,196 +4,196 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<title>관리자 회원관리</title>
-<link
-	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-	rel="stylesheet">
-<link rel="stylesheet"
-	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<link rel="stylesheet"
-	href="${pageContext.request.contextPath}/style/default.css">
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<style>
-body {
-	font-family: 'Noto Sans KR', sans-serif;
-	background-color: #fffdfd;
-	color: #333;
-}
-
-.member-container {
-	max-width: 1100px;
-	margin: 80px auto;
-}
-
-h2 {
-	font-weight: 700;
-	margin-bottom: 40px;
-	text-align: center;
-	color: #444;
-}
-
-/* 검색창 */
-.search-box {
-	position: relative;
-	display: flex;
-	justify-content: flex-end;
-	margin-bottom: 40px;
-	margin-right: 5px;
-}
-
-.search-box input {
-	background-color: #fffafa;
-	border: none;
-	border-radius: 25px;
-	padding: 10px 40px 10px 18px;
-	width: 260px;
-	font-size: 14px;
-	transition: all 0.25s ease-in-out;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-.search-box input::placeholder {
-	color: #d88c8c;
-}
-
-.search-box input:focus {
-	outline: none;
-	background-color: #fff5f5;
-	box-shadow: 0 0 8px rgba(255, 114, 114, 0.3);
-}
-
-.search-box i {
-	position: absolute;
-	right: 16px;
-	top: 50%;
-	transform: translateY(-50%);
-	color: #FF7272;
-	font-size: 16px;
-	pointer-events: none;
-}
-
-/* 회원 카드 목록 */
-.member-grid {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 25px;
-	justify-items: center;
-}
-
-.member-card {
-	width: 90%;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	border: 1px solid #f0eaea;
-	border-radius: 12px;
-	padding: 18px 22px;
-	background-color: #fff;
-	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
-	transition: 0.3s ease-in-out;
-}
-
-.member-card:hover {
-	transform: translateY(-4px);
-	box-shadow: 0 6px 14px rgba(255, 114, 114, 0.15);
-}
-
-.member-info {
-	display: flex;
-	align-items: center;
-}
-
-.member-info img {
-  width: 45px;                /* 👈 기존보다 살짝 작게 */
-  height: 45px;
-  border-radius: 50%;
-  margin-right: 15px;
-  border: 2px solid #FFBDBD;
-  object-fit: cover;          /* 👈 이미지 비율 유지하면서 꽉 차게 */
-  object-position: center;    /* 👈 이미지 중앙 정렬 */
-  display: block; 
-  padding: 3px;               /* 👈 프레임 안쪽 여백 줘서 '작게' 보이게 */
-}
-
-.member-info .name {
-	font-weight: 600;
-	font-size: 16px;
-	margin-bottom: 2px;
-}
-
-.member-info .date {
-	color: #999;
-	font-size: 13px;
-}
-
-.btn-delete {
-	background-color: #FF7272;
-	color: #fff;
-	border: none;
-	border-radius: 8px;
-	padding: 8px 20px;
-	font-weight: 500;
-	box-shadow: 0 3px 6px rgba(255, 114, 114, 0.25);
-	transition: all 0.3s ease;
-}
-
-.btn-delete:hover {
-	background-color: #E85A5A;
-	box-shadow: 0 4px 10px rgba(232, 90, 90, 0.3);
-	transform: translateY(-1px);
-}
-
-/* 페이지네이션 */
-.pagination {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	gap: 10px;
-	margin-top: 45px;
-	margin-bottom: 40px;
-}
-
-.page-arrow, .page-num {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 40px;
-	height: 40px;
-	border-radius: 50%;
-	text-decoration: none;
-	color: #FF7272;
-	font-size: 16px;
-	transition: all 0.3s;
-	cursor: pointer;
-	border: 1px solid #FFBDBD;
-	background: #fffafa;
-}
-
-.page-arrow:hover, .page-num:hover {
-	background-color: #FFDADA;
-	color: #fff;
-}
-
-.page-num.active {
-	background-color: #FF7272;
-	color: #fff;
-	font-weight: 600;
-	box-shadow: 0 3px 6px rgba(255, 114, 114, 0.3);
-}
-
-@media ( max-width : 900px) {
-	.member-grid {
-		grid-template-columns: repeat(2, 1fr);
-	}
-}
-
-@media ( max-width : 600px) {
-	.member-grid {
-		grid-template-columns: 1fr;
-	}
-}
-</style>
+	<meta charset="UTF-8">
+	<title>관리자 회원관리</title>
+	<link
+		href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+		rel="stylesheet">
+	<link rel="stylesheet"
+		href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+	<link rel="stylesheet"
+		href="${pageContext.request.contextPath}/style/default.css">
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+	<style>
+		body {
+			font-family: 'Noto Sans KR', sans-serif;
+			background-color: #fffdfd;
+			color: #333;
+		}
+		
+		.member-container {
+			max-width: 1100px;
+			margin: 80px auto;
+		}
+		
+		h2 {
+			font-weight: 700;
+			margin-bottom: 40px;
+			text-align: center;
+			color: #444;
+		}
+		
+		/* 검색창 */
+		.search-box {
+			position: relative;
+			display: flex;
+			justify-content: flex-end;
+			margin-bottom: 40px;
+			margin-right: 5px;
+		}
+		
+		.search-box input {
+			background-color: #fffafa;
+			border: none;
+			border-radius: 25px;
+			padding: 10px 40px 10px 18px;
+			width: 260px;
+			font-size: 14px;
+			transition: all 0.25s ease-in-out;
+			box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+		}
+		
+		.search-box input::placeholder {
+			color: #d88c8c;
+		}
+		
+		.search-box input:focus {
+			outline: none;
+			background-color: #fff5f5;
+			box-shadow: 0 0 8px rgba(255, 114, 114, 0.3);
+		}
+		
+		.search-box i {
+			position: absolute;
+			right: 16px;
+			top: 50%;
+			transform: translateY(-50%);
+			color: #FF7272;
+			font-size: 16px;
+			pointer-events: none;
+		}
+		
+		/* 회원 카드 목록 */
+		.member-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 25px;
+			justify-items: center;
+		}
+		
+		.member-card {
+			width: 90%;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			border: 1px solid #f0eaea;
+			border-radius: 12px;
+			padding: 18px 22px;
+			background-color: #fff;
+			box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+			transition: 0.3s ease-in-out;
+		}
+		
+		.member-card:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 6px 14px rgba(255, 114, 114, 0.15);
+		}
+		
+		.member-info {
+			display: flex;
+			align-items: center;
+		}
+		
+		.member-info img {
+		  width: 45px;                
+		  height: 45px;
+		  border-radius: 50%;
+		  margin-right: 15px;
+		  border: 2px solid #FFBDBD;
+		  object-fit: cover;           
+		  object-position: center;    
+		  display: block; 
+		  padding: 3px;               
+		}
+		
+		.member-info .name {
+			font-weight: 600;
+			font-size: 16px;
+			margin-bottom: 2px;
+		}
+		
+		.member-info .date {
+			color: #999;
+			font-size: 13px;
+		}
+		
+		.btn-delete {
+			background-color: #FF7272;
+			color: #fff;
+			border: none;
+			border-radius: 8px;
+			padding: 8px 20px;
+			font-weight: 500;
+			box-shadow: 0 3px 6px rgba(255, 114, 114, 0.25);
+			transition: all 0.3s ease;
+		}
+		
+		.btn-delete:hover {
+			background-color: #E85A5A;
+			box-shadow: 0 4px 10px rgba(232, 90, 90, 0.3);
+			transform: translateY(-1px);
+		}
+		
+		/* 페이지네이션 */
+		.pagination {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 10px;
+			margin-top: 45px;
+			margin-bottom: 40px;
+		}
+		
+		.page-arrow, .page-num {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			text-decoration: none;
+			color: #FF7272;
+			font-size: 16px;
+			transition: all 0.3s;
+			cursor: pointer;
+			border: 1px solid #FFBDBD;
+			background: #fffafa;
+		}
+		
+		.page-arrow:hover, .page-num:hover {
+			background-color: #FFDADA;
+			color: #fff;
+		}
+		
+		.page-num.active {
+			background-color: #FF7272;
+			color: #fff;
+			font-weight: 600;
+			box-shadow: 0 3px 6px rgba(255, 114, 114, 0.3);
+		}
+		
+		@media ( max-width : 900px) {
+			.member-grid {
+				grid-template-columns: repeat(2, 1fr);
+			}
+		}
+		
+		@media ( max-width : 600px) {
+			.member-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
 </head>
 
 <body>
@@ -220,10 +220,13 @@ h2 {
 	let currentPage = 1; 
 	//  회원 목록 불러오기 
 	function fetchPage(page) {
+		const nickname = $(".search-box input").val().trim();
+		
 	  $.ajax({
 	    url: contextPath + "/AdminMemberAjax",
 	    type: "GET",
-	    data: { page },
+	    data: { page,
+	        nickname },
 	    dataType: "json",
 	    success: function (res) {
 	      currentPage = res.currentPage;  
@@ -313,7 +316,14 @@ h2 {
 	  });
 	});
 	
-	// ✅ 초기 진입 시 1페이지 로드
+	// 검색창 엔터 이벤트 추가
+	$(document).on("keyup", ".search-box input", function(e) {
+	  if (e.key === "Enter") {
+	    fetchPage(1); //검색 시 항상 첫 페이지부터 로드
+	  }
+	});
+	
+	// 초기 진입 시 1페이지 로드
 	$(function() {
 	  fetchPage(1);
 	});
