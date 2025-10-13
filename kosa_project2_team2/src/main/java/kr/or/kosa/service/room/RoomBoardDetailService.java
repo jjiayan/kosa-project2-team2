@@ -5,23 +5,21 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.RoomDao;
-import kr.or.kosa.dto.RoomDto;
+import kr.or.kosa.dto.RoomBoardDto;
 
-public class RoomDetailService implements Action{
+public class RoomBoardDetailService implements Action{
 
 	@Override
 	public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
-		int roomId = Integer.parseInt(request.getParameter("roomId"));
+		String roomBoardId = request.getParameter("roomBoardId");
 		RoomDao roomDao = new RoomDao();
-		
-		RoomDto roomDetail = roomDao.detialRoom(roomId);
+		RoomBoardDto roomBoardDetail = roomDao.getRoomBoardDetail(Integer.parseInt(roomBoardId));
 		ActionForward forward = new ActionForward();
-		System.out.println("roomdetail ==>> isLiked " + roomDetail.isLiked());
 		
-		request.setAttribute("roomDetail", roomDetail);
 		forward.setRedirect(false);
-		forward.setPath("/WEB-INF/views/room/detailRoom.jsp");
-
+		forward.setPath("/WEB-INF/views/room/detailRoomBoard.jsp");
+		request.setAttribute("roomBoardDetail", roomBoardDetail);
+		
 		return forward;
 	}
 

@@ -82,22 +82,24 @@
 <nav class="app-sidenav" aria-label="사이드바">
   <ul class="snav-list">
     <li class="snav-item ${current eq 'home' ? 'is-active' : ''}">
-      <a href="<c:url value='/index.user'/>" class="snav-link" aria-label="홈">
+      <a href="<c:url value='/roomdetail.room'>
+            <c:param name='roomId' value='${roomDetail.roomId}'/>
+         </c:url>" class="snav-link" aria-label="홈">
         <i class="fa-regular fa-calendar"></i>
         <span class="label">홈</span>
       </a>
     </li>
 
     <li class="snav-item ${current eq 'posts' ? 'is-active' : ''}">
-      <a href="<c:url value='/board/list.do'/>" class="snav-link" aria-label="게시글">
+      <a href="<c:url value='/roomboard.room'/>" class="snav-link" aria-label="게시글">
         <i class="fa-regular fa-rectangle-list"></i>
         <span class="label">게시글</span>
-        <span class="count">24</span>
+        <!-- <span class="count">24</span> -->
       </a>
     </li>
 
     <li class="snav-item ${current eq 'calendar' ? 'is-active' : ''}">
-      <a href="<c:url value='/calendar/list.do'/>" class="snav-link" aria-label="캘린더">
+      <a href="<c:url value='/roomboard.room'/>" class="snav-link" aria-label="캘린더">
         <i class="fa-regular fa-calendar-days"></i>
         <span class="label">캘린더</span>
       </a>
@@ -110,11 +112,13 @@
       </a>
     </li>
 
-    <li class="snav-item ${current eq 'admin' ? 'is-active' : ''}">
-      <a href="<c:url value='/admin/index.do'/>" class="snav-link" aria-label="관리">
-        <i class="fa-regular fa-user"></i>
-        <span class="label">관리</span>
-      </a>
-    </li>
+    <c:if test="${roomDetail.leaderCheck}">
+	  <li class="snav-item ${current eq 'admin' ? 'is-active' : ''}">
+	    <a href="<c:url value='/admin/index.do'/>" class="snav-link" aria-label="관리">
+	      <i class="fa-regular fa-user"></i>
+	      <span class="label">관리</span>
+	    </a>
+	  </li>
+	</c:if>
   </ul>
 </nav>

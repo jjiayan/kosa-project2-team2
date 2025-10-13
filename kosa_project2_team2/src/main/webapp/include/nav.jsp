@@ -182,7 +182,7 @@
   <!-- 중앙 메뉴 -->
   <div class="center">
     <nav class="menu" aria-label="주요 메뉴">
-      <a href="${pageContext.request.contextPath}/study.do"><i class="fa-regular fa-comments"></i>스터디</a>
+      <a href="${pageContext.request.contextPath}/roomlist.room"><i class="fa-regular fa-comments"></i>스터디</a>
       <a href="${pageContext.request.contextPath}/license.do"><i class="fa-regular fa-calendar"></i>자격증</a>
       <a href="${pageContext.request.contextPath}/notice.do"><i class="fa-solid fa-bullhorn"></i>공지</a>
     </nav>

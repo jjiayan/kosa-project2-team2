@@ -50,7 +50,6 @@ public class RoomAjaxController extends HttpServlet {
             // 응답 설정
             response.setContentType("application/json; charset=UTF-8");
             response.getWriter().print(json);
-        	
         }
         
 
