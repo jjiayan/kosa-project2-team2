@@ -355,7 +355,13 @@
 	      if (remaining === 1 && currentPage > 1) currentPage--;
 	      fetchPage(currentPage);
 	    },
-	    error: function () { alert("탈퇴 처리 중 오류가 발생했습니다."); }
+	    error: function (xhr) {
+	    	  if (xhr.status === 403) {
+	    	    alert("관리자만 회원 탈퇴를 수행할 수 있습니다.");
+	    	  } else {
+	    	    alert("탈퇴 처리 중 오류가 발생했습니다.");
+	    	  }
+	    	}
 	  });
 	});
 
