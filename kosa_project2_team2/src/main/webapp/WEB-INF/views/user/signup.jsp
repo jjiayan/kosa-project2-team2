@@ -23,11 +23,12 @@
   .title{margin:12px 0 16px; text-align:center; font-size:44px; font-weight:900; color:#555;}
 
   .avatar-area{display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:16px;}
-  .avatar{
+  /* ▼ 회원가입 전용 아바타 (nav.jsp의 .avatar와 충돌 방지) */
+  .signup-avatar{
     width:140px; height:140px; border-radius:999px; overflow:hidden; border:2px solid #111; background:#fff;
     display:flex; align-items:center; justify-content:center;
   }
-  .avatar img{width:100%; height:100%; object-fit:cover; display:block;}
+  .signup-avatar img{width:100%; height:100%; object-fit:cover; display:block;}
   .avatar-actions{display:flex; gap:8px;}
   .chip{
     font-size:12px; padding:6px 10px; border-radius:10px; border:1.5px solid #111; background:#fff; cursor:pointer;
@@ -72,7 +73,7 @@
 
   @media (max-width:640px){
     .title{font-size:34px}
-    .avatar{width:120px; height:120px}
+    .signup-avatar{width:120px; height:120px}
   }
   .badge.ok{ background:#16a34a; }
 </style>
@@ -91,7 +92,7 @@
 
       <!-- ✅ 아바타 -->
       <div class="avatar-area">
-        <div class="avatar">
+        <div class="signup-avatar">
           <img id="avatarImg" src="${pageContext.request.contextPath}/images/default-avatar.png" alt="프로필 이미지" />
         </div>
         <div class="avatar-actions">
@@ -295,11 +296,11 @@
       .fail(()=>alert("서버 통신 오류가 발생했습니다."));
   }
 
-  // ===== export 함수 =====
+  // export
   window.checkId=checkId; window.checkNickname=checkNickname; window.checkPhone=checkPhone;
   window.setDefaultAvatar=setDefaultAvatar; window.togglePw=togglePw;
 
-  // ===== 제출 가드 =====
+  // 제출 가드
   $("form.card").on("submit", function(e){
     if(!(isIdOk && isNickOk && isPhoneOk && isPwOk && isPwMatch)){
       e.preventDefault();
@@ -307,7 +308,6 @@
     }
   });
 
-  // 초기 반영
   $(function(){ updatePwStrength(); updatePwMatch(); });
 </script>
 
