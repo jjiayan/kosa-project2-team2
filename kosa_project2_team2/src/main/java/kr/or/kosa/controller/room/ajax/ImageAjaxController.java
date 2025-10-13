@@ -48,7 +48,7 @@ public class ImageAjaxController extends HttpServlet {
             }
             if(filePart != null && filePart.getSize() > 0) {
                 // 프로젝트 소스 경로에 직접 저장
-                String uploadPath = "/Users/junghunmok/upload/thumbnail/";
+                String uploadPath = "/Users/fengyunlong/upload/thumbnail/";
                 File uploadDir = new File(uploadPath);
                 if (!uploadDir.exists()) {
                     uploadDir.mkdirs();

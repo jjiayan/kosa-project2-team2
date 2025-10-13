@@ -6,7 +6,6 @@
 <meta charset="UTF-8" />
 <title>로그인</title>
 
-<!-- (선택) 전역 기본 CSS가 있다면 사용: <link rel="stylesheet" href="${pageContext.request.contextPath}/style/default.css" /> -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 
 <style>
@@ -17,10 +16,7 @@
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:#f9fafb;font-family:"Noto Sans KR","Pretendard",sans-serif;color:var(--ink)}
 
-  /* 전체 페이지 구조 */
   .page-wrap{min-height:calc(100vh - 80px); display:flex; align-items:center; justify-content:center; padding:32px 16px;}
-  
-  /* 카드 */
   .card{
     width:100%; max-width:420px; background:var(--bg);
     border:2px solid #111; border-radius:24px; padding:36px 28px;
@@ -28,7 +24,6 @@
   }
   .card h1{margin:0 0 28px; font-size:32px; text-align:center; letter-spacing:.04em}
 
-  /* 입력 필드 */
   .field{margin-bottom:18px;}
   .field label{display:block; font-size:13px; color:#374151; margin:0 0 8px 6px}
   .input-wrap{
@@ -44,12 +39,8 @@
   }
   .input-wrap .toggle:hover{color:#111}
 
-  /* 에러 메시지 */
-  .error{
-    margin-top:6px; font-size:12px; color:var(--danger); line-height:1.45;
-  }
+  .error{ margin-top:6px; font-size:12px; color:var(--danger); line-height:1.45; }
 
-  /* 로그인 버튼 */
   .submit-btn{
     width:100%; margin-top:16px; border:0; border-radius:12px; height:44px;
     background:var(--accent); color:#fff; font-weight:600; letter-spacing:.02em; cursor:pointer;
@@ -58,7 +49,6 @@
   .submit-btn:hover{background:var(--accent-hover)}
   .submit-btn:active{transform:translateY(1px)}
 
-  /* 하단 링크 */
   .links{margin-top:18px; text-align:center; font-size:14px; color:#4b5563}
   .links a{color:#4b5563; text-decoration:none}
   .links a:hover{color:#111; text-decoration:underline}
@@ -72,12 +62,11 @@
 </head>
 <body>
 
-<!-- 상단 네비게이션 -->
 <jsp:include page="/include/nav.jsp" />
 
-<!-- 로그인 카드 -->
 <div class="page-wrap">
-  <form class="card" action="${pageContext.request.contextPath}/login.do" method="post" autocomplete="on">
+  <!-- ✅ action만 /loginOk.user 로 변경 -->
+  <form class="card" action="${pageContext.request.contextPath}/loginOk.user" method="post" autocomplete="on">
     <h1>로그인</h1>
 
     <div class="field">
@@ -95,7 +84,6 @@
       </div>
     </div>
 
-    <!-- ✅ 에러는 있을 때만 렌더링 -->
     <c:if test="${not empty errorMsg}">
       <div class="error" id="errorText">${errorMsg}</div>
     </c:if>

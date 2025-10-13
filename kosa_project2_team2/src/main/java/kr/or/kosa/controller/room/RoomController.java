@@ -9,6 +9,8 @@ import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.RoomDao;
 import kr.or.kosa.dto.RegionDto;
+import kr.or.kosa.service.room.RoomBoardDetailService;
+import kr.or.kosa.service.room.RoomBoardListService;
 import kr.or.kosa.service.room.RoomDetailService;
 import kr.or.kosa.service.room.RoomInsertService;
 import kr.or.kosa.service.room.RoomListService;
@@ -59,6 +61,13 @@ public class RoomController extends HttpServlet {
     	}else if(urlCommand.equals("/roomdetail.room")) {
     		action = new RoomDetailService();
     		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomboard.room")) {
+    		action = new RoomBoardListService();
+    		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomboarddetail.room")) {
+    		System.out.println("룸보드 디테일 여기들어온다? ");
+    		action = new RoomBoardDetailService();
+    		forward = action.execute(request, response);
     	}
     	
     	if(forward != null) {
@@ -67,7 +76,6 @@ public class RoomController extends HttpServlet {
                 response.sendRedirect(forward.getPath());
             } else {
                 // forward (내부 이동, request 유지)
-
                 request.getRequestDispatcher(forward.getPath())
                        .forward(request, response);
             }

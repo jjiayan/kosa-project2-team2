@@ -23,6 +23,11 @@ public class RoomDto {
     private int likeCount;
     private boolean isLiked;
     private String certName;
+    private boolean updateCheck;
+    private String joinUserStatus;
+    private boolean leaderCheck;
+    private double roomScore;
+    private String userNickName;
     private Date createdAt;
     private Date updatedAt;
     
