@@ -19,13 +19,13 @@ public class CertificationListService implements Action {
         ActionForward forward = new ActionForward();
 
         try {
-            // ✅ DAO 호출 -> 현재 연도 최신 회차 + 요약 정보 리스트
+            // DAO 호출 -> 현재 연도 최신 회차 + 요약 정보 리스트
             List<CertificationSummaryDto> list = certificationDao.getCurrentYearLatestCertifications();
 
-            // ✅ JSP에서 사용할 수 있도록 request에 저장
+            // JSP에서 사용할 수 있도록 request에 저장
             request.setAttribute("certList", list);
 
-            // ✅ JSP 경로 설정
+            // JSP 경로 설정
             forward.setRedirect(false);
             forward.setPath("/WEB-INF/views/certification/certificationList.jsp");
             // (JSP 파일명은 상황에 따라 조정 가능)

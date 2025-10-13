@@ -9,44 +9,60 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import kr.or.kosa.dto.Certification;
+import kr.or.kosa.dto.CertificationMasterDto;
+import kr.or.kosa.dto.CertificationScheduleDto;
+import kr.or.kosa.dto.CertificationStatsDto;
 
-/**
- * 외부 자격증 API 서버에서 JSON 데이터를 불러오는 DAO
- */
+// 외부 자격증 API 서버에서 JSON 데이터를 불러오는 DAO
 public class ApiCertificationDao {
 
-    // 현재 API 서버는 내 PC에서 8091 포트로 실행됨
-    private static final String API_URL =
-        "http://localhost:8091/qualifications_api_server/certifications";
+    // API 서버 기본 주소
+    private static final String BASE_URL = "http://localhost:8091/qualifications_api_server";
+    private final Gson gson = new Gson();
 
-    public List<Certification> loadCertifications() {
-        List<Certification> list = null;
+    public List<CertificationMasterDto> loadCertifications() {
+        String url = BASE_URL + "/certifications";
+        return fetchList(url, new TypeToken<List<CertificationMasterDto>>(){}.getType(), "자격증 마스터");
+    }
+
+    public List<CertificationScheduleDto> loadSchedules() {
+        String url = BASE_URL + "/schedules";
+        return fetchList(url, new TypeToken<List<CertificationScheduleDto>>(){}.getType(), "시험 일정");
+    }
+
+    public List<CertificationStatsDto> loadStats() {
+        String url = BASE_URL + "/stats";
+        return fetchList(url, new TypeToken<List<CertificationStatsDto>>(){}.getType(), "시험 통계");
+    }
+
+    // 공용 JSON Fetch 메서드
+    private <T> List<T> fetchList(String apiUrl, java.lang.reflect.Type type, String label) {
         HttpURLConnection conn = null;
         BufferedReader reader = null;
 
         try {
-            URL url = new URL(API_URL);
+            URL url = new URL(apiUrl);
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json");
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
-            conn.setRequestProperty("Accept", "application/json");
 
             int responseCode = conn.getResponseCode();
 
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-                Gson gson = new Gson();
-                list = gson.fromJson(reader, new TypeToken<List<Certification>>(){}.getType());
-                System.out.println("[ApiCertificationDao] 자격증 데이터 " + list.size() + "건 로드 완료");
+                List<T> list = gson.fromJson(reader, type);
+                System.out.printf("[ApiCertificationDao] %s %d건 로드 완료%n", label, list.size());
+                return list;
             } else {
-                System.err.println("[ApiCertificationDao] API 응답 오류: " + responseCode);
+                System.err.printf("[ApiCertificationDao] %s API 응답 오류: %d%n", label, responseCode);
             }
 
         } catch (Exception e) {
-            System.err.println("[ApiCertificationDao] API 요청 실패: " + e.getMessage());
+            System.err.printf("[ApiCertificationDao] %s API 요청 실패: %s%n", label, e.getMessage());
             e.printStackTrace();
+
         } finally {
             try {
                 if (reader != null) reader.close();
@@ -54,6 +70,6 @@ public class ApiCertificationDao {
             } catch (Exception ignore) {}
         }
 
-        return list;
+        return null;
     }
 }
