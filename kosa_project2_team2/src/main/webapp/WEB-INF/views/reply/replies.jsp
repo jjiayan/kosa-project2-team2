@@ -472,8 +472,23 @@
     <!-- 댓글 작성 폼 -->
     <div class="reply-write-form">
         <div class="write-form-header">
-            <img src="${pageContext.request.contextPath}/images/default-avatar.png" alt="프로필" class="profile-img">
-            <span class="author-name">닉네임</span>
+            <%-- <img src="${pageContext.request.contextPath}/images/default-avatar.png" alt="프로필" class="profile-img">
+            <span class="author-name">닉네임</span> --%>
+            <c:set var="userPhoto" value="${sessionScope.LOGIN_USER.user_photo}" />
+    		<c:set var="userNickname" value="${sessionScope.LOGIN_USER.user_nickname}" />
+            <c:choose>
+                <c:when test="${not empty sessionScope.LOGIN_USER.user_photo}">
+                    <img src="${pageContext.request.contextPath}${sessionScope.LOGIN_USER.user_photo}" 
+                         alt="프로필" class="profile-img">
+                </c:when>
+                <c:otherwise>
+                    <img src="${pageContext.request.contextPath}/images/default-avatar.png" 
+                         alt="프로필" class="profile-img">
+                </c:otherwise>
+            </c:choose>
+            <span class="author-name">
+                ${not empty sessionScope.LOGIN_USER ? sessionScope.LOGIN_USER.user_nickname : '방문자'}
+            </span>
         </div>
         <div id="attachedImages" class="attached-images"></div>
         <textarea id="replyContent" placeholder="댓글을 남겨보세요" maxlength="3000"></textarea>
