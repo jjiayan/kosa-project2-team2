@@ -58,6 +58,17 @@ public class ReplyWriteController extends HttpServlet{
         	
 	        // 로그인 체크
 	        Long userId = getCurrentUserId(request);
+	        // 테스트용: 파라미터로 userId 전달 가능
+	        String testUserIdStr = request.getParameter("userId");
+	        if (userId == null && testUserIdStr != null && !testUserIdStr.trim().isEmpty()) {
+	            try {
+	                userId = Long.parseLong(testUserIdStr);
+	                System.out.println("[TEST MODE] Using userId from parameter: " + userId);
+	            } catch (NumberFormatException e) {
+	                System.err.println("[ERROR] Invalid userId parameter: " + testUserIdStr);
+	            }
+	        }
+	        
 	        if (userId == null) {
 	        	result.put("success", false);
 	        	result.put("message", "로그인이 필요합니다");

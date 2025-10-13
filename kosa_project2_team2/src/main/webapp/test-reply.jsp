@@ -423,11 +423,15 @@ body {
             <span class="status-badge enabled">WRITE</span>
         </p>
         <div class="test-input-group">
-            <label>게시글 ID:</label>
-            <input type="number" id="testRoomBoardId" value="1">
-            <label>현재 사용자 ID:</label>
-            <input type="number" id="testUserId" value="${sessionScope.LOGIN_USER.getUser_id}" readonly>
-        </div>
+		    <label>게시글 ID:</label>
+		    <input type="number" id="testRoomBoardId" value="1">
+		    <label style="color: #dc3545;">⚠️ 사용자 ID (필수):</label>
+		    <input type="number" id="testUserId" value="" placeholder="예: 1" 
+		           style="border-color: #dc3545;">
+		</div>
+		<p style="color: #dc3545; font-size: 12px; margin: 5px 0 0 0;">
+		    ※ 로그인 안 되어 있으면 DB의 실제 USER_ID를 입력하세요 (예: 1, 2, 11 등)
+		</p>
         <div class="test-buttons">
             <button class="test-btn primary" onclick="testReloadAll()">🔄 전체 새로고침</button>
             <button class="test-btn secondary" onclick="testCountOnly()">📊 댓글 수 조회</button>
@@ -676,6 +680,15 @@ body {
                 return;
             }
             
+         	// ✅ 테스트용 userId 가져오기
+            var testUserId = jQuery('#testUserId').val();
+            
+            if (!testUserId || testUserId.trim() === '' || testUserId === 'null') {
+                alert('⚠️ 사용자 ID를 입력해주세요!\n(로그인이 안 되어 있으면 직접 입력 필요)');
+                addTestLog('❌ 사용자 ID 없음', 'error');
+                return;
+            }
+            
             addTestLog('=== 댓글 작성 테스트 시작 ===', 'warning');
             
             jQuery.ajax({
@@ -684,11 +697,13 @@ body {
                 dataType: 'json',
                 data: {
                     roomBoardId: ROOM_BOARD_ID,
-                    replyContent: content
+                    replyContent: content,
+                    userId: testUserId  // ✅ 테스트용 userId 전달
                 },
                 beforeSend: function() {
                     addTestLog('📡 요청 URL: /reply/write.ajax');
                     addTestLog('📤 파라미터: roomBoardId=' + ROOM_BOARD_ID);
+                    addTestLog('👤 테스트 userId: ' + testUserId);  // ✅ 추가
                     addTestLog('📝 댓글 내용: ' + content.substring(0, 50) + (content.length > 50 ? '...' : ''));
                     
                     // 버튼 비활성화
