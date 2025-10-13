@@ -10,7 +10,7 @@ import java.nio.file.*;
 
 @WebServlet("/files/*")
 public class FileServeServlet extends HttpServlet {
-  private static final Path BASE_DIR = Paths.get("C:", "upload");
+  private static final Path BASE_DIR = Paths.get(System.getProperty("user.home"), "upload");
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
