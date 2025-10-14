@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.admin.AdminNoticeDetailService;
 import kr.or.kosa.service.admin.AdminNoticeInsertService;
 import kr.or.kosa.service.admin.AdminNoticeService;
 import kr.or.kosa.service.admin.AdminNoticeWriteService;
@@ -49,6 +50,9 @@ public class AdminController extends HttpServlet {
 		}
 		else if (command.equals("/adminNoticeWrite.admin")) { 
 		    Action action = new AdminNoticeWriteService();
+		    forward = action.execute(request, response);
+		}else if (command.equals("/adminNoticeDetail.admin")) {
+			Action action = new AdminNoticeDetailService();
 		    forward = action.execute(request, response);
 		}else {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
