@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
-import kr.or.kosa.dao.AdminMemberDao;
+import kr.or.kosa.dao.AdminDao;
 import kr.or.kosa.dto.PageResult;
 import kr.or.kosa.dto.UserDto;
 
@@ -18,31 +18,31 @@ public class AdminMemberService implements Action {
         ActionForward forward = new ActionForward();
 
         try {
-            AdminMemberDao dao = new AdminMemberDao();
+        	AdminDao dao = new AdminDao();
 
-            // ✅ 현재 페이지 파라미터
+            // 현재 페이지 파라미터
             int currentPage = 1;
             String pageParam = request.getParameter("page");
             if (pageParam != null && !pageParam.isEmpty()) {
                 currentPage = Integer.parseInt(pageParam);
             }
 
-            // ✅ 페이지 관련 설정
-            int pageSize = 9; // 한 페이지당 회원 수
+            // 한 페이지당 회원 수
+            int pageSize = 9; 
             int totalCount = dao.getUserCount();
             int totalPages = (int) Math.ceil((double) totalCount / pageSize);
             int offset = (currentPage - 1) * pageSize;
 
-            // ✅ 페이지 블록 (한 번에 5개 번호씩 표시)
+            // 페이지 블록 (한 번에 5개 번호씩 표시)
             int pageBlock = 5;
             int startPage = ((currentPage - 1) / pageBlock) * pageBlock + 1;
             int endPage = startPage + pageBlock - 1;
             if (endPage > totalPages) endPage = totalPages;
 
-            // ✅ 회원 목록 불러오기
+            // 회원 목록 불러오기
             List<UserDto> memberList = dao.getPagedUsers(offset, pageSize);
 
-            // ✅ 결과 객체 세팅
+            // 결과 객체 세팅
             PageResult<UserDto> pageResult = new PageResult<>();
             pageResult.setData(memberList);
             pageResult.setTotalCount(totalCount);
@@ -50,7 +50,7 @@ public class AdminMemberService implements Action {
             pageResult.setCurrentPage(currentPage);
             pageResult.setTotalPages(totalPages);
 
-            // ✅ JSP로 전달
+            // JSP로 전달
             request.setAttribute("memberList", memberList);
             request.setAttribute("pageResult", pageResult);
             request.setAttribute("startPage", startPage);

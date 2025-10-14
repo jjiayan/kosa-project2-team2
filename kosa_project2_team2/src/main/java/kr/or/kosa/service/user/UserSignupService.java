@@ -20,6 +20,7 @@ public class UserSignupService implements Action {
         try {
         	Part avatar = request.getPart("avatarFile");
             String photoUrl = null;
+            System.out.println("avaatea" +avatar);
             if (avatar != null && avatar.getSize() > 0) {
                 photoUrl = FileUploadUtil.saveImageToUpload(avatar, request.getServletContext());
             }

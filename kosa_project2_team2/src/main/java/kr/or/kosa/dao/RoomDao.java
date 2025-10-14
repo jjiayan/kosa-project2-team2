@@ -354,9 +354,9 @@ public class RoomDao {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
-		RoomBoardDto roomBoard = null;
-		
-		String sql = "SELECT " +
+		RoomBoardDto roomBoard = null; 
+    
+    String sql = "SELECT " +
 			    "rb.ROOM_BOARD_ID as ROOM_BOARD_ID, " +
 			    "rb.ROOM_BOARD_TITLE as ROOM_BOARD_TITLE, " +
 			    "rb.ROOM_BOARD_CONTENT as ROOM_BOARD_CONTENT, " +

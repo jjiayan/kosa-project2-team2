@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import kr.or.kosa.dto.ReplyDto;
+import kr.or.kosa.dto.UserDto;
 import kr.or.kosa.service.reply.ReplyService;
 
 // command: 댓글 작성, 수정, 삭제 
@@ -197,7 +198,8 @@ public class ReplyAjaxCommandController extends HttpServlet {
 	private Long getUserId(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
 		if (session != null) {
-			return (Long) session.getAttribute("userId");
+			UserDto userDto = (UserDto) session.getAttribute("LOGIN_USER");
+			return Long.valueOf(userDto.getUser_id());
 		}
 		return null;
 	}
