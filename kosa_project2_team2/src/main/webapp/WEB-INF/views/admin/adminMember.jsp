@@ -287,7 +287,7 @@
 			            <i class="fa-solid fa-phone me-1"></i><span id="detail-phonenumber">-</span>
 			          </div>
 			          <div class="chip w-auto">
-			            <i class="fa-regular fa-calendar me-1"></i><span id="detail-created-at">-</span>
+			            <i class="fa-regular fa-calendar me-1"></i><span id="detail-createdAt">-</span>
 			          </div>
 			        </div>
 		
@@ -355,7 +355,7 @@
 	          <img src="\${photo}" alt="프로필">
 	          <div>
 	            <div class="name">\${u.user_nickname ?? ""}</div>
-	            <div class="date">가입일: \${u.created_at ? u.created_at.split(' ')[0] : ''}</div>
+	            <div class="date">가입일: \${u.createdAt}</div>
 	          </div>
 	        </div>
 	        <button class="btn-delete" type="button" data-user-id="\${u.user_id}">탈퇴</button>
@@ -423,8 +423,14 @@
 	  $("#detail-photo").attr("src", photo);
 	  $("#detail-login-id").text(user.user_login_id || "-");
 	  $("#detail-nickname").text(user.user_nickname || "-");
-	  $("#detail-phonenumber").text(user.user_phonenumber || "-");
-	  $("#detail-created-at").text(user.created_at ? user.created_at.split(' ')[0] : "-");
+	  
+	  let formattedPhone = user.user_phonenumber || "-";
+	  if (formattedPhone && formattedPhone !== "-") {
+	    formattedPhone = formattedPhone.replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, "$1-$2-$3");
+	  }
+	  $("#detail-phonenumber").text(formattedPhone);
+	  
+	  $("#detail-createdAt").text(user.createdAt || "-");
 	  $("#detail-bio").text(user.user_bio && user.user_bio.trim() !== "" ? user.user_bio : "소개글이 없습니다.");
 
 	  const modal = new bootstrap.Modal(document.getElementById('userDetailModal'));

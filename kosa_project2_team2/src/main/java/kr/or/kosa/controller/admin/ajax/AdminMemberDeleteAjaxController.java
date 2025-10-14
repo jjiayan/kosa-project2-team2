@@ -8,7 +8,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import kr.or.kosa.dao.AdminMemberDao;
+import kr.or.kosa.dao.AdminDao;
 import kr.or.kosa.dto.UserDto;
 
 @WebServlet("/AdminMemberDeleteAjax")
@@ -48,7 +48,7 @@ public class AdminMemberDeleteAjaxController extends HttpServlet {
             int userId = Integer.parseInt(userIdParam);
 
             // 탈퇴 수행 (DAO 호출)
-            AdminMemberDao dao = new AdminMemberDao();
+            AdminDao dao = new AdminDao();
             int result = dao.deleteUser(userId);
 
             // 결과 응답

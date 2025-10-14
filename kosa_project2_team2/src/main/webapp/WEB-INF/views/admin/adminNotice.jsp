@@ -107,47 +107,41 @@
 
         /* 페이지네이션 */
         .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 45px;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .pagination button {
-            border: none;
-            background: none;
-            color: #FF7272;
-            font-size: 20px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .pagination button:hover {
-            color: #E85A5A;
-        }
-
-        .pagination .page-num {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: none;
-            background-color: #fffafa;
-            color: #FF7272;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .pagination .page-num.active {
-            background-color: #FF7272;
-            color: #fff;
-            box-shadow: 0 3px 6px rgba(255,114,114,0.3);
-        }
-
-        .pagination .page-num:hover {
-            background-color: #FFDADA;
-            color: #fff;
-        }
+		  display: flex;
+		  justify-content: center;
+		  align-items: center;
+		  gap: 10px;
+		  margin-top: 45px;
+		  margin-bottom: 40px;
+		}
+		
+		.page-arrow, .page-num {
+		  display: flex;
+		  align-items: center;
+		  justify-content: center;
+		  width: 40px;
+		  height: 40px;
+		  border-radius: 50%;
+		  text-decoration: none;
+		  color: #FF7272;
+		  font-size: 16px;
+		  transition: all 0.3s;
+		  cursor: pointer;
+		  border: 1px solid #FFBDBD;
+		  background: #fffafa;
+		}
+		
+		.page-arrow:hover, .page-num:hover {
+		  background-color: #FFDADA;
+		  color: #fff;
+		}
+		
+		.page-num.active {
+		  background-color: #FF7272;
+		  color: #fff;
+		  font-weight: 600;
+		  box-shadow: 0 3px 6px rgba(255, 114, 114, 0.3);
+		}
         /* ===== sideBar 전체 레이아웃 ===== */
 		.layout-wrap {
 		    display: grid;
@@ -265,16 +259,16 @@
 		            </tbody>
 		        </table>
 		
-		        <!-- 페이지네이션 (통일 필요) -->
+		        <!-- 페이지네이션 -->
 		        <div class="pagination">
-		            <button>&lt;</button>
-		            <button class="page-num active">1</button>
-		            <button class="page-num">2</button>
-		            <button class="page-num">3</button>
-		            <button class="page-num">4</button>
-		            <button class="page-num">5</button>
-		            <button>&gt;</button>
-		        </div>
+				    <button class="page-arrow" type="button">&laquo;</button>
+				    <button class="page-num active" type="button">1</button>
+				    <button class="page-num" type="button">2</button>
+				    <button class="page-num" type="button">3</button>
+				    <button class="page-num" type="button">4</button>
+				    <button class="page-num" type="button">5</button>
+				    <button class="page-arrow" type="button">&raquo;</button>
+				</div> 
 		    </div>
             
         </main>

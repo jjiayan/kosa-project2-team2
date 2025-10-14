@@ -253,6 +253,7 @@
             <div class="main-container">
                 <!-- 가운데: 컨텐츠 영역 -->
                 <div class="content-section">
+                
                     <div class="content-title">${roomDetail.title}</div>
                     
                     <div class="content-description">

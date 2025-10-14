@@ -15,7 +15,7 @@ public class RoomDto {
     private int maxParticipant;
     private String thumbnailUrl;
     private String title;
-    private String content;
+     private String content;
     private String roomStatus;
     private String parentRegion;
     private String childRegion;
@@ -27,6 +27,7 @@ public class RoomDto {
     private String joinUserStatus;
     private boolean leaderCheck;
     private double roomScore;
+    private int userId;
     private String userNickName;
     private Date createdAt;
     private Date updatedAt;

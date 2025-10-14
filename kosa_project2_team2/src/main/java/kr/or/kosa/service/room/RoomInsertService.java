@@ -14,12 +14,15 @@ public class RoomInsertService implements Action{
 		ActionForward forward = new ActionForward();
 		
 		int region2 = Integer.parseInt(request.getParameter("region2"));
+		int userId = Integer.parseInt(request.getParameter("userId"));
 		String certificate1 = request.getParameter("certificate1");
 		String certificate2 = request.getParameter("certificate2");
 		String title = request.getParameter("title");
 		String thumbnailUrl = request.getParameter("thumbnailUrl");
 		int maxParticipant = Integer.parseInt(request.getParameter("maxParticipant"));
 		String content = request.getParameter("content");
+		
+		System.out.println("userId -== >>  " + userId);
 		
 		RoomDto insertRoomDto = RoomDto.builder()
 										.regionId(region2)
@@ -29,6 +32,7 @@ public class RoomInsertService implements Action{
 										.title(title)
 										.thumbnailUrl(thumbnailUrl)
 										.content(content)
+										.userId(userId)
 										.build();
 		RoomDao roomDao = new RoomDao();
 		int result = roomDao.insertRoom(insertRoomDto);
