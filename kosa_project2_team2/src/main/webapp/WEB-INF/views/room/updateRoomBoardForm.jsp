@@ -5,7 +5,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>게시글 작성</title>
+<title>게시글 수정</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/style/default.css">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/summernote-lite.min.css" rel="stylesheet">
@@ -27,7 +27,7 @@ main {
     min-height: 100vh;
 }
 
-/* 게시글 작성 폼 스타일 */
+/* 게시글 수정 폼 스타일 */
 .write-container {
     max-width: 800px;
     margin: 0 auto;
@@ -91,7 +91,7 @@ h1 {
 
 .btn-submit {
     padding: 14px 40px;
-    background: #ff6b6b;
+    background: #ff6b6b;  /* #28a745에서 #ff6b6b로 변경 */
     color: white;
     border: none;
     border-radius: 8px;
@@ -100,12 +100,42 @@ h1 {
     cursor: pointer;
 }
 
+.btn-submit:hover {
+    background: #ff5252;
+}
+
 .btn-cancel:hover {
     background: #dee2e6;
 }
 
-.btn-submit:hover {
-    background: #ff5252;
+
+/* 작성자 및 작성일 정보 표시 */
+.post-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border: 1px solid #e9ecef;
+}
+
+.post-info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.post-info-item:last-child {
+    margin-bottom: 0;
+}
+
+.post-info-label {
+    font-weight: 600;
+    color: #666;
+}
+
+.post-info-value {
+    color: #333;
 }
 
 /* ===== 반응형 ===== */
@@ -132,6 +162,12 @@ h1 {
     .cancel-btn {
         width: 100%;
     }
+    
+    .post-info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
 }
 </style>
 </head>
@@ -151,36 +187,39 @@ h1 {
         <main>
             <div class="write-container">
                 <h1>
-				    <c:choose>
-				        <c:when test="${roomBoardType == 'NOTICE'}">공지 작성</c:when>
-				        <c:otherwise>게시글 작성</c:otherwise>
-				    </c:choose>
-				</h1>
+                    <c:choose>
+                        <c:when test="${roomBoard.roomBoardType == 'NOTICE'}">공지 수정</c:when>
+                        <c:otherwise>게시글 수정</c:otherwise>
+                    </c:choose>
+                </h1>
                 
                 
-                <form action="${pageContext.request.contextPath}/roomboardinsert.room" method="post" id="postForm">
+                <form action="${pageContext.request.contextPath}/roomboardupdate.room" method="post" id="postForm">
                     <!-- 숨겨진 필드들 -->
-                    <input type="hidden" name="roomId" value="${param.roomId}">
+                    <input type="hidden" name="roomBoardId" value="${roomBoard.roomBoardId}">
+                    <input type="hidden" name="roomId" value="${sessionScope.currentRoomId}">
                     <input type="hidden" name="userId" value="${sessionScope.LOGIN_USER.user_id}">
-                    <input type="hidden" name="roomBoardType" value="${roomBoardType}">
+                    <input type="hidden" name="roomBoardType" value="${roomBoard.roomBoardType}">
                     
                     <!-- 제목 입력 -->
                     <div class="form-section">
                         <label class="section-title">제목</label>
                         <input type="text" name="roomBoardTitle" class="form-control" 
-                               placeholder="게시글 제목을 입력해주세요" required maxlength="100">
+                               placeholder="게시글 제목을 입력해주세요" 
+                               value="${roomBoard.roomBoardTitle}" 
+                               required maxlength="100">
                     </div>
                     
                     <!-- 내용 입력 -->
                     <div class="form-section">
                         <label class="section-title">내용</label>
-                        <textarea id="summernote" name="roomBoardContent"></textarea>
+                        <textarea id="summernote" name="roomBoardContent">${roomBoard.roomBoardContent}</textarea>
                     </div>
                     
                     <!-- 하단 버튼 -->
                     <div class="bottom-buttons">
                         <button type="button" class="btn-cancel" onclick="goBack()">취소</button>
-                        <button type="submit" class="btn-submit">작성하기</button>
+                        <button type="submit" class="btn-submit">수정하기</button>
                     </div>
                 </form>
             </div>
@@ -194,6 +233,7 @@ h1 {
     
     <script>
         $(document).ready(function() {
+            // Summernote 초기화 시 기존 내용 로드
             $('#summernote').summernote({
                 height: 300,
                 lang: 'ko-KR',
@@ -213,6 +253,12 @@ h1 {
                         $('.note-editable').attr('data-gramm', 'false');
                         $('.note-editable').attr('data-gramm_editor', 'false');
                         $('.note-editable').attr('data-enable-grammarly', 'false');
+                        
+                        // 기존 내용이 있으면 설정
+                        var existingContent = `${roomBoard.roomBoardContent}`;
+                        if (existingContent && existingContent.trim() !== '') {
+                            $('#summernote').summernote('code', existingContent);
+                        }
                     },
                     onImageUpload: function(files) {
                         uploadImageToServer(files[0]);
@@ -248,8 +294,9 @@ h1 {
         }
         
         function goBack() {
-            if (confirm('작성 중인 내용이 사라집니다. 정말 취소하시겠습니까?')) {
-                history.back();
+            if (confirm('수정 중인 내용이 사라집니다. 정말 취소하시겠습니까?')) {
+                // 게시글 상세 페이지로 돌아가기
+                window.location.href = '${pageContext.request.contextPath}/roomboarddetail.room?roomBoardId=${roomBoard.roomBoardId}&roomId=${roomBoard.roomId}';
             }
         }
         
@@ -269,6 +316,49 @@ h1 {
                 e.preventDefault();
                 return;
             }
+            
+            // 수정 확인
+            if (!confirm('게시글을 수정하시겠습니까?')) {
+                e.preventDefault();
+                return;
+            }
+        });
+        
+        // 페이지 이탈 방지 (수정 중일 때)
+        let isFormChanged = false;
+        let originalTitle = document.querySelector('input[name="roomBoardTitle"]').value;
+        let originalContent = '';
+        
+        // Summernote 로드 완료 후 원본 내용 저장
+        setTimeout(function() {
+            originalContent = $('#summernote').summernote('code');
+        }, 1000);
+        
+        // 폼 변경 감지
+        document.querySelector('input[name="roomBoardTitle"]').addEventListener('input', function() {
+            if (this.value !== originalTitle) {
+                isFormChanged = true;
+            }
+        });
+        
+        $('#summernote').on('summernote.change', function() {
+            if ($('#summernote').summernote('code') !== originalContent) {
+                isFormChanged = true;
+            }
+        });
+        
+        // 페이지 이탈 시 경고
+        window.addEventListener('beforeunload', function(e) {
+            if (isFormChanged) {
+                e.preventDefault();
+                e.returnValue = '수정 중인 내용이 있습니다. 정말 나가시겠습니까?';
+                return e.returnValue;
+            }
+        });
+        
+        // 폼 제출 시에는 이탈 방지 해제
+        document.querySelector('form').addEventListener('submit', function() {
+            isFormChanged = false;
         });
     </script>
 </body>
