@@ -305,7 +305,7 @@ main {
 										<c:if
 											test="${not empty sessionScope.LOGIN_USER and sessionScope.LOGIN_USER.user_status eq 'ADMIN'}">
 											<td>
-												<button class="btn-edit">수정</button>
+												<button class="btn-edit" data-id="${notice.adminNoticeId}">수정</button>
 												<button class="btn-delete">삭제</button>
 											</td>
 										</c:if>
@@ -357,6 +357,11 @@ main {
 	            alert("오류가 발생했습니다.");
 	        }
 	    });
+	});
+	
+	$(document).on("click", ".btn-edit", function() {
+	    const noticeId = $(this).data("id");
+	    location.href = contextPath + "/adminNoticeUpdate.admin?noticeId=" + noticeId;
 	});
 	</script>
 	

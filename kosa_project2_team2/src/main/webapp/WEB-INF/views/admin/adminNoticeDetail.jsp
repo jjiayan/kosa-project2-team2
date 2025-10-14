@@ -229,7 +229,8 @@ main {
 							<button class="btn-delete" id="btnDelete"
 								data-id="${notice.adminNoticeId}">삭제</button>
 							<button class="btn-edit"
-								onclick="location.href='${pageContext.request.contextPath}/adminNoticeEdit.admin?id=${notice.adminNoticeId}'">수정</button>
+							onclick="location.href='${pageContext.request.contextPath}/adminNoticeUpdate.admin?noticeId=${notice.adminNoticeId}'">수정</button>
+
 						</c:when>
 						<c:otherwise>
 							<c:if

@@ -13,7 +13,7 @@ public class AdminNoticeInsertService implements Action {
 
         try {
             forward.setRedirect(false);
-            forward.setPath("/WEB-INF/views/admin/adminNoticeInsert.jsp");
+            forward.setPath("/WEB-INF/views/admin/adminNoticeForm.jsp");
 
         } catch (Exception e) {
             e.printStackTrace();
