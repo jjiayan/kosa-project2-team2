@@ -63,6 +63,7 @@ table {
 	border-collapse: collapse;
 	font-size: 15px;
 	text-align: center;
+	table-layout: fixed; 
 }
 
 .table-title, .table-content {
@@ -82,12 +83,18 @@ th {
 	color: #555;
 	border-bottom: 2px solid #f0eaea;
 	font-weight: 600;
+	 white-space: nowrap;     
+    overflow: hidden;         
+    text-overflow: ellipsis;  
 }
 
 td {
 	padding: 10px;
 	border-bottom: 1px solid #f5f5f5;
 	vertical-align: middle;
+	 white-space: nowrap;     
+    overflow: hidden;         
+    text-overflow: ellipsis;  
 }
 
 tr:hover {
@@ -161,11 +168,12 @@ tr:hover {
 }
 
 main {
-	background: #fff; /* 흰색으로 변경 */
+	background: #fff; 
 	border-left: 1px solid #e5e7eb;
 	padding: 24px 28px;
 	min-height: 100vh;
-} /* ===== 반응형 ===== */
+} 
+
 @media ( max-width : 900px) {
 	.layout-wrap {
 		grid-template-columns: 1fr;
@@ -175,7 +183,81 @@ main {
 		border-top: 1px solid #e5e7eb;
 		padding: 16px;
 	}
+	th, td {
+		font-size: 13px;           
+		padding: 8px;      
+		white-space: nowrap;    
+		overflow: hidden;         
+		text-overflow: ellipsis;  
+	}
+
+	.table-title, .table-content {
+		max-width: 150px;          
+	}
+		.btn-edit, .btn-delete {
+		padding: 4px 8px;
+		font-size: 13px;
+	}
+
+	td button + button {
+		margin-left: 4px;  
+	}
 }
+@media (max-width: 700px) {
+	.btn-edit, .btn-delete {
+		padding: 4px 6px;
+		font-size: 12px;
+	}
+
+	td button + button {
+		margin-left: 2px;
+	}
+}
+
+@media (max-width: 600px) {
+	th, td {
+		font-size: 12px;
+		padding: 6px;
+		white-space: nowrap;   
+		overflow: hidden;         
+		text-overflow: ellipsis; 
+	}
+
+	.table-title, .table-content {
+		max-width: 100px;
+	}
+ 
+	th:nth-child(1),
+	td:nth-child(1){
+		display: none;
+	}
+	.btn-edit, .btn-delete {
+		padding: 4px 6px;
+		font-size: 0; 
+		width: 28px;
+		height: 28px;
+		justify-content: center;
+	}
+
+	.btn-edit::before {
+		content: "\f044"; /* ✏️  아이콘 */
+		font-family: "Font Awesome 6 Free";
+		font-weight: 900;
+		font-size: 14px; 
+	}
+
+	.btn-delete::before {
+		content: "\f1f8"; /* 🗑️  아이콘 */
+		font-family: "Font Awesome 6 Free";
+		font-weight: 900;
+		font-size: 14px; 
+	}
+
+	td button + button {
+		margin-left: 6px;
+	}
+}
+
 </style>
 </head>
 <body>
@@ -202,8 +284,8 @@ main {
 					<thead>
 						<tr>
 							<th style="width: 10%;">순번</th>
-							<th style="width: 10%;">제목</th>
-							<th style="width: 50%;">내용</th>
+							<th style="width: 30%;">제목</th>
+							<th style="width: 40%;">내용</th>
 							<th style="width: 10%;">조회수</th>
 							<c:if
 								test="${not empty sessionScope.LOGIN_USER and sessionScope.LOGIN_USER.user_status eq 'ADMIN'}">
@@ -251,5 +333,33 @@ main {
 			</div>
 		</main>
 	</div>
+	
+	<script>
+	const contextPath = "${pageContext.request.contextPath}";
+	$(document).on("click", ".btn-delete", function() {
+	    const noticeId = $(this).closest("tr").find("td:first").text().trim();
+	
+	    if (!confirm("정말 삭제하시겠습니까?")) return;
+	
+	    $.ajax({
+	        url: contextPath + "/AdminNoticeDelete",
+	        type: "POST",
+	        data: { noticeId: noticeId },
+	        success: function(res) {
+	            if (res.status === "success") {
+	                alert("삭제되었습니다.");
+	                location.reload(); // or $(targetRow).remove(); 로 새로고침 없이 제거 가능
+	            } else {
+	                alert("삭제에 실패했습니다.");
+	            }
+	        },
+	        error: function(xhr, status, error) {
+	            console.error("삭제 중 오류 발생:", error);
+	            alert("오류가 발생했습니다.");
+	        }
+	    });
+	});
+	</script>
+	
 </body>
 </html>

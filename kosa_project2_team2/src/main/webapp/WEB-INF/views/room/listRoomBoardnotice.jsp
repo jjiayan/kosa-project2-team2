@@ -5,7 +5,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>스터디 게시글</title>
+<title>스터디 공지</title>
 <link rel="stylesheet" href="${pageContext.request.contextPath}/style/default.css">
 <style>
 /* ===== 전체 레이아웃 ===== */
@@ -248,7 +248,7 @@ main {
         
         <!-- 좌측 사이드바 -->
         <jsp:include page="/include/sidebar.jsp">
-            <jsp:param name="current" value="posts"/>
+            <jsp:param name="current" value="notice"/>
         </jsp:include>
         
         <!-- 우측 본문 -->
@@ -268,7 +268,7 @@ main {
                     
                     <!-- 게시글 아이템들 -->
                     <c:forEach var="roomBoardNotice" items="${roomBoardList}">
-                        <div class="post-item" onclick="location.href='${pageContext.request.contextPath}/roomboardnoticedetail.room?roomBoardNoticeId=${roomBoardNotice.roomBoardId}'">
+                        <div class="post-item" onclick="location.href='${pageContext.request.contextPath}/roomboarddetail.room?roomBoardId=${roomBoardNotice.roomBoardId}&roomBoardType=NOTICE&userId=${sessionScope.LOGIN_USER.user_id}'">
                             <div class="post-title-cell">${roomBoardNotice.roomBoardTitle}
                                 <c:if test="${roomBoardNotice.replyCount > 0}">
                                     <span class="reply-count">[${roomBoardNotice.replyCount}]</span>

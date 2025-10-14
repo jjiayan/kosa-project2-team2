@@ -61,10 +61,10 @@ public class RoomAjaxController extends HttpServlet {
         	action = new RoomSearchListService();
         	action.execute(request, response);
         	
-        	
-        	
-        	
-        	
+        }else if(urlCommand.equals("/roomboarddelete.roomajax")) {
+        	System.out.println("모임방 삭제");
+//        	action = new RoomSearchListService();
+//        	action.execute(request, response);
         	
         }
         

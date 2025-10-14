@@ -12,8 +12,9 @@ import kr.or.kosa.dto.UserDto;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
 public class AdminDao {
-
-    // 전체 회원 수 조회 
+	//adminMember
+	
+	// 전체 회원 수 조회 
     public int getUserCount() {
         String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_status NOT IN ('DELETED', 'ADMIN')";
         try (Connection conn = ConnectionPoolHelper.getConnection();
@@ -123,7 +124,7 @@ public class AdminDao {
         return 0;
     }
     
-    
+	//adminNotice
     
     //  공지사항 총 개수 조회
     public int getNoticeCount() {
