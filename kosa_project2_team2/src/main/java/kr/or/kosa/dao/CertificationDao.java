@@ -11,6 +11,8 @@ import kr.or.kosa.dto.CertificationDetailDto;
 import kr.or.kosa.dto.CertificationMasterDto;
 import kr.or.kosa.dto.CertificationScheduleDto;
 import kr.or.kosa.dto.CertificationStatsDto;
+import kr.or.kosa.dto.CertificationChartDto;
+import kr.or.kosa.dto.CertificationChartRowDto;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
 public class CertificationDao {
@@ -77,15 +79,15 @@ public class CertificationDao {
                 dto.setImplSeq(rs.getInt("IMPLSEQ"));
 
                 // 필기 통계
-                dto.setDocPassRate(rs.getBigDecimal("docPassRate"));    // null 가능
+                dto.setDocPassRate(rs.getDouble("docPassRate"));    // null 가능
                 dto.setDocApplicants(rs.getInt("docApplicants"));       // 0 처리 자동
 
                 // 실기 통계
-                dto.setPracPassRate(rs.getBigDecimal("pracPassRate"));
+                dto.setPracPassRate(rs.getDouble("pracPassRate"));
                 dto.setPracApplicants(rs.getInt("pracApplicants"));
 
                 // 응시료
-                dto.setExamFee(rs.getBigDecimal("EXAMFEE"));            // null 가능
+                dto.setExamFee(rs.getInt("EXAMFEE"));            // null 가능
 
                 // 시행기관
                 dto.setOrganName(rs.getString("ORGANNAME"));
@@ -357,11 +359,11 @@ public class CertificationDao {
                 dto.setField(rs.getString("FIELD"));
                 dto.setYear(rs.getInt("YEAR"));
                 dto.setImplSeq(rs.getInt("IMPLSEQ"));
-                dto.setDocPassRate(rs.getBigDecimal("docPassRate"));
+                dto.setDocPassRate(rs.getDouble("docPassRate"));
                 dto.setDocApplicants(rs.getInt("docApplicants"));
-                dto.setPracPassRate(rs.getBigDecimal("pracPassRate"));
+                dto.setPracPassRate(rs.getDouble("pracPassRate"));
                 dto.setPracApplicants(rs.getInt("pracApplicants"));
-                dto.setExamFee(rs.getBigDecimal("EXAMFEE"));
+                dto.setExamFee(rs.getInt("EXAMFEE"));
                 dto.setOrganName(rs.getString("ORGANNAME"));
                 list.add(dto);
             }
@@ -481,7 +483,7 @@ public class CertificationDao {
     
     // Controller가 편하게 사용하도록 상세 + 회차 목록을 묶어주는 메서드
     public CertificationDetailDto getDetailWithRounds(int jmcd, int year, int implSeq) {
-
+    	
         // 현재 회차 상세 조회
         CertificationDetailDto detail = getCertificationDetail(jmcd, year, implSeq);
         if (detail == null) return null;
@@ -516,7 +518,7 @@ public class CertificationDao {
                     int year = rs.getInt("year");
                     int implSeq = rs.getInt("latestImplSeq");
 
-                    // ✅ 최신 회차 상세 정보 + rounds까지 포함
+                    // 최신 회차 상세 정보 + rounds까지 포함
                     dto = getDetailWithRounds(jmcd, year, implSeq);
                 }
             }
@@ -529,6 +531,37 @@ public class CertificationDao {
     }
 
 
+    public List<CertificationChartRowDto> getStatsByJmcd(int jmcd) {
+        List<CertificationChartRowDto> list = new ArrayList<>();
+
+        String sql = "SELECT year, implSeq, examGb, applicants, passedCnt, " +
+                     "       ROUND((passedCnt / NULLIF(applicants, 0)) * 100, 2) AS passRate " +
+                     "FROM CERTIFICATION_STATS " +
+                     "WHERE jmcd = ? " +
+                     "ORDER BY year DESC, implSeq ASC";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection(); 
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, jmcd);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    CertificationChartRowDto dto = new CertificationChartRowDto();
+                    dto.setYear(rs.getInt("year"));
+                    dto.setImplSeq(rs.getInt("implSeq"));
+                    dto.setExamGb(rs.getString("examGb"));
+                    dto.setApplicants(rs.getInt("applicants"));
+                    dto.setPassedCnt(rs.getInt("passedCnt"));
+                    dto.setPassRate(rs.getDouble("passRate"));
+                    list.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
 
 
 }

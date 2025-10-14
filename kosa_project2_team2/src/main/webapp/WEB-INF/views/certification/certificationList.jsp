@@ -2,7 +2,7 @@
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"  %>
 
-<%-- 컨텍스트 경로를 한 번만 안전 주입 --%>
+<%-- 컨텍스트 경로 1회 주입 --%>
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
 
 <!DOCTYPE html>
@@ -31,8 +31,6 @@ h1{font-size:32px;font-weight:700;color:#333;margin-bottom:20px;text-align:cente
 .search-box{position:relative;min-width:300px;}
 .search-box input{width:100%;padding:10px 40px 10px 16px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none;transition:.2s;}
 .search-box input:focus{border-color:#FF7272;}
-
-/* 검색 아이콘 버튼 */
 .search-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:24px;height:24px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;}
 .search-icon svg{width:20px;height:20px;}
 .search-icon:hover svg path{stroke:#FF7272;}
@@ -44,65 +42,26 @@ h1{font-size:32px;font-weight:700;color:#333;margin-bottom:20px;text-align:cente
 .custom-select::after{content:'▼';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;color:#666;pointer-events:none;}
 
 /* 테이블 */
-.table-container {
-    background:#fff;
-    border-radius:12px;
-    padding:0;
-    box-shadow:0 1px 3px rgba(0,0,0,0.08);
-    overflow:hidden;
-    margin-bottom:32px;
-    min-height:520px;          /* ✅ 테이블 높이 고정 */
+.table-container{
+  background:#fff;border-radius:12px;padding:0;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:32px;
+  min-height:520px; /* ✅ 10행 기준 고정 높이로 페이지네이션 흔들림 방지 */
 }
-
-table {
-    width:100%;
-    border-collapse:collapse;
-    table-layout: fixed;       /* ✅ 칼럼 고정 너비 */
+table{width:100%;border-collapse:collapse;table-layout:fixed;} /* ✅ 고정 레이아웃 */
+thead{background:linear-gradient(135deg,#FF7272 0%,#FFA07A 100%);}
+thead th{color:#fff;padding:16px 12px;font-weight:600;font-size:13px;text-align:center;letter-spacing:.3px;}
+tbody tr{border-bottom:1px solid #f1f1f1;transition:.15s;}
+tbody tr:hover{background:#fff8f8;}
+tbody td{
+  padding:0 12px;              /* ✅ 위아래 패딩 제거 */
+  height:52px; line-height:52px; /* ✅ 행 높이 고정 & 수직 중앙정렬 */
+  font-size:13px;color:#555;text-align:center;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis; /* ✅ 긴 글자 ... 처리 */
 }
-
-thead {
-    background:linear-gradient(135deg,#FF7272 0%,#FFA07A 100%);
-}
-
-thead th {
-    color:#fff;
-    padding:16px 12px;
-    font-weight:600;
-    font-size:13px;
-    text-align:center;
-    letter-spacing:.3px;
-}
-
-tbody tr {
-    border-bottom:1px solid #f1f1f1;
-    transition:.15s;
-}
-
-tbody tr:hover {
-    background:#fff8f8;
-}
-
-tbody td {
-    padding:0 12px;            /* ✅ 위아래 패딩 제거 */
-    height:52px;               /* ✅ 행 높이 고정 */
-    line-height:52px;          /* ✅ 텍스트 중앙 정렬 */
-    font-size:13px;
-    color:#555;
-    text-align:center;
-    white-space:nowrap;
-    overflow:hidden;           /* ✅ 넘치는 글자 숨기기 */
-    text-overflow:ellipsis;    /* ✅ … 처리 */
-}
-
-tbody td:first-child {
-    color:#FF7272;
-    font-weight:700;
-    text-align:left;
-    padding-left:16px;
-}
+tbody td:first-child{color:#FF7272;font-weight:700;text-align:left;padding-left:16px;}
 
 /* 통계 카드 */
-.stats-title{font-size:22px;font-weight:700;magin-top:60px;margin:0 0 16px 0;color:#333;}
+.stats-title{font-size:22px;font-weight:700;margin:0 0 16px 0;color:#333;}
 .stats-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:32px;}
 .stat-card{background:#fff;border-radius:12px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border-left:4px solid #FF7272;text-align:left;transition:.2s;}
 .stat-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.12);transform:translateY(-2px);}
@@ -116,87 +75,18 @@ tbody td:first-child {
 .graph-box:hover{box-shadow:0 2px 8px rgba(0,0,0,0.12);}
 .graph-title{font-weight:700;font-size:15px;color:#555;margin-bottom:12px;}
 
-/* 페이지네이션 전체 영역 */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    margin-top: 40px;
-    margin-bottom: 40px;
-    width: 100%;
-}
-
-/* 공통 버튼 스타일 */
-.page-btn {
-    background: none;
-    border: none;
-    font-size: 16px;
-    color: #888;
-    cursor: pointer;
-    transition: all 0.2s;
-    padding: 4px 8px;
-}
-
-/* 숫자 버튼 */
-.page-btn.number {
-    font-size: 18px;
-    font-weight: 500;
-}
-
-/* 숫자 hover */
-.page-btn.number:hover {
-    color: #FF7272;
-}
-
-/* 현재 페이지 */
-.page-btn.active {
-    background-color: #FF7272;
-    color: #fff !important;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-/* SVG 버튼 */
-.page-btn.svg-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px;
-}
-
-.page-btn.svg-btn svg {
-    width: 20px;
-    height: 20px;
-}
-
-/* SVG 기본 색상 */
-.page-btn.svg-btn svg path {
-    stroke: #888;
-    transition: stroke 0.2s;
-}
-
-/* SVG hover */
-.page-btn.svg-btn:hover svg path {
-    stroke: #FF7272;
-}
-
-/* 비활성 */
-.page-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.page-btn:disabled svg path {
-    stroke: #ccc;
-}
-
-
+/* 페이지네이션 */
+.pagination{display:flex;justify-content:center;align-items:center;gap:16px;margin:40px 0 40px; width:100%;}
+.page-btn{background:none;border:none;font-size:16px;color:#888;cursor:pointer;transition:all .2s;padding:4px 8px;}
+.page-btn.number{font-size:18px;font-weight:500;}
+.page-btn.number:hover{color:#FF7272;}
+.page-btn.active{background-color:#FF7272;color:#fff !important;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;}
+.page-btn.svg-btn{display:flex;align-items:center;justify-content:center;padding:4px;}
+.page-btn.svg-btn svg{width:20px;height:20px;}
+.page-btn.svg-btn svg path{stroke:#888;transition:stroke .2s;}
+.page-btn.svg-btn:hover svg path{stroke:#FF7272;}
+.page-btn:disabled{opacity:.3;cursor:not-allowed;}
+.page-btn:disabled svg path{stroke:#ccc;}
 
 @media(max-width:768px){
   body{padding:20px 12px;}
@@ -216,12 +106,11 @@ tbody td:first-child {
 
 <body>
 <jsp:include page="/include/nav.jsp" />
-
 <div class="container">
   <!-- 헤더 + 필터 영역 -->
   <div class="header-section">
     <h1>자격증 정보</h1>
-    
+
     <div class="filter-area">
       <!-- 왼쪽: 검색창 -->
       <div class="filter-left">
@@ -235,7 +124,7 @@ tbody td:first-child {
           </span>
         </div>
       </div>
-      
+
       <!-- 오른쪽: 드롭다운 필터 -->
       <div class="filter-right">
         <div class="custom-select">
@@ -327,26 +216,8 @@ tbody td:first-child {
     </table>
   </div>
 
-  <!-- 페이지네이션 -->
-  <div class="pagination" id="pagination">
-    <button class="page-btn svg-btn" id="prevBtn">
-        <!-- 왼쪽 SVG -->
-        <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 26L2 14L14 2" stroke="#FF7272" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    </button>
-
-    <button class="page-btn number">1</button>
-    <button class="page-btn number">2</button>
-    <button class="page-btn number">3</button>
-
-    <button class="page-btn svg-btn" id="nextBtn">
-        <!-- 오른쪽 SVG -->
-        <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 2L14 14L2 26" stroke="#FF7272" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    </button>
-</div>
+  <!-- 페이지네이션 (동적 생성) -->
+  <div class="pagination" id="pagination"></div>
 
   <!-- 통계 카드 -->
   <h2 class="stats-title">통계 정보</h2>
@@ -379,137 +250,116 @@ tbody td:first-child {
 </div><!-- /.container -->
 
 <script>
-// JSP에서 서버 데이터를 JavaScript 배열로 변환
+// 서버 데이터를 JS 배열로 변환 (초기 렌더용)
 var certData = [];
 <c:forEach var="c" items="${certList}">
 certData.push({
-    jmName: "<c:out value='${c.jmName}'/>",
-    grade: "<c:out value='${c.grade}'/>",
-    field: "<c:out value='${c.field}'/>",
-    docPassRate: ${c.docPassRate != null ? c.docPassRate : 0},
-    pracPassRate: ${c.pracPassRate != null ? c.pracPassRate : 0},
-    docApplicants: ${c.docApplicants != null ? c.docApplicants : 0},
-    pracApplicants: ${c.pracApplicants != null ? c.pracApplicants : 0},
-    examFee: ${c.examFee != null ? c.examFee : 0},
-    organName: "<c:out value='${c.organName}'/>"
+  jmName: "<c:out value='${c.jmName}'/>",
+  grade: "<c:out value='${c.grade}'/>",
+  field: "<c:out value='${c.field}'/>",
+  docPassRate: ${c.docPassRate != null ? c.docPassRate : 0},
+  pracPassRate: ${c.pracPassRate != null ? c.pracPassRate : 0},
+  docApplicants: ${c.docApplicants != null ? c.docApplicants : 0},
+  pracApplicants: ${c.pracApplicants != null ? c.pracApplicants : 0},
+  examFee: ${c.examFee != null ? c.examFee : 0},
+  organName: "<c:out value='${c.organName}'/>"
 });
 </c:forEach>
 
 var contextPath = "<c:out value='${ctx}'/>";
 
 document.addEventListener("DOMContentLoaded", function () {
-    var gradePieChart = null;
-    var categoryBarChart = null;
+  var gradePieChart = null;
+  var categoryBarChart = null;
 
-    // 페이지네이션 변수
-    var currentData = certData;  // 필터된 데이터
-    var currentPage = 1;         // 현재 페이지
-    var itemsPerPage = 10;       // 한 페이지당 항목 수
-    var totalPages = Math.ceil(currentData.length / itemsPerPage);
+  // 페이지네이션 변수
+  var currentData = certData.slice(); // 필터된 데이터
+  var currentPage = 1;                // 현재 페이지
+  var itemsPerPage = 10;              // 페이지당 항목 수
+  var totalPages = Math.max(1, Math.ceil(currentData.length / itemsPerPage));
 
-    var gradeFilter  = document.getElementById("gradeFilter");
-    var fieldFilter  = document.getElementById("fieldFilter");
-    var keywordInput = document.getElementById("keyword");
-    var searchBtn = document.getElementById("searchBtn");
+  var gradeFilter  = document.getElementById("gradeFilter");
+  var fieldFilter  = document.getElementById("fieldFilter");
+  var keywordInput = document.getElementById("keyword");
+  var searchBtn = document.getElementById("searchBtn");
 
-    // 필터 후 데이터 로드
-    function loadFilteredData() {
-        var grade   = gradeFilter.value || "";
-        var field   = fieldFilter.value || "";
-        var keyword = keywordInput.value || "";
+  // 필터 데이터 로드 (AJAX)
+  function loadFilteredData() {
+    var grade   = gradeFilter.value || "";
+    var field   = fieldFilter.value || "";
+    var keyword = keywordInput.value || "";
 
-        var url = contextPath + "/certificationFilter.sync"
-                + "?grade="   + encodeURIComponent(grade)
-                + "&field="   + encodeURIComponent(field)
-                + "&keyword=" + encodeURIComponent(keyword);
+    var url = contextPath + "/certificationFilter.sync"
+            + "?grade="   + encodeURIComponent(grade)
+            + "&field="   + encodeURIComponent(field)
+            + "&keyword=" + encodeURIComponent(keyword);
 
-        console.log("[AJAX] GET", url);
-
-        fetch(url, { headers: { "Accept": "application/json" }})
-            .then(function(res){
-                if (!res.ok) throw new Error("HTTP " + res.status);
-                return res.json();
-            })
-            .then(function(data){
-                console.log("데이터 수신:", data.length, "건");
-                currentData = data;
-                currentPage = 1;
-                totalPages = Math.ceil(currentData.length / itemsPerPage);
-
-                renderTable();
-                renderPagination();
-                renderCharts(currentData);
-            })
-            .catch(function(err){
-                console.error("데이터 로드 오류:", err);
-                currentData = [];
-                currentPage = 1;
-                totalPages = 1;
-                renderTable();
-                renderPagination();
-                renderCharts([]);
-            });
-    }
-
-    searchBtn.addEventListener("click", function(){
-        console.log("🔍 검색 버튼 클릭");
-        loadFilteredData();
-    });
-    gradeFilter.addEventListener("change", function(){
-        console.log("📝 등급 필터:", gradeFilter.value);
-        loadFilteredData();
-    });
-    fieldFilter.addEventListener("change", function(){
-        console.log("📁 분야 필터:", fieldFilter.value);
-        loadFilteredData();
-    });
-    keywordInput.addEventListener("keyup", function(e){
-        if (e.key === "Enter") {
-            console.log("⌨️ Enter 키:", keywordInput.value);
-            loadFilteredData();
-        }
-    });
-
-    // 현재 페이지 기준 테이블 렌더링
-    function renderTable() {
-        var tbody = document.getElementById("certTableBody");
-        tbody.innerHTML = "";
-        
-        var startIdx = (currentPage - 1) * itemsPerPage;
-        var endIdx = startIdx + itemsPerPage;
-        var pageItems = currentData.slice(startIdx, endIdx);
-
-        if (!pageItems || pageItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9">데이터가 없습니다.</td></tr>';
-            return;
-        }
-
-        pageItems.forEach(function(cert){
-            var row = document.createElement("tr");
-            row.innerHTML =
-                '<td>' + escapeHtml(cert.jmName) + '</td>' +
-                '<td>' + escapeHtml(cert.grade) + '</td>' +
-                '<td>' + escapeHtml(cert.field) + '</td>' +
-                '<td>' + toRate(cert.docPassRate) + '</td>' +
-                '<td>' + toRate(cert.pracPassRate) + '</td>' +
-                '<td>' + toNum(cert.docApplicants) + '</td>' +
-                '<td>' + toNum(cert.pracApplicants) + '</td>' +
-                '<td>' + toCurrency(cert.examFee) + '</td>' +
-                '<td>' + escapeHtml(cert.organName || "-") + '</td>';
-            tbody.appendChild(row);
-        });
-    }
-    
-    // 페이지 변경 함수
-    function changePage(page) {
-        if (page < 1 || page > totalPages) return;
-        currentPage = page;
+    fetch(url, { headers: { "Accept": "application/json" }})
+      .then(function(res){ if(!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+      .then(function(data){
+        currentData = Array.isArray(data) ? data : [];
+        currentPage = 1;
+        totalPages = Math.max(1, Math.ceil(currentData.length / itemsPerPage));
         renderTable();
         renderPagination();
+        renderCharts(currentData);
+      })
+      .catch(function(err){
+        console.error("데이터 로드 오류:", err);
+        currentData = [];
+        currentPage = 1;
+        totalPages = 1;
+        renderTable();
+        renderPagination();
+        renderCharts([]);
+      });
+  }
+
+  searchBtn.addEventListener("click", loadFilteredData);
+  gradeFilter.addEventListener("change", loadFilteredData);
+  fieldFilter.addEventListener("change", loadFilteredData);
+  keywordInput.addEventListener("keyup", function(e){ if(e.key === "Enter") loadFilteredData(); });
+
+  // 테이블 렌더링
+  function renderTable() {
+    var tbody = document.getElementById("certTableBody");
+    tbody.innerHTML = "";
+
+    var startIdx = (currentPage - 1) * itemsPerPage;
+    var endIdx = startIdx + itemsPerPage;
+    var pageItems = currentData.slice(startIdx, endIdx);
+
+    if (!pageItems || pageItems.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9">데이터가 없습니다.</td></tr>';
+      return;
     }
-    
-    // 페이지네이션 렌더링
-    function renderPagination() {
+
+    pageItems.forEach(function(cert){
+      var row = document.createElement("tr");
+      row.innerHTML =
+        '<td>' + escapeHtml(cert.jmName) + '</td>' +
+        '<td>' + escapeHtml(cert.grade) + '</td>' +
+        '<td>' + escapeHtml(cert.field) + '</td>' +
+        '<td>' + toRate(cert.docPassRate) + '</td>' +
+        '<td>' + toRate(cert.pracPassRate) + '</td>' +
+        '<td>' + toNum(cert.docApplicants) + '</td>' +
+        '<td>' + toNum(cert.pracApplicants) + '</td>' +
+        '<td>' + toCurrency(cert.examFee) + '</td>' +
+        '<td>' + escapeHtml(cert.organName || "-") + '</td>';
+      tbody.appendChild(row);
+    });
+  }
+
+  // 페이지 변경
+  function changePage(page) {
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderTable();
+    renderPagination();
+  }
+
+  // 페이지네이션 (슬라이딩 윈도우)
+  function renderPagination() {
     var pagination = document.getElementById("pagination");
     pagination.innerHTML = "";
 
@@ -518,157 +368,126 @@ document.addEventListener("DOMContentLoaded", function () {
     var endPage = startPage + maxPagesToShow - 1;
 
     if (endPage > totalPages) {
-        endPage = totalPages;
-        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+      endPage = totalPages;
+      startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
 
-    // 이전 버튼 (SVG 그대로)
+    // 이전 버튼 SVG
     var prevBtn = document.createElement("button");
     prevBtn.className = "page-btn svg-btn";
     prevBtn.innerHTML = `
-        <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 26L2 14L14 2" stroke="#FF7272" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    `;
+      <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 26L2 14L14 2" stroke="#FF7272" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
     prevBtn.disabled = (currentPage === 1);
-    prevBtn.onclick = function () { changePage(currentPage - 1); };
+    prevBtn.onclick = function(){ changePage(currentPage - 1); };
     pagination.appendChild(prevBtn);
 
     // 숫자 버튼
     for (var i = startPage; i <= endPage; i++) {
-        var btn = document.createElement("button");
-        btn.className = "page-btn number" + (i === currentPage ? " active" : "");
-        btn.textContent = i;
-        btn.onclick = (function(page) {
-            return function () { changePage(page); };
-        })(i);
-        pagination.appendChild(btn);
+      var btn = document.createElement("button");
+      btn.className = "page-btn number" + (i === currentPage ? " active" : "");
+      btn.textContent = i;
+      (function(page){ btn.onclick = function(){ changePage(page); }; })(i);
+      pagination.appendChild(btn);
     }
 
-    // 다음 버튼 (SVG 그대로)
+    // 다음 버튼 SVG
     var nextBtn = document.createElement("button");
     nextBtn.className = "page-btn svg-btn";
     nextBtn.innerHTML = `
-        <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 2L14 14L2 26" stroke="#FF7272" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    `;
+      <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 2L14 14L2 26" stroke="#FF7272" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
     nextBtn.disabled = (currentPage === totalPages);
-    nextBtn.onclick = function () { changePage(currentPage + 1); };
+    nextBtn.onclick = function(){ changePage(currentPage + 1); };
     pagination.appendChild(nextBtn);
-	}
-    
-    
- 	// 각 행에 jmcd 넣기
-    <c:forEach var="item" items="${certList}">
-    <tr ondblclick="goDetail('${item.jmcd}')">
-        <td>${item.jmcd}</td>
-        <td>${item.jmName}</td>
-        <td>${item.organName}</td>
-    </tr>
-    </c:forEach>
-    
-    function goDetail(jmcd, year, implSeq) {
-        location.href = '${ctx}/certificationDetail.cert?jmcd=' + jmcd 
-                      + '&year=' + year 
-                      + '&implSeq=' + implSeq;
-    }
+  }
 
-    
-    // 차트 통계
-    function renderCharts(data) {
-        var safe = Array.isArray(data) ? data : [];
-        var total = safe.length;
-        var avgRate = total > 0 ? safe.reduce(function(sum, c){
-            return sum + avg((+c.docPassRate)||0, (+c.pracPassRate)||0);
-        }, 0) / total : 0;
-        var totalApplicants = safe.reduce(function(sum, c){
-            return sum + ((+c.docApplicants)||0) + ((+c.pracApplicants)||0);
-        }, 0);
+  // 차트/통계
+  function renderCharts(data) {
+    var safe = Array.isArray(data) ? data : [];
+    var total = safe.length;
+    var avgRate = total > 0 ? safe.reduce(function(sum, c){
+      return sum + avg((+c.docPassRate)||0, (+c.pracPassRate)||0);
+    }, 0) / total : 0;
+    var totalApplicants = safe.reduce(function(sum, c){
+      return sum + ((+c.docApplicants)||0) + ((+c.pracApplicants)||0);
+    }, 0);
 
-        document.getElementById("totalCount").textContent = total;
-        document.getElementById("avgRate").innerHTML = (avgRate || 0).toFixed(1) + '<span class="stat-suffix">%</span>';
-        document.getElementById("totalApplicants").textContent = (totalApplicants||0).toLocaleString();
+    document.getElementById("totalCount").textContent = total;
+    document.getElementById("avgRate").innerHTML = (avgRate || 0).toFixed(1) + '<span class="stat-suffix">%</span>';
+    document.getElementById("totalApplicants").textContent = (totalApplicants||0).toLocaleString();
 
-        if (gradePieChart) gradePieChart.destroy();
-        if (categoryBarChart) categoryBarChart.destroy();
+    if (gradePieChart) gradePieChart.destroy();
+    if (categoryBarChart) categoryBarChart.destroy();
 
-        var gradeCounts = {};
-        safe.forEach(function(c){
-            var g = c.grade || "기타";
-            gradeCounts[g] = (gradeCounts[g] || 0) + 1;
-        });
-        var grades = Object.keys(gradeCounts);
-        var gradeValues = Object.values(gradeCounts);
-        var gradeColors = ["#FFD66B","#FF9F68","#FF7272","#B28DFF","#AEE8D7","#8EC5FF"];
+    var gradeCounts = {};
+    safe.forEach(function(c){ var g = c.grade || "기타"; gradeCounts[g] = (gradeCounts[g] || 0) + 1; });
+    var grades = Object.keys(gradeCounts);
+    var gradeValues = Object.values(gradeCounts);
+    var gradeColors = ["#FFD66B","#FF9F68","#FF7272","#B28DFF","#AEE8D7","#8EC5FF"];
 
-        var pieCtx = document.getElementById("gradePie");
-        if (pieCtx && grades.length > 0) {
-            gradePieChart = new Chart(pieCtx, {
-                type: "doughnut",
-                data: { labels: grades, datasets: [{ data: gradeValues, backgroundColor: gradeColors, borderWidth: 2, borderColor: '#fff' }]},
-                options: {
-                    plugins: {
-                        legend: { position: "right", labels: { padding: 15, font: { size: 13 } } },
-                        tooltip: { callbacks: { label: function(ctx){ return ctx.label + ': ' + ctx.parsed + ' 종목'; } } }
-                    },
-                    cutout: "65%"
-                }
-            });
+    var pieCtx = document.getElementById("gradePie");
+    if (pieCtx && grades.length > 0) {
+      gradePieChart = new Chart(pieCtx, {
+        type: "doughnut",
+        data: { labels: grades, datasets: [{ data: gradeValues, backgroundColor: gradeColors, borderWidth: 2, borderColor: '#fff' }]},
+        options: {
+          plugins: {
+            legend: { position: "right", labels: { padding: 15, font: { size: 13 } } },
+            tooltip: { callbacks: { label: function(ctx){ return ctx.label + ': ' + ctx.parsed + ' 종목'; } } }
+          },
+          cutout: "65%"
         }
+      });
+    }
 
-        var fieldMap = {};
-        safe.forEach(function(c){
-            var key = c.field || "기타";
-            if (!fieldMap[key]) fieldMap[key] = [];
-            fieldMap[key].push(avg((+c.docPassRate)||0, (+c.pracPassRate)||0));
-        });
-        var fields = Object.keys(fieldMap);
-        var fieldAvg = fields.map(function(f){
-            var arr = fieldMap[f];
-            return (arr.reduce(function(a,b){return a+b;},0) / arr.length) || 0;
-        });
+    var fieldMap = {};
+    safe.forEach(function(c){
+      var key = c.field || "기타";
+      if (!fieldMap[key]) fieldMap[key] = [];
+      fieldMap[key].push(avg((+c.docPassRate)||0, (+c.pracPassRate)||0));
+    });
+    var fields = Object.keys(fieldMap);
+    var fieldAvg = fields.map(function(f){
+      var arr = fieldMap[f]; return (arr.reduce(function(a,b){return a+b;},0) / arr.length) || 0;
+    });
 
-        var barCtx = document.getElementById("categoryBar");
-        if (barCtx && fields.length > 0) {
-            categoryBarChart = new Chart(barCtx, {
-                type: "bar",
-                data: { 
-                    labels: fields, 
-                    datasets: [{ 
-                        label: "평균 합격률(%)", 
-                        data: fieldAvg, 
-                        backgroundColor:"rgba(255,114,114,0.85)",
-                        borderRadius: 8,
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    plugins: { legend: { display: false }},
-                    scales: { 
-                        y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } }, 
-                        x: { ticks: { font: { size: 12 } }, grid: { display: false } }
-                    }
-                }
-            });
+    var barCtx = document.getElementById("categoryBar");
+    if (barCtx && fields.length > 0) {
+      categoryBarChart = new Chart(barCtx, {
+        type: "bar",
+        data: {
+          labels: fields,
+          datasets: [{ label: "평균 합격률(%)", data: fieldAvg, backgroundColor:"rgba(255,114,114,0.85)", borderRadius: 8, borderWidth: 0 }]
+        },
+        options: {
+          plugins: { legend: { display: false }},
+          scales: {
+            y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
+            x: { ticks: { font: { size: 12 } }, grid: { display: false } }
+          }
         }
+      });
     }
+  }
 
-    // 유틸 함수
-    function avg(a,b){ return (a+b)/2; }
-    function toRate(v){ var n = +v; return n ? n.toFixed(1) + '%' : '-'; }
-    function toNum(v){ var n = +v; return n ? n.toLocaleString() : '0'; }
-    function toCurrency(v){ var n = +v; return n ? n.toLocaleString() + '원' : '-'; }
-    function escapeHtml(s){ 
-        return String(s||'').replace(/[&<>"']/g, function(m){ 
-            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; 
-        }); 
-    }
+  // 유틸
+  function avg(a,b){ return (a+b)/2; }
+  function toRate(v){ var n = +v; return n ? n.toFixed(1) + '%' : '-'; }
+  function toNum(v){ var n = +v; return n ? n.toLocaleString() : '0'; }
+  function toCurrency(v){ var n = +v; return n ? n.toLocaleString() + '원' : '-'; }
+  function escapeHtml(s){
+    return String(s||'').replace(/[&<>"']/g, function(m){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+  }
 
-    // 초기 렌더링
-    renderTable();
-    renderPagination();
-    renderCharts(currentData);
+  // 초기 렌더
+  renderTable();
+  renderPagination();
+  renderCharts(currentData);
 });
 </script>
 </body>

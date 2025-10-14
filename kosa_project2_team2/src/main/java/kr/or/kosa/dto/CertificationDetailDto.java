@@ -1,6 +1,5 @@
 package kr.or.kosa.dto;
 
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.List;
 
@@ -40,6 +39,12 @@ public class CertificationDetailDto {
 
     // ===== 전체 회차 목록 (탭용) =====
     private List<CertificationDetailDto> rounds;
+    
+    // 상세 페이지 Chart
+    private List<CertificationChartDto> chartList;   // 회차별 통계
+    private Double avgDocRate;                       // 평균 필기 합격률
+    private Double avgPracRate;                      // 평균 실기 합격률
+    private Integer totalApplicants;                 // 총 응시자 수
 
 
     // Getter / Setter
@@ -184,5 +189,36 @@ public class CertificationDetailDto {
     }
     public void setRounds(List<CertificationDetailDto> rounds) {
         this.rounds = rounds;
+    }
+    public List<CertificationChartDto> getChartList() {
+        return chartList;
+    }
+
+    public void setChartList(List<CertificationChartDto> chartList) {
+        this.chartList = chartList;
+    }
+
+    public Double getAvgDocRate() {
+        return avgDocRate;
+    }
+
+    public void setAvgDocRate(Double avgDocRate) {
+        this.avgDocRate = avgDocRate;
+    }
+
+    public Double getAvgPracRate() {
+        return avgPracRate;
+    }
+
+    public void setAvgPracRate(Double avgPracRate) {
+        this.avgPracRate = avgPracRate;
+    }
+
+    public Integer getTotalApplicants() {
+        return totalApplicants;
+    }
+
+    public void setTotalApplicants(Integer totalApplicants) {
+        this.totalApplicants = totalApplicants;
     }
 }
