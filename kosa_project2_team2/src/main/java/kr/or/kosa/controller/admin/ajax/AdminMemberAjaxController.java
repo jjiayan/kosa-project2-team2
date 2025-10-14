@@ -1,17 +1,18 @@
 package kr.or.kosa.controller.admin.ajax;
 
+import java.io.IOException;
+import java.util.List;
+
 import com.google.gson.Gson;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kr.or.kosa.dao.AdminMemberDao;
+import kr.or.kosa.dao.AdminDao;
 import kr.or.kosa.dto.PageResult;
 import kr.or.kosa.dto.UserDto;
-
-import java.io.IOException;
-import java.util.List;
 
 @WebServlet("/AdminMemberAjax")
 public class AdminMemberAjaxController extends HttpServlet {
@@ -41,7 +42,7 @@ public class AdminMemberAjaxController extends HttpServlet {
             int pageSize = 9;
             int offset = (page - 1) * pageSize;
 
-            AdminMemberDao dao = new AdminMemberDao();
+            AdminDao dao = new AdminDao();
 
             int totalCount;
             List<UserDto> memberList;
