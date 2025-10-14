@@ -254,7 +254,7 @@ main {
         <!-- 우측 본문 -->
         <main>
             <div class="posts-container">
-                <h1 class="page-title">스터디 게시글</h1>
+                <h1 class="page-title">스터디 공지</h1>
                 
                 <!-- 게시글 목록 -->
                 <div class="post-list">
@@ -267,18 +267,18 @@ main {
                     </div>
                     
                     <!-- 게시글 아이템들 -->
-                    <c:forEach var="roomBoard" items="${roomBoardList}">
-                        <div class="post-item" onclick="location.href='${pageContext.request.contextPath}/roomboarddetail.room?roomBoardId=${roomBoard.roomBoardId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=GENERAL'">
-                            <div class="post-title-cell">${roomBoard.roomBoardTitle}
-                                <c:if test="${roomBoard.replyCount > 0}">
-                                    <span class="reply-count">[${roomBoard.replyCount}]</span>
+                    <c:forEach var="roomBoardNotice" items="${roomBoardList}">
+                        <div class="post-item" onclick="location.href='${pageContext.request.contextPath}/roomboardnoticedetail.room?roomBoardNoticeId=${roomBoardNotice.roomBoardId}'">
+                            <div class="post-title-cell">${roomBoardNotice.roomBoardTitle}
+                                <c:if test="${roomBoardNotice.replyCount > 0}">
+                                    <span class="reply-count">[${roomBoardNotice.replyCount}]</span>
                                 </c:if>
                             </div>
-                            <div class="post-author-cell">${roomBoard.userNickname}</div>
+                            <div class="post-author-cell">${roomBoardNotice.userNickname}</div>
                             <div class="post-date-cell">
-                                <fmt:formatDate value="${roomBoard.updatedAt}" pattern="yyyy-MM-dd"/>
+                                <fmt:formatDate value="${roomBoardNotice.updatedAt}" pattern="yyyy-MM-dd"/>
                             </div>
-                            <div class="post-views-cell">${roomBoard.roomBoardViewCnt}</div>
+                            <div class="post-views-cell">${roomBoardNotice.roomBoardViewCnt}</div>
                         </div>
                     </c:forEach>
                 </div>
@@ -290,8 +290,8 @@ main {
                         <input type="text" class="search-input" placeholder="제목으로 검색..." id="searchInput">
                         <button class="search-btn" onclick="searchPosts()">🔍</button>
                     </div>
-                    <button class="write-btn" onclick="location.href='${pageContext.request.contextPath}/roomboardinsertform.room?roomId=${roomId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=GENERAL'">
-                        게시글 쓰기
+                    <button class="write-btn" onclick="location.href='${pageContext.request.contextPath}/roomboardinsertform.room?roomId=${roomId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=NOTICE'">
+                        공지 쓰기
                     </button>
                 </div>
                 

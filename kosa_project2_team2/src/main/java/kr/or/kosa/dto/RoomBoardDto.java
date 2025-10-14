@@ -12,13 +12,17 @@ public class RoomBoardDto {
     private String roomBoardTitle;
     private String roomBoardContent;
     private Date updatedAt;
+    private String roomBoardType;
     private String userNickname;
     private int roomBoardViewCnt;
     private int replyCount;
     private int likeCount;
     private String userPhoto;
+    private int roomId;
+    private int userId;
     private boolean likeStatus;
     private boolean isMyPost;
+    
     
     
 }

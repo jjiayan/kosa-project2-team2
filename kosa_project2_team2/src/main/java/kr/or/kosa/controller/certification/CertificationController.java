@@ -9,9 +9,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.service.certification.CertificationListService;
-import kr.or.kosa.service.certification.CertificationAjaxListService;
+import kr.or.kosa.service.certification.CertificationService;
 import kr.or.kosa.service.certification.CertificationDetailService;
-import kr.or.kosa.service.certification.CertificationSyncActionService; 
+
 
 import java.io.IOException;
 
@@ -33,7 +33,7 @@ public class CertificationController extends HttpServlet {
         Action action = null;
         ActionForward forward = null;
 
-        // 목록 전체
+        // 현재 연도 최신 회차 기준 목록 JSP 출력
         if (urlCommand.equals("/certificationList.cert")) {
             action = new CertificationListService();
             forward = action.execute(request, response);
@@ -45,14 +45,13 @@ public class CertificationController extends HttpServlet {
 
         // API → DB 동기화
         } else if (urlCommand.equals("/certificationSync.cert")) {
-            action = new CertificationSyncActionService();
-            forward = action.execute(request, response);
-            
-            
-        } else if (urlCommand.equals("/certificationAjax.cert")) {
-            action = new CertificationAjaxListService();
-            forward = action.execute(request, response);
-       
+            CertificationService service = new CertificationService();
+            service.syncAll(); 
+            System.out.println("[Controller] Certification 동기화 수행 완료");
+
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath("/certificationList.cert");
 
         // 그 외 → 에러 페이지 또는 404
         } else {
@@ -83,4 +82,5 @@ public class CertificationController extends HttpServlet {
             throws ServletException, IOException {
         doProcess(request, response);
     }
+
 }

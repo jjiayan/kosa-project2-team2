@@ -79,7 +79,7 @@
 
     <!-- 내 정보 -->
     <li class="snav-item ${current eq 'info' ? 'is-active' : ''}">
-      <a href="<c:url value='/mypage/info.jsp?current=info'/>" class="snav-link" aria-label="내정보">
+      <a href="<c:url value='/mypage/info.user?current=info'/>" class="snav-link" aria-label="내정보">
         <i class="fa-regular fa-user"></i>
         <span class="label">내정보</span>
       </a>
@@ -87,7 +87,7 @@
 
     <!-- 내 정보 수정 -->
     <li class="snav-item ${current eq 'edit' ? 'is-active' : ''}">
-      <a href="<c:url value='/mypage/mypageEdit.jsp?current=edit'/>" class="snav-link" aria-label="내정보 수정">
+      <a href="<c:url value='/mypage/edit.user?current=edit'/>" class="snav-link" aria-label="내정보 수정">
         <i class="fa-solid fa-pen-to-square"></i>
         <span class="label">내정보 수정</span>
       </a>

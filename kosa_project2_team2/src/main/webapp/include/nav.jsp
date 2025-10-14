@@ -84,7 +84,7 @@
 
   <div class="center">
     <nav class="menu">
-      <a href="${ctx}/study.do"><i class="fa-regular fa-comments"></i>스터디</a>
+      <a href="${ctx}/roomlist.room"><i class="fa-regular fa-comments"></i>스터디</a>
       <a href="${ctx}/license.do"><i class="fa-regular fa-calendar"></i>자격증</a>
       <a href="${ctx}/notice.do"><i class="fa-solid fa-bullhorn"></i>공지</a>
     </nav>
@@ -95,16 +95,33 @@
       <c:when test="${not empty sessionScope.LOGIN_USER}">
         <c:set var="displayName"
                value="${empty sessionScope.LOGIN_USER.user_nickname ? sessionScope.LOGIN_USER.user_login_id : sessionScope.LOGIN_USER.user_nickname}" />
-        <div class="userbox">
-          <a href="${ctx}/mypage/edit.user" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;">
-            <img class="avatar"
-                 src="${navPhotoUrl}"
-                 alt="avatar"
-                 onerror="this.onerror=null; this.src='${ctx}/images/default-avatar.png';">
-            <span class="hello"><b>${displayName}</b> 님</span>
-          </a>
-          <a class="logout" href="${ctx}/logout.user">로그아웃</a>
-        </div>
+        
+		<div class="userbox">
+		  <c:choose>
+		    <c:when test="${sessionScope.LOGIN_USER.user_status eq 'ADMIN'}">
+		      <a href="${ctx}/adminMember.admin"
+		         style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;">
+		        <img class="avatar"
+		             src="${navPhotoUrl}"
+		             alt="avatar"
+		             onerror="this.onerror=null; this.src='${ctx}/images/default-avatar.png';">
+		        <span class="hello"><b>${displayName}</b> 님</span>
+		      </a>
+		    </c:when>
+		    <c:otherwise>
+		      <a href="${ctx}/mypage/edit.user"
+		         style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;">
+		        <img class="avatar"
+		             src="${navPhotoUrl}"
+		             alt="avatar"
+		             onerror="this.onerror=null; this.src='${ctx}/images/default-avatar.png';">
+		        <span class="hello"><b>${displayName}</b> 님</span>
+		      </a>
+		    </c:otherwise>
+		  </c:choose>
+		
+		  <a class="logout" href="${ctx}/logout.user">로그아웃</a>
+		</div>
       </c:when>
       <c:otherwise>
         <div class="login">

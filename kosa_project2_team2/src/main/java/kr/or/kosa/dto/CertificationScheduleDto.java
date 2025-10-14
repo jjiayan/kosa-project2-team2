@@ -1,5 +1,7 @@
 package kr.or.kosa.dto;
 
+import java.sql.Date;
+
 /**
  * 자격증 시험 일정 정보 (CERTIFICATION_SCHEDULE)
  * FK → CERTIFICATION_MASTER(jmcd, year, implSeq)
@@ -8,17 +10,17 @@ public class CertificationScheduleDto {
     private int jmcd;
     private int year;
     private int implSeq;
-
-    private String docRegStartDt;
-    private String docRegEndDt;
-    private String docExamStartDt;
-    private String docExamEndDt;
-    private String docPassDt;
-    private String pracRegStartDt;
-    private String pracRegEndDt;
-    private String pracExamStartDt;
-    private String pracExamEndDt;
-    private String pracPassDt;
+    private Date docRegStartDt;
+    private Date docRegEndDt;
+    private Date docExamStartDt;
+    private Date docExamEndDt;
+    private Date docExamDt;
+    private Date docPassDt;
+    private Date pracRegStartDt;
+    private Date pracRegEndDt;
+    private Date pracExamStartDt;
+    private Date pracExamEndDt;
+    private Date pracPassDt;
     private int examFee;
 
     public CertificationScheduleDto() {}
@@ -33,35 +35,38 @@ public class CertificationScheduleDto {
     public int getImplSeq() { return implSeq; }
     public void setImplSeq(int implSeq) { this.implSeq = implSeq; }
 
-    public String getDocRegStartDt() { return docRegStartDt; }
-    public void setDocRegStartDt(String docRegStartDt) { this.docRegStartDt = docRegStartDt; }
+    public Date getDocRegStartDt() { return docRegStartDt; }
+    public void setDocRegStartDt(Date docRegStartDt) { this.docRegStartDt = docRegStartDt; }
 
-    public String getDocRegEndDt() { return docRegEndDt; }
-    public void setDocRegEndDt(String docRegEndDt) { this.docRegEndDt = docRegEndDt; }
+    public Date getDocRegEndDt() { return docRegEndDt; }
+    public void setDocRegEndDt(Date docRegEndDt) { this.docRegEndDt = docRegEndDt; }
 
-    public String getDocExamStartDt() { return docExamStartDt; }
-    public void setDocExamStartDt(String docExamStartDt) { this.docExamStartDt = docExamStartDt; }
+    public Date getDocExamStartDt() { return docExamStartDt; }
+    public void setDocExamStartDt(Date docExamStartDt) { this.docExamStartDt = docExamStartDt; }
 
-    public String getDocExamEndDt() { return docExamEndDt; }
-    public void setDocExamEndDt(String docExamEndDt) { this.docExamEndDt = docExamEndDt; }
+    public Date getDocExamEndDt() { return docExamEndDt; }
+    public void setDocExamEndDt(Date docExamEndDt) { this.docExamEndDt = docExamEndDt; }
+    
+    public Date getDocExamDt() { return docExamDt; }
+    public void setDocExamDt(Date docExamDt) { this.docExamDt = docExamDt; }
 
-    public String getDocPassDt() { return docPassDt; }
-    public void setDocPassDt(String docPassDt) { this.docPassDt = docPassDt; }
+    public Date getDocPassDt() { return docPassDt; }
+    public void setDocPassDt(Date docPassDt) { this.docPassDt = docPassDt; }
 
-    public String getPracRegStartDt() { return pracRegStartDt; }
-    public void setPracRegStartDt(String pracRegStartDt) { this.pracRegStartDt = pracRegStartDt; }
+    public Date getPracRegStartDt() { return pracRegStartDt; }
+    public void setPracRegStartDt(Date pracRegStartDt) { this.pracRegStartDt = pracRegStartDt; }
 
-    public String getPracRegEndDt() { return pracRegEndDt; }
-    public void setPracRegEndDt(String pracRegEndDt) { this.pracRegEndDt = pracRegEndDt; }
+    public Date getPracRegEndDt() { return pracRegEndDt; }
+    public void setPracRegEndDt(Date pracRegEndDt) { this.pracRegEndDt = pracRegEndDt; }
 
-    public String getPracExamStartDt() { return pracExamStartDt; }
-    public void setPracExamStartDt(String pracExamStartDt) { this.pracExamStartDt = pracExamStartDt; }
+    public Date getPracExamStartDt() { return pracExamStartDt; }
+    public void setPracExamStartDt(Date pracExamStartDt) { this.pracExamStartDt = pracExamStartDt; }
 
-    public String getPracExamEndDt() { return pracExamEndDt; }
-    public void setPracExamEndDt(String pracExamEndDt) { this.pracExamEndDt = pracExamEndDt; }
+    public Date getPracExamEndDt() { return pracExamEndDt; }
+    public void setPracExamEndDt(Date pracExamEndDt) { this.pracExamEndDt = pracExamEndDt; }
 
-    public String getPracPassDt() { return pracPassDt; }
-    public void setPracPassDt(String pracPassDt) { this.pracPassDt = pracPassDt; }
+    public Date getPracPassDt() { return pracPassDt; }
+    public void setPracPassDt(Date pracPassDt) { this.pracPassDt = pracPassDt; }
 
     public int getExamFee() { return examFee; }
     public void setExamFee(int examFee) { this.examFee = examFee; }

@@ -1,5 +1,7 @@
 package kr.or.kosa.dto;
 
+import java.util.Date;
+
 public class UserDto {
     private int user_id;                  // 사용자 고유 번호 (PK)
     private String user_login_id;         // 사용자 로그인 아이디
@@ -9,11 +11,14 @@ public class UserDto {
     private String user_bio;              // 사용자 자기소개
     private String user_phonenumber;      // 사용자 휴대폰번호 (char(11))
     private String user_photo;            // 사용자 사진 (파일 경로 또는 URL)
+    private Date createdAt;               // 생성 시각
 
-    // 기본 생성자
-    public UserDto() {}
+    // 기본 생성자: 생성 시각을 현재로 설정
+    public UserDto() {
+        this.createdAt = new Date();
+    }
 
-    // 전체 필드 생성자
+    // 전체 필드 생성자 (createdAt 제외: 생성 시각을 현재로 설정)
     public UserDto(int user_id, String user_login_id, String user_pw, String user_status,
                    String user_nickname, String user_bio, String user_phonenumber, String user_photo) {
         this.user_id = user_id;
@@ -24,6 +29,22 @@ public class UserDto {
         this.user_bio = user_bio;
         this.user_phonenumber = user_phonenumber;
         this.user_photo = user_photo;
+        this.createdAt = new Date();
+    }
+
+    // 전체 필드 생성자 (createdAt 포함)
+    public UserDto(int user_id, String user_login_id, String user_pw, String user_status,
+                   String user_nickname, String user_bio, String user_phonenumber, String user_photo,
+                   Date createdAt) {
+        this.user_id = user_id;
+        this.user_login_id = user_login_id;
+        this.user_pw = user_pw;
+        this.user_status = user_status;
+        this.user_nickname = user_nickname;
+        this.user_bio = user_bio;
+        this.user_phonenumber = user_phonenumber;
+        this.user_photo = user_photo;
+        this.createdAt = createdAt;
     }
 
     // Getter & Setter
@@ -91,6 +112,14 @@ public class UserDto {
         this.user_photo = user_photo;
     }
 
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
     @Override
     public String toString() {
         return "UserDto{" +
@@ -102,6 +131,7 @@ public class UserDto {
                 ", user_bio='" + user_bio + '\'' +
                 ", user_phonenumber='" + user_phonenumber + '\'' +
                 ", user_photo='" + user_photo + '\'' +
+                ", createdAt=" + createdAt +
                 '}';
     }
 }

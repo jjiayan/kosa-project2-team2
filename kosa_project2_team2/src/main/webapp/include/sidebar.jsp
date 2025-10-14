@@ -83,20 +83,24 @@
   <ul class="snav-list">
     <li class="snav-item ${current eq 'home' ? 'is-active' : ''}">
       <a href="<c:url value='/roomdetail.room'>
-            <c:param name='roomId' value='${roomDetail.roomId}'/>
+            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+            <c:param name='userId' value='${sessionScope.LOGIN_USER.user_id}'/>
          </c:url>" class="snav-link" aria-label="홈">
         <i class="fa-regular fa-calendar"></i>
         <span class="label">홈</span>
       </a>
     </li>
 
-    <li class="snav-item ${current eq 'posts' ? 'is-active' : ''}">
-      <a href="<c:url value='/roomboard.room'/>" class="snav-link" aria-label="게시글">
-        <i class="fa-regular fa-rectangle-list"></i>
-        <span class="label">게시글</span>
-        <!-- <span class="count">24</span> -->
-      </a>
-    </li>
+	<c:if test="${not empty sessionScope.currentRoomId}">
+	    <li class="snav-item ${current eq 'posts' ? 'is-active' : ''}">
+	        <a href="<c:url value='/roomboardlist.room'>
+	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+	        </c:url>" class="snav-link" aria-label="게시글">
+	            <i class="fa-regular fa-rectangle-list"></i>
+	            <span class="label">게시글</span>
+	        </a>
+	    </li>
+	</c:if>
 
     <li class="snav-item ${current eq 'calendar' ? 'is-active' : ''}">
       <a href="<c:url value='/roomboard.room'/>" class="snav-link" aria-label="캘린더">
@@ -104,13 +108,17 @@
         <span class="label">캘린더</span>
       </a>
     </li>
-
-    <li class="snav-item ${current eq 'notice' ? 'is-active' : ''}">
-      <a href="<c:url value='/notice/list.do'/>" class="snav-link" aria-label="공지사항">
-        <i class="fa-regular fa-bell"></i>
-        <span class="label">공지사항</span>
-      </a>
-    </li>
+    
+	<c:if test="${not empty sessionScope.currentRoomId}">
+	    <li class="snav-item ${current eq 'notice' ? 'is-active' : ''}">
+	        <a href="<c:url value='/roomboardnotice.room'>
+	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+	        </c:url>" class="snav-link" aria-label="공지">
+	            <i class="fa-regular fa-bell"></i>
+	            <span class="label">공지사항</span>
+	        </a>
+	    </li>
+	</c:if>
 
     <c:if test="${roomDetail.leaderCheck}">
 	  <li class="snav-item ${current eq 'admin' ? 'is-active' : ''}">

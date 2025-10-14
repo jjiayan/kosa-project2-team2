@@ -9,7 +9,10 @@ import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.RoomDao;
 import kr.or.kosa.dto.RegionDto;
+import kr.or.kosa.service.room.RooBoardNoticeService;
 import kr.or.kosa.service.room.RoomBoardDetailService;
+import kr.or.kosa.service.room.RoomBoardInsertFormService;
+import kr.or.kosa.service.room.RoomBoardInsertService;
 import kr.or.kosa.service.room.RoomBoardListService;
 import kr.or.kosa.service.room.RoomDetailService;
 import kr.or.kosa.service.room.RoomInsertService;
@@ -47,6 +50,7 @@ public class RoomController extends HttpServlet {
     		RoomDao rd = new RoomDao();
     		List<RegionDto> mainRegion = rd.getRegion();
     		request.setAttribute("mainRegionList",mainRegion);
+
     		forward = new ActionForward();
     	    forward.setRedirect(false);
     	    forward.setPath("/WEB-INF/views/room/insertRoom.jsp");
@@ -55,20 +59,29 @@ public class RoomController extends HttpServlet {
     		forward = action.execute(request, response);
     		
     	}else if(urlCommand.equals("/roomlist.room")) {
-    		
     		action = new RoomListService();
     		forward = action.execute(request, response);
-    	}else if(urlCommand.equals("/roomdetail.room")) {
+    	}else if(urlCommand.equals("/roomdetail.room")) { // 모임방의 정보를 보는거
     		action = new RoomDetailService();
     		forward = action.execute(request, response);
-    	}else if(urlCommand.equals("/roomboard.room")) {
+    	}else if(urlCommand.equals("/roomboardlist.room")) { // 룸 보드 리스트
     		action = new RoomBoardListService();
     		forward = action.execute(request, response);
     	}else if(urlCommand.equals("/roomboarddetail.room")) {
-    		System.out.println("룸보드 디테일 여기들어온다? ");
     		action = new RoomBoardDetailService();
     		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomboardinsertform.room")) {
+    		action = new RoomBoardInsertFormService();
+    		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomboardinsert.room")) {
+    		action = new RoomBoardInsertService();
+    		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomboardnotice.room")) {
+    		
+    		action = new RooBoardNoticeService();
+    		forward = action.execute(request, response);
     	}
+    	
     	
     	if(forward != null) {
     		if (forward.isRedirect()) {
