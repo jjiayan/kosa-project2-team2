@@ -9,7 +9,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.admin.AdminNoticeInsertService;
 import kr.or.kosa.service.admin.AdminNoticeService;
+import kr.or.kosa.service.admin.AdminNoticeWriteService;
 
 @WebServlet("*.admin")
 public class AdminController extends HttpServlet {
@@ -41,7 +43,14 @@ public class AdminController extends HttpServlet {
 		} else if (command.equals("/adminNotice.admin")) { // 관리자공지사항페이지
    			    Action action = new AdminNoticeService();
      			forward = action.execute(request, response);
-		} else {
+		} else if (command.equals("/adminNoticeInsert.admin")) { 
+		    Action action = new AdminNoticeInsertService();
+		    forward = action.execute(request, response);
+		}
+		else if (command.equals("/adminNoticeWrite.admin")) { 
+		    Action action = new AdminNoticeWriteService();
+		    forward = action.execute(request, response);
+		}else {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			return;
 		}
