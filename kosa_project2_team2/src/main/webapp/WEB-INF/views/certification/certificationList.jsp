@@ -16,7 +16,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Noto Sans KR',sans-serif;background:#fff;padding:40px 20px;color:#333;}
-.container{max-width:1400px;margin:0 auto;}
+.container{max-width:1400px;margin:0 auto;padding: 60px 24px 0;}
 
 /* 상단 헤더 영역 */
 .header-section{margin-bottom:32px;}
