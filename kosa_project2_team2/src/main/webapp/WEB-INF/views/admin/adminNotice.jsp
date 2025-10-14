@@ -295,7 +295,12 @@ main {
 								<c:forEach var="notice" items="${noticeList}">
 									<tr>
 										<td>${notice.adminNoticeId}</td>
-										<td class="table-title">${notice.adminNoticeTitle}</td>
+										<td class="table-title">
+										    <a href="${pageContext.request.contextPath}/adminNoticeDetail.admin?noticeId=${notice.adminNoticeId}"
+										       style="text-decoration:none; color:#333;">
+										       ${notice.adminNoticeTitle}
+										    </a>
+										</td>
 										<td>${notice.adminNoticeViewCnt}</td>
 										<c:if
 											test="${not empty sessionScope.LOGIN_USER and sessionScope.LOGIN_USER.user_status eq 'ADMIN'}">
