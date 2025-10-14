@@ -428,8 +428,10 @@
 /* 대댓글 폼 */
 .child-reply-form { 
     margin-top: 12px; 
+    margin-left: 52px;     /* ✅ 추가: 프로필 이미지 너비만큼 왼쪽 여백 */
+    margin-right: 0;       /* ✅ 추가: 오른쪽 여백 제거 */
     padding: 12px; 
-    background: white; 
+    background: #f9f9f9;   /* ✅ 수정: 배경색 살짝 변경 */
     border-radius: 8px; 
     border: 1px solid #e8e8e8;
 }
@@ -472,7 +474,6 @@
     <!-- 댓글 작성 폼 -->
     <div class="reply-write-form">
         <div class="write-form-header">
-            
             <c:choose>
                 <c:when test="${not empty sessionScope.LOGIN_USER.user_photo}">
                     <img src="${pageContext.request.contextPath}${sessionScope.LOGIN_USER.user_photo}" 
@@ -526,15 +527,14 @@ jQuery(document).ready(function() {
 });
 
 /**
- * 댓글 목록 불러오기
+ * ✅ 댓글 목록 불러오기 - /reply/list.ajax
  */
 function loadReplyList() {
     jQuery.ajax({
-        url: '${pageContext.request.contextPath}/reply/query',
+        url: '${pageContext.request.contextPath}/reply/list.ajax',
         type: 'GET',
         dataType: 'json',
         data: {
-            action: 'list',
             roomBoardId: ROOM_BOARD_ID,
             orderBy: currentOrder
         },
@@ -588,14 +588,11 @@ function displayReplyList(replies) {
 function createReplyHtml(reply, isChild) {
     var childClass = isChild ? 'child-reply' : '';
     var contextPath = '${pageContext.request.contextPath}';
-    /* var profileImg = reply.userPhoto ? 
-        '<img src="' + contextPath + reply.userPhoto + '" alt="프로필" class="profile-img">' :
-        '<img src="' + contextPath + '/images/default-avatar.png" alt="프로필" class="profile-img">'; */
+    
     var profileImgSrc = reply.userPhoto ? 
-     	    contextPath + reply.userPhoto : 
-     	    contextPath + '/images/default-avatar.png';
-   	/* var profileImg = '<img src="' + profileImgSrc + '" alt="프로필" class="profile-img">'; */
-   	var defaultImgSrc = contextPath + '/images/default-avatar.png';
+        contextPath + reply.userPhoto : 
+        contextPath + '/images/default-avatar.png';
+    var defaultImgSrc = contextPath + '/images/default-avatar.png';
     var profileImg = '<img src="' + profileImgSrc + '" alt="프로필" class="profile-img" ' +
         'onerror="this.onerror=null; this.src=\'' + defaultImgSrc + '\';">';
     
@@ -658,7 +655,11 @@ function createReplyHtml(reply, isChild) {
         '<div class="reply-content" data-original="' + escapeHtml(reply.replyContent) + '">' +
         escapeHtml(reply.replyContent) + '</div>' +
         '<span class="reply-time">' + timeText + '</span>' + replyButton + likeButton +
-        '</div>' + childForm + '</div></div>' + actionButtons + '</div></div>';
+	    '</div></div>' +              // ✅ reply-author 닫기
+	    actionButtons +
+	    '</div>' +                     // ✅ reply-item-header 닫기
+	    childForm +                    // ✅ childForm을 여기로 이동 (reply-item 바로 아래)
+	    '</div>';  
 }
 
 function escapeHtml(text) {
@@ -730,6 +731,9 @@ function toggleLike(replyId) {
     alert('좋아요 기능은 준비 중입니다.');
 }
 
+/**
+ * ✅ 댓글 작성 - /reply/write.ajax
+ */
 function writeReply() {
     var content = jQuery('#replyContent').val().trim();
     if (!content) {
@@ -739,12 +743,12 @@ function writeReply() {
     if (selectedImages.length > 0) {
         alert('이미지 첨부 기능은 준비 중입니다.\n텍스트 댓글만 등록됩니다.');
     }
+    
     jQuery.ajax({
-        url: '${pageContext.request.contextPath}/reply/command',
+        url: '${pageContext.request.contextPath}/reply/write.ajax',
         type: 'POST',
         dataType: 'json',
         data: {
-            action: 'write',
             roomBoardId: ROOM_BOARD_ID,
             replyContent: content
         },
@@ -777,18 +781,21 @@ function toggleChildReplyForm(parentReplyId) {
     }
 }
 
+/**
+ * ✅ 대댓글 작성 - /reply/write.ajax
+ */
 function writeChildReply(parentReplyId) {
     var content = jQuery('#childContent' + parentReplyId).val().trim();
     if (!content) {
         alert('답글 내용을 입력해주세요.');
         return;
     }
+    
     jQuery.ajax({
-        url: '${pageContext.request.contextPath}/reply/command',
+        url: '${pageContext.request.contextPath}/reply/write.ajax',
         type: 'POST',
         dataType: 'json',
         data: {
-            action: 'write',
             roomBoardId: ROOM_BOARD_ID,
             replyContent: content,
             parentReplyId: parentReplyId
@@ -810,6 +817,9 @@ function writeChildReply(parentReplyId) {
     });
 }
 
+/**
+ * ✅ 댓글 수정 모드 활성화
+ */
 function editReply(replyId) {
     jQuery('.dropdown-menu').removeClass('show');
     var replyItem = jQuery('.reply-item[data-reply-id="' + replyId + '"]');
@@ -828,6 +838,9 @@ function editReply(replyId) {
     });
 }
 
+/**
+ * ✅ 댓글 수정 - /reply/update.ajax
+ */
 function updateReply(replyId) {
     var content = jQuery('#editContent' + replyId).val().trim();
     if (!content) {
@@ -836,11 +849,10 @@ function updateReply(replyId) {
     }
     if (confirm('댓글을 수정하시겠습니까?')) {
         jQuery.ajax({
-            url: '${pageContext.request.contextPath}/reply/command',
+            url: '${pageContext.request.contextPath}/reply/update.ajax',
             type: 'POST',
             dataType: 'json',
             data: {
-                action: 'update',
                 replyId: replyId,
                 replyContent: content
             },
@@ -860,15 +872,17 @@ function updateReply(replyId) {
     }
 }
 
+/**
+ * ✅ 댓글 삭제 - /reply/delete.ajax
+ */
 function deleteReply(replyId) {
     jQuery('.dropdown-menu').removeClass('show');
     if (confirm('댓글을 삭제하시겠습니까?')) {
         jQuery.ajax({
-            url: '${pageContext.request.contextPath}/reply/command',
+            url: '${pageContext.request.contextPath}/reply/delete.ajax',
             type: 'POST',
             dataType: 'json',
             data: {
-                action: 'delete',
                 replyId: replyId
             },
             success: function(response) {
