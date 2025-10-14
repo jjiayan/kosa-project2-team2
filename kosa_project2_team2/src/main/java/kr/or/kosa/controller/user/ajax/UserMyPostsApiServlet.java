@@ -1,3 +1,4 @@
+// UserMyPostsApiServlet.java
 package kr.or.kosa.controller.user.ajax;
 
 import com.google.gson.Gson;
@@ -13,17 +14,6 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-/**
- * 내가 쓴 글(최근 N개) JSON 응답
- * 표준 필드:
- *  - title, url, date(yyyy.MM.dd), replyCount, viewCount
- *  - roomId, roomTitle, roomUrl  ← 방 정보 추가!
- *
- * RoomDao.findRecentPostsByUser(userId, limit) 가
- *  title/ROOM_BOARD_TITLE, id/ROOM_BOARD_ID, createdAt/CREATED_AT,
- *  replyCount, viewCount,
- *  roomId/ROOM_ID, roomTitle/ROOM_TITLE 를 반환한다고 가정하고 매핑합니다.
- */
 @WebServlet("/api/mypage/posts")
 public class UserMyPostsApiServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -55,38 +45,40 @@ public class UserMyPostsApiServlet extends HttpServlet {
         } catch (Exception ignore) {}
 
         try (PrintWriter out = resp.getWriter()) {
-            // RoomDao 호출 (반환: List<Map<String,Object>> 형태 가정)
+            // DAO가 title/ROOM_BOARD_TITLE, roomBoardId/ROOM_BOARD_ID, createdAt/CREATED_AT ...
             List<Map<String, Object>> raw = roomDao.findRecentPostsByUser(userId, limit);
 
             List<Map<String, Object>> normalized = new ArrayList<>();
             for (Map<String, Object> r : raw) {
                 Map<String, Object> m = new LinkedHashMap<>();
 
-                // 게시글 필드
-                String title = str(r, "title", "ROOM_BOARD_TITLE");
-                Object idObj = val(r, "id", "ROOM_BOARD_ID");
-                String url = str(r, "url");
-                if (url == null || "null".equals(url)) {
-                    url = "/room/board/detail?roomBoardId=" + String.valueOf(idObj);
-                }
-                Date created = (Date) val(r, "createdAt", "CREATED_AT");
+                // 🔸 게시글 ID: roomBoardId 로 통일
+                Object idObj = val(r, "roomBoardId", "ROOM_BOARD_ID", "id");
+                Integer roomBoardId = (idObj == null) ? null : Integer.valueOf(String.valueOf(idObj));
+
+                String title    = str(r, "title", "ROOM_BOARD_TITLE");
+                Date created    = (Date) val(r, "createdAt", "CREATED_AT");
                 Integer replies = toInt(val(r, "replyCount", "REPLY_COUNT"));
                 Integer views   = toInt(val(r, "viewCount", "ROOM_BOARD_VIEW_CNT"));
 
-                // 방 필드
-                Object roomIdObj = val(r, "roomId", "ROOM_ID");
-                String roomTitle = str(r, "roomTitle", "ROOM_TITLE");
-                String roomUrl   = "/room/detail?roomId=" + String.valueOf(roomIdObj);
+                // 옵션: 타입이 있으면 같이 내려줌 (없으면 빈 문자열)
+                String roomBoardType = str(r, "roomBoardType", "ROOM_BOARD_TYPE");
 
+                // 🔸 방 정보
+                Object roomIdObj = val(r, "roomId", "ROOM_ID");
+                Integer roomId   = (roomIdObj == null) ? null : Integer.valueOf(String.valueOf(roomIdObj));
+                String roomTitle = str(r, "roomTitle", "ROOM_TITLE");
+
+                // url 은 내려주지 않습니다.
+                m.put("roomBoardId", roomBoardId);
                 m.put("title", title == null ? "" : title);
-                m.put("url", url);
                 m.put("date", created == null ? "" : fmt.format(created));
                 m.put("replyCount", replies == null ? 0 : replies);
                 m.put("viewCount", views == null ? 0 : views);
+                m.put("roomBoardType", roomBoardType == null ? "" : roomBoardType);
 
-                m.put("roomId", roomIdObj == null ? null : Integer.valueOf(String.valueOf(roomIdObj)));
+                m.put("roomId", roomId);
                 m.put("roomTitle", roomTitle == null ? "" : roomTitle);
-                m.put("roomUrl", roomUrl);
 
                 normalized.add(m);
             }

@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!DOCTYPE html>
@@ -10,12 +10,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    :root{
-      --ink:#222; --muted:#888; --line:#eee; --bg:#fafafa; --card:#fff;
-      --shadow:0 10px 28px rgba(0,0,0,.08);
-      --aside-w:420px;
-      --accent:#2563eb;
-    }
+    :root{ --ink:#222; --muted:#888; --line:#eee; --bg:#fafafa; --card:#fff; --shadow:0 10px 28px rgba(0,0,0,.08); --aside-w:420px; --accent:#2563eb; }
     *{box-sizing:border-box}
     html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink);
       font-family:"Noto Sans KR",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue","Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
@@ -25,19 +20,16 @@
     .page{display:flex; min-height:100vh}
     .content{flex:1}
 
-    /* 헤더/사이드 겹침 방지 */
     .mypage-sidebar{ position:relative; z-index:3; }
     .heading-wrap{ margin-left:0; width:100%; padding:28px 20px 0; text-align:center; position:relative; z-index:1; pointer-events:none;}
     .heading{ display:inline-block; font-size:42px; font-weight:900; color:#777; margin:24px 0 18px; pointer-events:auto; }
 
-    /* 레이아웃 공통 */
     .container{ padding:0 20px 28px; }
     .layout{ display:grid; grid-template-columns:1fr var(--aside-w); gap:18px; align-items:start; max-width:1180px; margin:0 auto; }
     @media (max-width:1100px){ .layout{ grid-template-columns:1fr } }
     .card{background:var(--card); border-radius:16px; box-shadow:var(--shadow)}
     .divider{height:1px; background:#e9e9e9}
 
-    /* 프로필 카드 */
     .profile-card{padding:0; overflow:hidden}
     .profile-title{padding:12px 18px; font-size:15px; font-weight:700; color:#333; border-bottom:1px solid #dadada; background:#fff}
     .profile-body{position:relative; padding:20px 22px 18px 34px; background:#fff}
@@ -50,7 +42,6 @@
     .edit-link{position:absolute; right:28px; bottom:12px; font-size:12px; color:#666}
     .edit-link:hover{color:#333}
 
-    /* 내가 참여한 방 (compact) */
     .rooms-card .head{padding:14px 18px; font-weight:800}
     .rooms-card.compact .divider{ margin-bottom:10px; }
 
@@ -60,10 +51,7 @@
       --md:    clamp(11px, 1.4vw, 13px);
       --sm:    clamp(10px, 1.2vw, 12px);
     }
-    .rooms-card.compact .rooms-grid{
-      display:grid; grid-template-columns: repeat(3, minmax(0,1fr));
-      gap:8px; padding:0 10px 4px;
-    }
+    .rooms-card.compact .rooms-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:8px; padding:0 10px 4px; }
     @media (max-width:1024px){ .rooms-card.compact .rooms-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
     @media (max-width:640px){  .rooms-card.compact .rooms-grid{ grid-template-columns: 1fr; } }
     .rooms-card.compact .room{ border-radius:10px; border:1px solid #eee; background:#fff; box-shadow:0 1px 8px rgba(0,0,0,.045); overflow:hidden; }
@@ -85,7 +73,6 @@
     .rooms-card .more-link{ font-size:12px; color:#666; }
     .rooms-card .more-link:hover{ color:#222; text-decoration:underline; }
 
-    /* 오른쪽: 내가 쓴 글 (AJAX) */
     .side-card .head{padding:14px 18px; border-bottom:1px solid var(--line); font-weight:800}
     .post-list{padding:6px 0}
     .post{padding:10px 18px; border-top:1px solid var(--line)}
@@ -116,8 +103,9 @@
 
 <jsp:include page="/include/nav.jsp" />
 
-<c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="me"  value="${sessionScope.LOGIN_USER}" />
+<c:set var="ctx"  value="${pageContext.request.contextPath}" />
+<c:set var="me"   value="${sessionScope.LOGIN_USER}" />
+<c:set var="meId" value="${me.user_id}" />
 
 <div class="page with-sidebar">
   <div class="mypage-sidebar">
@@ -194,160 +182,210 @@
 </div>
 
 <script>
-  // 아바타 정사각
-  (function(){
-    var box  = document.getElementById('mypAvatarBox');
-    var text = document.getElementById('mypTextBlock');
-    function syncAvatar(){
-      if(!box || !text) return;
-      var h = Math.max(100, Math.round(text.getBoundingClientRect().height));
-      box.style.height = h + 'px';
-      box.style.width  = h + 'px';
-    }
-    window.addEventListener('load', syncAvatar);
-    window.addEventListener('resize', function(){
-      clearTimeout(window.__avtRaf); window.__avtRaf = setTimeout(syncAvatar, 80);
-    });
-    var mo = new MutationObserver(syncAvatar);
-    if (text) mo.observe(text, {childList:true, subtree:true, characterData:true});
-    setTimeout(syncAvatar, 150);
-  })();
-
-  // 연락처 포맷
-  (function(){
-    var el = document.getElementById('phoneDisplay');
-    if(!el) return;
-    var raw = (el.textContent || '').replace(/[^0-9]/g,'');
-    if(raw.length >= 9){
-      var fmt = (raw.length === 10)
-        ? raw.replace(/(\d{3})(\d{3,4})(\d{4})/, '$1-$2-$3')
-        : raw.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-      el.textContent = fmt;
+  (function boot(){
+    if (!window.jQuery) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js';
+      s.onload = init;
+      s.onerror = function(){ console.error('[mypage] jQuery 로드 실패'); };
+      document.head.appendChild(s);
+    } else {
+      init();
     }
   })();
 
-  // 내가 참여한 방: AJAX
-  (function($){
-    var ctx = '${pageContext.request.contextPath}';
-    var $area = $('#roomsArea');
+  function init(){
+    var CTX  = '<c:out value="${ctx}" />';
+    var MEID = '<c:out value="${meId}" />';
+    var $roomsArea = $('#roomsArea');
+    var $postsArea = $('#myPostsArea');
 
-    function esc(s){ return $('<div>').text(s == null ? '' : String(s)).html(); }
-
-    function buildRoomCard(r){
-      var thumb = r.thumbUrl ? (ctx + r.thumbUrl) : (ctx + '/images/room-placeholder.jpg');
-      var url   = ctx + '/room/detail?roomId=' + (r.roomId || '');
-      var title = esc(r.title);
-      var regionLine = esc((r.parentRegion || '') + (r.childRegion ? ' ' + r.childRegion : ''));
-      var certLine = esc((r.certName || '') + ' 공부방');
-      var dateStr = esc(r.date || '');
-      var members = (r.memberCount != null) ? r.memberCount : 0;
-      var likes   = (r.likeCount != null) ? r.likeCount : 0;
-
-      return ''+
-      '<article class="room">'+
-        '<a href="'+url+'">'+
-          '<div class="thumb-wrap">'+
-            '<img class="thumb" src="'+thumb+'" alt="thumbnail" onerror="this.onerror=null; this.src=\''+ctx+'/images/room-placeholder.jpg\';" />'+
-            '<div class="title-overlay">'+ title +'</div>'+
-          '</div>'+
-        '</a>'+
-        '<div class="meta">'+
-          '<div class="region">'+ regionLine +'</div>'+
-          '<div class="cert">'+ certLine +'</div>'+
-          '<div class="date">'+ dateStr +'</div>'+
-          '<div class="member">member: '+ members +'</div>'+
-          '<div class="like-row">'+
-            '<span class="like-icon" aria-hidden="true">'+
-              '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">'+
-                '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>'+
-              '</svg>'+
-            '</span>'+
-            '<span>'+ likes +'</span>'+
-          '</div>'+
-        '</div>'+
-      '</article>';
+    function esc(s){ return $('<div>').text(s==null?'':String(s)).html(); }
+    function roomDetailUrl(roomId){
+      var url = CTX + '/roomdetail.room?roomId=' + encodeURIComponent(roomId);
+      if (MEID) url += '&userId=' + encodeURIComponent(MEID);
+      return url;
+    }
+    // ✅ 게시글 상세: roomBoardId + userId 로만 이동 (서비스 시그니처에 맞춤)
+    function boardDetailUrl(roomBoardId){
+      var url = CTX + '/roomboarddetail.room?roomBoardId=' + encodeURIComponent(roomBoardId);
+      if (MEID) url += '&userId=' + encodeURIComponent(MEID);
+      return url;
     }
 
+    // ===== 아바타 정사각 =====
+    (function(){
+      var $box = $('#mypAvatarBox');
+      var $txt = $('#mypTextBlock');
+      function sync(){
+        if(!$box.length || !$txt.length) return;
+        var h = Math.max(100, Math.round($txt[0].getBoundingClientRect().height));
+        $box.css({height:h+'px', width:h+'px'});
+      }
+      $(window).on('load resize', function(){ clearTimeout(window.__avtRaf); window.__avtRaf=setTimeout(sync,80); });
+      setTimeout(sync, 150);
+    })();
+
+    // ===== 연락처 포맷 =====
+    (function(){
+      var $el = $('#phoneDisplay');
+      if(!$el.length) return;
+      var raw = ($el.text()||'').replace(/[^0-9]/g,'');
+      if(raw.length>=9){
+        var fmt = (raw.length===10)
+          ? raw.replace(/(\d{3})(\d{3,4})(\d{4})/, '$1-$2-$3')
+          : raw.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+        $el.text(fmt);
+      }
+    })();
+
+    // ===== 내가 참여한 방 (AJAX) =====
     function renderRooms(payload){
-      var items = [];
-      if ($.isArray(payload)) items = payload;
-      else if (payload && $.isArray(payload.items)) items = payload.items;
-      if (!items.length){ $('#roomsArea').html('<div class="empty">참여한 방이 없습니다.</div>'); return; }
-      var cards = '';
-      for (var i=0;i<items.length;i++) cards += buildRoomCard(items[i]);
-      $area.html('<div class="rooms-grid">'+ cards +'</div>');
-    }
+      var items = $.isArray(payload) ? payload : ($.isArray(payload.items) ? payload.items : []);
+      if(!items.length){ $roomsArea.html('<div class="empty">참여한 방이 없습니다.</div>'); return; }
 
-    $.ajax({
-      url: ctx + '/api/mypage/rooms',
-      method: 'GET',
-      data: { limit: 6, offset: 0 },
-      success: renderRooms,
-      error: function(){ $area.html('<div class="empty">불러오기에 실패했습니다.</div>'); }
-    });
-  })(window.jQuery);
+      var html = '<div class="rooms-grid">';
+      $.each(items, function(_, r){
+        var thumb   = r.thumbUrl ? (CTX + r.thumbUrl) : (CTX + '/images/room-placeholder.jpg');
+        var urlDet  = roomDetailUrl(r.roomId || r.room_id || r.roomNo || '');
+        var title   = esc(r.title);
+        var region  = esc((r.parentRegion||'') + (r.childRegion ? (' ' + r.childRegion) : ''));
+        var cert    = esc((r.certName||'') + ' 공부방');
+        var dateStr = esc(r.date || '');
+        var members = (r.memberCount!=null)? r.memberCount:0;
+        var likes   = (r.likeCount !=null)? r.likeCount :0;
 
-  // 내가 쓴 글: AJAX (Gson JSON, 방 뱃지/링크 표시)
-  (function($){
-    var ctx = '${pageContext.request.contextPath}';
-    var $area = $('#myPostsArea');
-
-    function esc(t){ return $('<div>').text(t == null ? '' : String(t)).html(); }
-
-    function postItem(p){
-      var title = esc(p.title);
-      var url   = ctx + (p.url || '#');
-      var date  = esc(p.date || '');
-      var replies = (p.replyCount != null ? p.replyCount : 0);
-      var views   = (p.viewCount  != null ? p.viewCount  : 0);
-
-      // 방 표시
-      var roomTitle = esc(p.roomTitle || '');
-      var roomUrl   = ctx + (p.roomUrl || '#');
-
-      return '' +
-      '<div class="post">' +
-        '<a class="p-title" href="'+ url +'">'+ title +'</a>' +
-        (roomTitle ? (
-          '<a class="p-room" href="'+ roomUrl +'">' +
-            '<svg viewBox="0 0 24 24"><path d="M3 9l9-6 9 6v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"></path><path d="M9 22V12h6v10"></path></svg>' +
-            roomTitle +
-          '</a>'
-        ) : '') +
-        '<div class="p-meta">' +
-          '<span class="i">' +
-            '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>' +
-            date +
-          '</span>' +
-          '<span class="i">' +
-            '<svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg>' +
-            replies +
-          '</span>' +
-          '<span class="i">' +
-            '<svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>' +
-            views +
-          '</span>' +
-        '</div>' +
-      '</div>';
-    }
-
-    function render(list){
-      if (!list || !list.length){ $area.html('<div class="empty">작성한 글이 없습니다.</div>'); return; }
-      var html = '<div class="post-list">';
-      for (var i=0;i<list.length;i++) html += postItem(list[i]);
+        html += ''
+          + '<article class="room">'
+          +   '<a href="'+ urlDet +'">'
+          +     '<div class="thumb-wrap">'
+          +       '<img class="thumb" src="'+thumb+'" alt="thumbnail" onerror="this.onerror=null; this.src=\''+CTX+'/images/room-placeholder.jpg\';" />'
+          +       '<div class="title-overlay">'+ title +'</div>'
+          +     '</div>'
+          +   '</a>'
+          +   '<div class="meta">'
+          +     '<div class="region">'+ region +'</div>'
+          +     '<div class="cert">'+ cert +'</div>'
+          +     '<div class="date">'+ dateStr +'</div>'
+          +     '<div class="member">member: '+ members +'</div>'
+          +     '<div class="like-row">'
+          +       '<span class="like-icon" aria-hidden="true">'
+          +         '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">'
+          +           '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>'
+          +         '</svg>'
+          +       '</span>'
+          +       '<span>'+ likes +'</span>'
+          +     '</div>'
+          +   '</div>'
+          + '</article>';
+      });
       html += '</div>';
-      $area.html(html);
+      $roomsArea.html(html);
     }
 
-    $.ajax({
-      url: ctx + '/api/mypage/posts',
-      method: 'GET',
-      dataType: 'json',
-      data: { limit: 10 },
-      success: render,
-      error: function(){ $area.html('<div class="empty">불러오기에 실패했습니다.</div>'); }
+    function loadMyRooms(){
+      $.ajax({
+        url: CTX + '/api/mypage/rooms',
+        type: 'GET',
+        data: { limit: 6, offset: 0 },
+        dataType: 'json'
+      }).done(function(res){ renderRooms(res); })
+        .fail(function(xhr){
+          console.error('[rooms] fail', xhr.status, xhr.responseText);
+          $roomsArea.html('<div class="empty">불러오기에 실패했습니다.</div>');
+        });
+    }
+
+    // ===== 내가 쓴 글 (AJAX) =====
+    function renderPosts(list){
+      if(!$.isArray(list) || !list.length){
+        $postsArea.html('<div class="empty">작성한 글이 없습니다.</div>');
+        return;
+      }
+
+      var html = '<div class="post-list">';
+      $.each(list, function(_, p){
+        var title   = esc(p.title);
+        var date    = esc(p.date || '');
+        var replies = (p.replyCount!=null? p.replyCount:0);
+        var views   = (p.viewCount !=null? p.viewCount :0);
+
+        // ✅ 서버 응답의 roomBoardId 사용 (필수)
+        var roomBoardId = p.roomBoardId;
+
+        // 방 이동용
+        var roomId      = p.roomId  || p.room_id  || p.roomNo  || p.room_no;
+        var roomTitle   = esc(p.roomTitle || p.roomName || '모임방');
+
+        // 데이터 속성에 담고, 클릭시 JS로 강제 이동
+        var titleData = (roomBoardId!=null ? (' data-room-board-id="'+ String(roomBoardId) +'"') : '');
+        var roomData  = (roomId!=null      ? (' data-room-id="'+ String(roomId) +'"') : '');
+
+        html += ''
+          + '<div class="post">'
+          +   '<a class="p-title" href="javascript:void(0)"'+ titleData +'>'+ title +'</a>'
+          +   (roomId ? (
+                '<a class="p-room" href="javascript:void(0)"'+ roomData +' title="모임방 상세로 이동">'
+              +   '<svg viewBox="0 0 24 24"><path d="M3 9l9-6 9 6v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"></path><path d="M9 22V12h6v10"></path></svg>'
+              +    roomTitle
+              +  '</a>'
+              ) : '')
+          +   '<div class="p-meta">'
+          +     '<span class="i">'
+          +       '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>'
+          +        date
+          +     '</span>'
+          +     '<span class="i">'
+          +       '<svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg>'
+          +        replies
+          +     '</span>'
+          +     '<span class="i">'
+          +       '<svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+          +        views
+          +     '</span>'
+          +   '</div>'
+          + '</div>';
+      });
+      html += '</div>';
+      $postsArea.html(html);
+    }
+
+    function loadMyPosts(){
+      $.ajax({
+        url: CTX + '/api/mypage/posts',
+        type: 'GET',
+        data: { limit: 10 },
+        dataType: 'json'
+      }).done(function(res){ renderPosts(res); })
+        .fail(function(xhr){
+          console.error('[posts] fail', xhr.status, xhr.responseText);
+          $postsArea.html('<div class="empty">불러오기에 실패했습니다.</div>');
+        });
+    }
+
+    // ===== 클릭 위임 =====
+    // 제목 → /roomboarddetail.room?roomBoardId=...&userId=...
+    $(document).on('click', '.post .p-title', function(e){
+      e.preventDefault();
+      var roomBoardId = $(this).data('roomBoardId');
+      if (!roomBoardId){ return; }
+      window.location.href = boardDetailUrl(roomBoardId);
     });
-  })(window.jQuery);
+
+    // 방 배지 → /roomdetail.room?roomId=...&userId=...
+    $(document).on('click', '.post .p-room', function(e){
+      e.preventDefault();
+      var roomId = $(this).data('roomId');
+      if (!roomId){ return; }
+      window.location.href = roomDetailUrl(roomId);
+    });
+
+    // 실행
+    $(function(){
+      loadMyRooms();
+      loadMyPosts();
+    });
+  }
 </script>
 
 </body>
