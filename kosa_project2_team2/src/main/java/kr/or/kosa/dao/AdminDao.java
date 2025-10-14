@@ -143,28 +143,32 @@ public class AdminDao {
     public List<AdminNoticeDto> getPagedNotices(int offset, int limit) {
         List<AdminNoticeDto> noticeList = new ArrayList<>();
         String sql =
-            "SELECT notice_id, title, content, created_at, view_cnt " +
-            "FROM admin_notice " +
-            "WHERE is_deleted = 'N' " +
-            "ORDER BY notice_id DESC " +
-            "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        	    "SELECT "
+        	  + "notice_id AS adminNoticeId, "
+        	  + "title AS adminNoticeTitle, " 
+        	  + "created_at AS createdAt, "
+        	  + "view_cnt AS adminNoticeViewCnt "
+        	  + "FROM admin_notice "
+        	  + "WHERE is_deleted = 'N' "
+        	  + "ORDER BY notice_id DESC "
+        	  + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
 
         try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, offset);
-            pstmt.setInt(2, limit);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    AdminNoticeDto dto = AdminNoticeDto.builder()
-                            .adminNoticeId(rs.getInt("notice_id"))
-                            .adminNoticeTitle(rs.getString("title"))
-                            .adminNoticeContent(rs.getString("content"))
-                            .createdAt(rs.getDate("created_at"))
-                            .adminNoticeViewCnt(rs.getInt("view_cnt"))
-                            .build();
-                    noticeList.add(dto);
-                }
-            }
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+               pstmt.setInt(1, offset);
+               pstmt.setInt(2, limit);
+               try (ResultSet rs = pstmt.executeQuery()) {
+                   while (rs.next()) {
+                       AdminNoticeDto dto = AdminNoticeDto.builder()
+                               .adminNoticeId(rs.getInt("adminNoticeId"))
+                               .adminNoticeTitle(rs.getString("adminNoticeTitle")) 
+                               .createdAt(rs.getDate("createdAt"))
+                               .adminNoticeViewCnt(rs.getInt("adminNoticeViewCnt"))
+                               .build();
+                       noticeList.add(dto);
+                   }
+               }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -173,25 +177,47 @@ public class AdminDao {
 
     //  공지사항 단건 조회
     public AdminNoticeDto getNoticeById(int noticeId) {
-        String sql = "SELECT notice_id, title, content, created_at, view_cnt FROM admin_notice WHERE notice_id = ? AND is_deleted = 'N'";
-        try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, noticeId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return AdminNoticeDto.builder()
-                            .adminNoticeId(rs.getInt("notice_id"))
-                            .adminNoticeTitle(rs.getString("title"))
-                            .adminNoticeContent(rs.getString("content"))
-                            .createdAt(rs.getDate("created_at"))
-                            .adminNoticeViewCnt(rs.getInt("view_cnt"))
-                            .build();
-                }
-            }
+    	String sql = "SELECT "
+    	           + "notice_id AS adminNoticeId, "
+    	           + "title AS adminNoticeTitle, " 
+    	           + "created_at AS createdAt, "
+    	           + "view_cnt AS adminNoticeViewCnt "
+    	           + "FROM admin_notice "
+    	           + "WHERE notice_id = ? AND is_deleted = 'N'";
+
+    	try (Connection conn = ConnectionPoolHelper.getConnection();
+    	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    	        pstmt.setInt(1, noticeId);
+    	        try (ResultSet rs = pstmt.executeQuery()) {
+    	            if (rs.next()) {
+    	                return AdminNoticeDto.builder()
+    	                        .adminNoticeId(rs.getInt("adminNoticeId"))
+    	                        .adminNoticeTitle(rs.getString("adminNoticeTitle")) 
+    	                        .createdAt(rs.getDate("createdAt"))
+    	                        .adminNoticeViewCnt(rs.getInt("adminNoticeViewCnt"))
+    	                        .build();
+    	            }
+    	        }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
+    }
+    
+    // 공지사항 작성
+    public int insertNotice(String title, String content, int userId) {
+    	String sql = "INSERT INTO admin_notice (title, content, created_at, user_id, is_deleted, view_cnt) "
+    	           + "VALUES (?, ?, SYSDATE, ?, 'N', 0)";
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, title);
+            pstmt.setString(2, content);
+            pstmt.setInt(3, userId);
+            return pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     // 공지사항 삭제 
