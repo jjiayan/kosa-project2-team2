@@ -150,6 +150,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transition: transform 0.3s, box-shadow 0.3s;
             cursor: pointer;
+            position: relative; /* 좋아요 오버레이를 위해 추가 */
         }
         
         .study-card:hover {
@@ -233,13 +234,24 @@
             color: #666;
         }
         
-        .like-section {
+        /* 좋아요 자리 placeholder (레이아웃 유지용) */
+        .like-placeholder {
+            width: 60px; /* 좋아요 섹션과 비슷한 너비 */
+            height: 24px;
+        }
+        
+        /* 좋아요 섹션을 원래 위치에 오버레이 */
+        .like-section-overlay {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
             display: flex;
             align-items: center;
             gap: 8px;
+            z-index: 10; /* 클릭 가능하도록 위에 배치 */
         }
         
-        .like-btn {
+        .like-section-overlay .like-btn {
             background: none;
             border: none;
             cursor: pointer;
@@ -250,16 +262,16 @@
             transition: transform 0.2s;
         }
         
-        .like-btn:hover {
+        .like-section-overlay .like-btn:hover {
             transform: scale(1.1);
         }
         
-        .like-btn.liked svg {
+        .like-section-overlay .like-btn.liked svg {
             fill: #ff6b6b;
             stroke: #ff6b6b;
         }
         
-        .like-count {
+        .like-section-overlay .like-count {
             font-size: 14px;
             color: #666;
             font-weight: 500;
@@ -382,52 +394,54 @@
                             </select>
                         </div>
                         <c:if test="${not empty sessionScope.LOGIN_USER.user_id}">
-						    <button type="button" class="create-study-btn" onclick="location.href='${pageContext.request.contextPath}/insertForm.room'">
-						        스터디 생성
-						    </button>
-						</c:if>
+                            <button type="button" class="create-study-btn" onclick="location.href='${pageContext.request.contextPath}/insertForm.room'">
+                                스터디 생성
+                            </button>
+                        </c:if>
                     </div>
                 </div>
                 
                 <div class="study-grid">
                     <!-- PageResult를 사용한 실제 데이터 렌더링 -->
-                   <c:forEach var="room" items="${pageResult.data}">
-					    <div class="study-card">
-					        <!-- 카드 내용을 클릭 가능한 영역과 좋아요 버튼 분리 -->
-					        <a href="${pageContext.request.contextPath}/roomdetail.room?roomId=${room.roomId}&userId=${sessionScope.LOGIN_USER.user_id}" 
-					           class="study-link" style="text-decoration:none; color:inherit;">
-					            <div class="study-image">
-					                <img src="${room.thumbnailUrl != null && room.thumbnailUrl != '' ? room.thumbnailUrl : '/upload/thumbnail/default-thumbnail.jpg'}" alt="${room.title}">
-					                <span class="study-status">${room.roomStatus}</span>
-					            </div>
-					            <div class="study-info">
-					                <h3 class="study-title">${room.title}</h3>
-					                <h4>${room.certName} 자격증 스터디</h4>
-					                <p class="study-description">${room.parentRegion} ${room.childRegion}</p>
-					                <p class="study-date">${room.updatedAt}</p>
-					                <div class="study-footer">
-					                    <span class="member-count">member: ${room.participantCount} / ${room.maxParticipant}</span>
-					                </div>
-					            </div>
-					        </a>
-					        
-					        <!-- 좋아요 섹션을 카드 외부로 분리 -->
-					        <div class="like-section-independent">
-					            <button class="like-btn ${room.isLiked() ? 'liked' : ''}" 
-					                    onclick="toggleLike(this, ${room.roomId})">
-					                <svg width="20" height="20" viewBox="0 0 24 24" 
-					                     fill="${room.isLiked() ? '#ff6b6b' : 'none'}" 
-					                     stroke="currentColor" stroke-width="2">
-					                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 
-					                             5.5 0 0 0-7.78 7.78l1.06 1.06L12 
-					                             21.23l7.78-7.78 1.06-1.06a5.5 
-					                             5.5 0 0 0 0-7.78z"></path>
-					                </svg>
-					            </button>
-					            <span class="like-count">${room.likeCount}</span>
-					        </div>
-					    </div>
-					</c:forEach>
+                    <c:forEach var="room" items="${pageResult.data}">
+                        <div class="study-card">
+                            <!-- 카드 내용 (좋아요 섹션 제외한 나머지) -->
+                            <a href="${pageContext.request.contextPath}/roomdetail.room?roomId=${room.roomId}&userId=${sessionScope.LOGIN_USER.user_id}" 
+                               class="study-link" style="text-decoration:none; color:inherit;">
+                                <div class="study-image">
+                                    <img src="${room.thumbnailUrl != null && room.thumbnailUrl != '' ? room.thumbnailUrl : '/upload/thumbnail/default-thumbnail.jpg'}" alt="${room.title}">
+                                    <span class="study-status">${room.roomStatus}</span>
+                                </div>
+                                <div class="study-info">
+                                    <h3 class="study-title">${room.title}</h3>
+                                    <h4>${room.certName} 자격증 스터디</h4>
+                                    <p class="study-description">${room.parentRegion} ${room.childRegion}</p>
+                                    <p class="study-date">${room.updatedAt}</p>
+                                    <div class="study-footer">
+                                        <span class="member-count">member: ${room.participantCount} / ${room.maxParticipant}</span>
+                                        <!-- 좋아요 자리는 빈 공간으로 유지 -->
+                                        <div class="like-placeholder"></div>
+                                    </div>
+                                </div>
+                            </a>
+                            
+                            <!-- 좋아요 섹션을 원래 위치에 absolute로 배치 -->
+                            <div class="like-section-overlay">
+                                <button class="like-btn ${room.isLiked() ? 'liked' : ''}" 
+                                        onclick="toggleLike(this, ${room.roomId})">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" 
+                                         fill="${room.isLiked() ? '#ff6b6b' : 'none'}" 
+                                         stroke="currentColor" stroke-width="2">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 
+                                                 5.5 0 0 0-7.78 7.78l1.06 1.06L12 
+                                                 21.23l7.78-7.78 1.06-1.06a5.5 
+                                                 5.5 0 0 0 0-7.78z"></path>
+                                    </svg>
+                                </button>
+                                <span class="like-count">${room.likeCount}</span>
+                            </div>
+                        </div>
+                    </c:forEach>
                 </div>
                 
                 <div class="pagination">
@@ -449,89 +463,117 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
-        function toggleLike(button) {
-            button.classList.toggle('liked');
-            const svg = button.querySelector('svg');
-            const likeCount = button.nextElementSibling;
-            const currentCount = parseInt(likeCount.textContent);
-            
-            if (button.classList.contains('liked')) {
-                svg.setAttribute('fill', '#ff6b6b');
-                svg.setAttribute('stroke', '#ff6b6b');
-                likeCount.textContent = currentCount + 1;
-            } else {
-                svg.setAttribute('fill', 'none');
-                svg.setAttribute('stroke', 'currentColor');
-                likeCount.textContent = currentCount - 1;
+        // 좋아요 토글 함수 수정 - 실제 서버 통신 추가
+        function toggleLike(button, roomId) {
+            // 로그인 체크
+            const userId = '${sessionScope.LOGIN_USER != null ? sessionScope.LOGIN_USER.user_id : ""}';
+            if (!userId) {
+                alert('로그인이 필요합니다.');
+                return;
             }
+            
+            // 서버에 좋아요 요청
+            $.ajax({
+                url: '/togglelike.roomajax',
+                type: 'POST',
+                data: {
+                    roomId: roomId,
+                    userId: userId
+                },
+                success: function(response) {
+                    // 서버 응답에 따라 UI 업데이트
+                    const svg = button.querySelector('svg');
+                    const likeCount = button.nextElementSibling;
+                    
+                    if (response.isLiked) {
+                        button.classList.add('liked');
+                        svg.setAttribute('fill', '#ff6b6b');
+                        svg.setAttribute('stroke', '#ff6b6b');
+                    } else {
+                        button.classList.remove('liked');
+                        svg.setAttribute('fill', 'none');
+                        svg.setAttribute('stroke', 'currentColor');
+                    }
+                    
+                    likeCount.textContent = response.likeCount;
+                },
+                error: function() {
+                    alert('좋아요 처리 중 오류가 발생했습니다.');
+                }
+            });
         }
-        
         
         // 검색
         function performSearch() {
-    let keyword = $('#searchInput').val();
-    let region1 = $('#region1').val();
-    let region2 = $('#region2').val();
+            let keyword = $('#searchInput').val();
+            let region1 = $('#region1').val();
+            let region2 = $('#region2').val();
 
-    $.ajax({
-        url: '/kosa_project2_team2/searchroomlist.roomajax',
-        data: {
-            keyword: keyword,
-            region1: region1,
-            region2: region2
-        },
-        success: function(response) {
-            console.log(response);
+            $.ajax({
+                url: '/searchroomlist.roomajax',
+                data: {
+                    keyword: keyword,
+                    region1: region1,
+                    region2: region2
+                },
+                success: function(response) {
+                    console.log(response);
+                    
+                    // 1. 검색어 입력창에 값 유지
+                    $('#searchInput').val(response.keyword);
+                    
+                    // 2. 지역 선택 상태 유지
+                    $('#region1').val(response.si);
+                    if(response.siGun) {
+                        loadSubRegions(response.si, response.siGun);
+                    }
+                    
+                    // 3. 스터디 목록 업데이트
+                    updateStudyGrid(response.data);
+                    
+                    // 4. 페이지네이션 업데이트
+                    updatePagination(response);
+                }
+            });
+        }
+
+        // 스터디 목록 업데이트 함수 수정
+        function updateStudyGrid(studyList) {
+            let studyGrid = $('.study-grid');
+            studyGrid.empty();
             
-            // 1. 검색어 입력창에 값 유지
-            $('#searchInput').val(response.keyword);
-            
-            // 2. 지역 선택 상태 유지
-            $('#region1').val(response.si);
-            if(response.siGun) {
-                loadSubRegions(response.si, response.siGun);
+            if(studyList.length === 0) {
+                studyGrid.append('<p style="text-align:center; padding:50px;">검색 결과가 없습니다.</p>');
+                return;
             }
             
-            // 3. 스터디 목록 업데이트
-            updateStudyGrid(response.data);
+            let userId = '${sessionScope.LOGIN_USER != null ? sessionScope.LOGIN_USER.user_id : ""}';
             
-            // 4. 페이지네이션 업데이트
-            updatePagination(response);
-        }
-    });
-}
-
-// 스터디 목록 업데이트 함수
-function updateStudyGrid(studyList) {
-    let studyGrid = $('.study-grid');
-    studyGrid.empty();
-    
-    if(studyList.length === 0) {
-        studyGrid.append('<p style="text-align:center; padding:50px;">검색 결과가 없습니다.</p>');
-        return;
-    }
-    
-    let userId = '${sessionScope.LOGIN_USER != null ? sessionScope.LOGIN_USER.user_id : ""}';
-    
-    studyList.forEach(function(room, index) {
-        let thumbnailUrl = (room.thumbnailUrl != null && room.thumbnailUrl != '') ? room.thumbnailUrl : '/upload/thumbnail/default-thumbnail.jpg';
-        let fillColor = room.isLiked ? '#ff6b6b' : 'none';
-        
-        let studyCard = '<a href="${pageContext.request.contextPath}/roomdetail.room?roomId=' + room.roomId + '&userId=' + userId + '" class="study-info" style="text-decoration:none; color:inherit;">' +
-            '<div class="study-card">' +
-                '<div class="study-image">' +
-                    '<img src="' + thumbnailUrl + '" alt="' + room.title + '">' +
-                    '<span class="study-status">' + room.roomStatus + '</span>' +
-                '</div>' +
-                '<div class="study-info">' +
-                    '<h3 class="study-title">' + room.title + '</h3>' +
-                    '<h4>' + room.certName + ' 자격증 스터디</h4>' +
-                    '<p class="study-description">' + room.parentRegion + ' ' + room.childRegion + '</p>' +
-                    '<p class="study-date">' + room.updatedAt + '</p>' +
-                    '<div class="study-footer">' +
-                        '<span class="member-count">member: ' + room.participantCount + ' / ' + room.maxParticipant + '</span>' +
-                        '<div class="like-section">' +
-                            '<button class="like-btn" onclick="event.stopPropagation(); toggleLike(this)">' +
+            studyList.forEach(function(room, index) {
+                let thumbnailUrl = (room.thumbnailUrl != null && room.thumbnailUrl != '') ? room.thumbnailUrl : '/upload/thumbnail/default-thumbnail.jpg';
+                let fillColor = room.isLiked ? '#ff6b6b' : 'none';
+                let likedClass = room.isLiked ? 'liked' : '';
+                
+                let studyCard = 
+                    '<div class="study-card">' +
+                        '<a href="${pageContext.request.contextPath}/roomdetail.room?roomId=' + room.roomId + '&userId=' + userId + '" class="study-link" style="text-decoration:none; color:inherit;">' +
+                            '<div class="study-image">' +
+                                '<img src="' + thumbnailUrl + '" alt="' + room.title + '">' +
+                                '<span class="study-status">' + room.roomStatus + '</span>' +
+                            '</div>' +
+                            '<div class="study-info">' +
+                                '<h3 class="study-title">' + room.title + '</h3>' +
+                                '<h4>' + room.certName + ' 자격증 스터디</h4>' +
+                                '<p class="study-description">' + room.parentRegion + ' ' + room.childRegion + '</p>' +
+                                '<p class="study-date">' + room.updatedAt + '</p>' +
+                                '<div class="study-footer">' +
+                                    '<span class="member-count">member: ' + room.participantCount + ' / ' + room.maxParticipant + '</span>' +
+                                    '<div class="like-placeholder"></div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</a>' +
+                        '<div class="like-section-overlay">' +
+                            '<button class="like-btn ' + likedClass + '" onclick="toggleLike(this, ' + room.roomId + ')">' +
                                 '<svg width="20" height="20" viewBox="0 0 24 24" ' +
                                      'fill="' + fillColor + '" stroke="currentColor" stroke-width="2">' +
                                     '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 ' +
@@ -542,56 +584,54 @@ function updateStudyGrid(studyList) {
                             '</button>' +
                             '<span class="like-count">' + room.likeCount + '</span>' +
                         '</div>' +
-                    '</div>' +
-                '</div>' +
-            '</div>' +
-        '</a>';
-        
-        studyGrid.append(studyCard);
-    });
-}
-
-function loadSubRegions(parentId, selectedSubId) {
-    if (!parentId) return;
-    
-    const region2Select = $('#region2');
-    
-    $.ajax({
-        url: '/kosa_project2_team2/getsubregion.roomajax',
-        data: {parentId: parentId},
-        success: function(response) {
-            region2Select.html('<option value="">구/군 선택</option>');
-            
-            $.each(response, function(index, item) {
-                const selected = (selectedSubId && selectedSubId == item.subRegionId) ? 'selected' : '';
-                region2Select.append(
-                    '<option value="' + item.subRegionId + '" ' + selected + '>' + item.subRegion + '</option>'
-                );
+                    '</div>';
+                
+                studyGrid.append(studyCard);
             });
         }
-    });
-}
-// 페이지네이션 업데이트 함수
-function updatePagination(pageResult) {
-    let pagination = $('.pagination');
-    pagination.empty();
-    
-    // 이전 버튼
-    if(pageResult.currentPage > 1) {
-        pagination.append(`<button class="page-arrow" onclick="goToPage(${pageResult.currentPage - 1})">&lt;</button>`);
-    }
-    
-    // 페이지 번호들
-    for(let i = 1; i <= pageResult.totalPages; i++) {
-        let activeClass = pageResult.currentPage == i ? 'active' : '';
-        pagination.append(`<button class="page-num ${activeClass}" onclick="goToPage(${i})">${i}</button>`);
-    }
-    
-    // 다음 버튼
-    if(pageResult.currentPage < pageResult.totalPages) {
-        pagination.append(`<button class="page-arrow" onclick="goToPage(${pageResult.currentPage + 1})">&gt;</button>`);
-    }
-}
+
+        function loadSubRegions(parentId, selectedSubId) {
+            if (!parentId) return;
+            
+            const region2Select = $('#region2');
+            
+            $.ajax({
+                url: '/getsubregion.roomajax',
+                data: {parentId: parentId},
+                success: function(response) {
+                    region2Select.html('<option value="">구/군 선택</option>');
+                    
+                    $.each(response, function(index, item) {
+                        const selected = (selectedSubId && selectedSubId == item.subRegionId) ? 'selected' : '';
+                        region2Select.append(
+                            '<option value="' + item.subRegionId + '" ' + selected + '>' + item.subRegion + '</option>'
+                        );
+                    });
+                }
+            });
+        }
+
+        // 페이지네이션 업데이트 함수
+        function updatePagination(pageResult) {
+            let pagination = $('.pagination');
+            pagination.empty();
+            
+            // 이전 버튼
+            if(pageResult.currentPage > 1) {
+                pagination.append(`<button class="page-arrow" onclick="goToPage(${pageResult.currentPage - 1})">&lt;</button>`);
+            }
+            
+            // 페이지 번호들
+            for(let i = 1; i <= pageResult.totalPages; i++) {
+                let activeClass = pageResult.currentPage == i ? 'active' : '';
+                pagination.append(`<button class="page-num ${activeClass}" onclick="goToPage(${i})">${i}</button>`);
+            }
+            
+            // 다음 버튼
+            if(pageResult.currentPage < pageResult.totalPages) {
+                pagination.append(`<button class="page-arrow" onclick="goToPage(${pageResult.currentPage + 1})">&gt;</button>`);
+            }
+        }
         
         function goToPage(page) {
             location.href = '?page=' + page;
@@ -615,7 +655,7 @@ function updatePagination(pageResult) {
             }
             
             $.ajax({
-                url: '/kosa_project2_team2/getsubregion.roomajax',
+                url: '/getsubregion.roomajax',
                 data: {parentId: parentId},
                 success: function(response){
                     $.each(response, function(index, item) {

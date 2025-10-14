@@ -226,13 +226,25 @@ main {
     <div class="layout-wrap">
         
         <!-- 좌측 사이드바 -->
-        <jsp:include page="/include/sidebar.jsp">
-            <jsp:param name="current" value="posts"/>
-        </jsp:include>
+        <c:choose>
+		    <c:when test="${roomBoardType == 'NOTICE'}">
+		        <jsp:include page="/include/sidebar.jsp">
+		            <jsp:param name="current" value="notice"/>
+		        </jsp:include>
+		    </c:when>
+		    <c:otherwise>
+		        <jsp:include page="/include/sidebar.jsp">
+		            <jsp:param name="current" value="posts"/>
+		        </jsp:include>
+		    </c:otherwise>
+		</c:choose>
         
         <!-- 우측 본문 -->
         <main>
             <div class="post-detail-container">
+                    <input type="hidden" id="roomId" name="roomId" value="${sessionScope.currentRoomId}">
+                    <input type="hidden" name="userId" value="${sessionScope.LOGIN_USER.user_id}">
+                    <input type="hidden" id="roomBoardType" name="roomBoardType" value="${roomBoardType}">
                   <h1>
 				    <c:choose>
 				        <c:when test="${roomBoardType == 'NOTICE'}">스터디 공지</c:when>
@@ -279,7 +291,7 @@ main {
                     
                     <div class="action-buttons">
                         <c:if test="${roomBoardDetail.isMyPost()}">
-                            <button class="btn btn-edit" onclick="location.href='/roomboard/edit?roomBoardId=${roomBoardDetail.roomBoardId}'">수정</button>
+                            <button class="btn btn-edit" onclick="location.href='/roomboardupdateform.room?roomBoardId=${roomBoardDetail.roomBoardId}&roomBoardtype=NOTICE'">수정</button>
                             <button class="btn btn-delete" onclick="deletePost(${roomBoardDetail.roomBoardId})">삭제</button>
                         </c:if>
                     </div>
@@ -297,7 +309,7 @@ main {
             </div>
         </main>
     </div>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
         function toggleLike(button, roomBoardId) {
             button.classList.toggle('liked');
@@ -332,7 +344,13 @@ main {
         
         function deletePost(roomBoardId) {
             if(confirm('정말 삭제하시겠습니까?')) {
-                location.href = '/roomboard/delete?roomBoardId=' + roomBoardId;
+            	 let roomId = $('#roomId').val();
+                 let roomBoardType = $('#roomBoardType').val();
+                 let userId = $('input[name="userId"]').val();
+                $.ajax({
+                	url: "/roomboarddelete.roomajax",
+                	
+                })
             }
         }
     </script>

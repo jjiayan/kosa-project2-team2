@@ -224,6 +224,8 @@ public class RoomDao {
 		
 	}
 	
+	
+	
 	public RoomDto detialRoom(int roomId, int userId) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
@@ -359,6 +361,7 @@ public class RoomDao {
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		RoomBoardDto roomBoard = null; 
+		System.out.println("??????? 룸보드 디테일 ==>> ");
     
     String sql = "SELECT " +
 			    "rb.ROOM_BOARD_ID as ROOM_BOARD_ID, " +
@@ -366,6 +369,7 @@ public class RoomDao {
 			    "rb.ROOM_BOARD_CONTENT as ROOM_BOARD_CONTENT, " +
 			    "rb.UPDATED_AT as UPDATED_AT, " +
 			    "rb.ROOM_BOARD_VIEW_CNT as ROOM_BOARD_VIEW_CNT, " +
+			    "rb.ROOM_BOARD_TYPE as ROOM_BOARD_TYPE, " +
 			    "u.USER_PHOTO as USER_PHOTO, " +
 			    "(SELECT COUNT(*) " +
 			    "FROM LIKE_ROOM_BOARD " +
@@ -413,6 +417,83 @@ public class RoomDao {
 			ConnectionPoolHelper.close(conn);
 		}
 		return roomBoard;
+	}
+	
+	// 룸보드 업데이트 정보반환
+	public RoomBoardDto getUpdateInfoRoomDetail(int roomBoardId, String roomBoardType) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		RoomBoardDto roomBoardDto = null;
+		
+		String sql = "SELECT "
+				+ "rb.ROOM_BOARD_ID as roomBoardId, "
+				+ "rb.ROOM_BOARD_TITLE as roomBoardTitle, "
+				+ "rb.ROOM_BOARD_CONTENT as roomBoardContent, "
+				+ "rb.ROOM_BOARD_TYPE as roomBoardType "
+				+ "FROM ROOM_BOARD rb "
+				+ "WHERE rb.ROOM_BOARD_ID = ? AND rb.ROOM_BOARD_TYPE = ?";
+		try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, roomBoardId);
+			pstmt.setString(2, roomBoardType);
+			
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				roomBoardDto = RoomBoardDto.builder()
+				.roomBoardId(rs.getInt("roomBoardId"))
+				.roomBoardTitle(rs.getString("roomBoardTitle"))
+				.roomBoardContent(rs.getString("roomBoardContent"))
+				.roomBoardType(rs.getString("roomBoardType"))
+				.build();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			ConnectionPoolHelper.close(rs);
+			ConnectionPoolHelper.close(pstmt);
+			ConnectionPoolHelper.close(conn);
+		}
+		return roomBoardDto;
+	}
+	
+	// 모임보드 업데이트 
+	public int updateRoomBoard(RoomBoardDto updateRoomDto) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int result = 0;
+		int roomBoardId = 0;
+		
+		String sql = "UPDATE room_board "
+				+ "SET room_board_title = ?, "
+				+ "room_board_content = ?, "
+				+ "updated_at = SYSDATE "
+				+ "WHERE room_board_id = ?";
+		
+		try {
+			
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, updateRoomDto.getRoomBoardTitle());
+			pstmt.setString(2, updateRoomDto.getRoomBoardContent());
+			pstmt.setInt(3, updateRoomDto.getRoomBoardId());
+			
+			result = pstmt.executeUpdate();
+			if(result > 0) roomBoardId = updateRoomDto.getRoomBoardId();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			ConnectionPoolHelper.close(rs);
+			ConnectionPoolHelper.close(pstmt);
+			ConnectionPoolHelper.close(conn);
+		}
+		return roomBoardId;
+		
 	}
 	
 	private int getTotalCount(Connection conn, SearchCondition searchCondition) throws SQLException {
