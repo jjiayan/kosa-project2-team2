@@ -1,7 +1,10 @@
 package kr.or.kosa.service.admin;
 
+import java.io.PrintWriter;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.AdminDao;
@@ -11,46 +14,48 @@ public class AdminNoticeWriteService implements Action {
 
     @Override
     public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
-        ActionForward forward = new ActionForward();
+        ActionForward forward = null; 
+        response.setContentType("application/json; charset=UTF-8");
 
-        try {
+        try (PrintWriter out = response.getWriter()) {
             request.setCharacterEncoding("UTF-8");
+            HttpSession session = request.getSession(false);
+            UserDto loginUser = (session != null) ? (UserDto) session.getAttribute("LOGIN_USER") : null;
+
+ 
+            if (loginUser == null || !"ADMIN".equalsIgnoreCase(loginUser.getUser_status())) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                out.print("{\"success\": false, \"message\": \"관리자만 공지사항을 작성할 수 있습니다.\"}");
+                return null;
+            }
 
             String title = request.getParameter("title");
             String content = request.getParameter("content");
 
-            // 세션에서 로그인 사용자 정보 가져오기
-            UserDto loginUser = (UserDto) request.getSession().getAttribute("LOGIN_USER");
-            if (loginUser == null) {
-                // 로그인 안 된 경우 로그인 페이지로 이동
-                forward.setRedirect(true);
-                forward.setPath(request.getContextPath() + "/login.user");
-                return forward;
+            if (title == null || title.isBlank() || content == null || content.isBlank()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.print("{\"success\": false, \"message\": \"제목과 내용을 모두 입력해주세요.\"}");
+                return null;
             }
 
-            int userId = loginUser.getUser_id();
-
             AdminDao dao = new AdminDao();
-            int result = dao.insertNotice(title, content, userId);
+            int result = dao.insertNotice(title, content, loginUser.getUser_id());
 
             if (result > 0) {
-                System.out.println("✅ 공지사항 등록 성공: " + title);
-                // 등록 성공 → 목록으로 리다이렉트
-                forward.setRedirect(true);
-                forward.setPath(request.getContextPath() + "/adminNotice.admin");
+                out.print("{\"success\": true, \"message\": \"공지사항 등록 성공\"}");
             } else {
-                System.out.println("❌ 공지사항 등록 실패");
-                // 실패 → 다시 작성 페이지로 리다이렉트
-                forward.setRedirect(true);
-                forward.setPath(request.getContextPath() + "/adminNoticInsert.admin");
+                out.print("{\"success\": false, \"message\": \"공지사항 등록 실패\"}");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            forward.setRedirect(true);
-            forward.setPath(request.getContextPath() + "/adminNoticInsert.admin");
+            try {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                PrintWriter out = response.getWriter();
+                out.print("{\"success\": false, \"message\": \"" + e.getMessage() + "\"}");
+            } catch (Exception ignored) {}
         }
 
-        return forward;
+        return forward;  
     }
 }
