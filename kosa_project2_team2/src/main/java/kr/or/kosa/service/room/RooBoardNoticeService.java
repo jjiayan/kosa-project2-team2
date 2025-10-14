@@ -10,7 +10,7 @@ import kr.or.kosa.dao.RoomDao;
 import kr.or.kosa.dto.RoomBoardDto;
 import kr.or.kosa.dto.SearchCondition;
 
-public class RoomBoardListService implements Action{
+public class RooBoardNoticeService implements Action{
 
 	@Override
 	public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
@@ -19,7 +19,7 @@ public class RoomBoardListService implements Action{
 		String page = request.getParameter("page");
 		
 		int roomId = Integer.parseInt(request.getParameter("roomId"));
-		String roomBoardType = "GENERAL";
+		String roomBoardType = "NOTICE";
 		
 		SearchCondition searchCondition = new SearchCondition();
 		searchCondition.setKeyword(keyword);
@@ -33,10 +33,12 @@ public class RoomBoardListService implements Action{
 		
 		
 		forward.setRedirect(false);
-		forward.setPath("/WEB-INF/views/room/listRoomBoard.jsp");
+		forward.setPath("/WEB-INF/views/room/listRoomBoardnotice.jsp");
 		request.setAttribute("roomBoardList", roomBoardList);
 		request.setAttribute("roomId", roomId);
 		return forward;
+		
+		
 	}
 
 }

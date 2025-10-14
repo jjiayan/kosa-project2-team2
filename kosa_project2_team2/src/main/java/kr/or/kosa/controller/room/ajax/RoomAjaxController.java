@@ -7,8 +7,11 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
+import kr.or.kosa.action.Action;
+import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.RoomDao;
 import kr.or.kosa.dto.RegionDto;
+import kr.or.kosa.service.room.RoomSearchListService;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
 import java.io.File;
@@ -33,7 +36,10 @@ public class RoomAjaxController extends HttpServlet {
         String urlCommand = requestURI.substring(contextPath.length());
 
         System.out.println("요청: " + urlCommand);
-        System.out.println("방정보 생성 들어온다  성공? ");
+
+        
+        Action action = null;
+        ActionForward forward = null;
         
         if(urlCommand.equals("/getsubregion.roomajax")) {
         	int parentId = Integer.parseInt(request.getParameter("parentId"));
@@ -50,6 +56,16 @@ public class RoomAjaxController extends HttpServlet {
             // 응답 설정
             response.setContentType("application/json; charset=UTF-8");
             response.getWriter().print(json);
+        }else if(urlCommand.equals("/searchroomlist.roomajax")) {
+        	System.out.println("방 검색 비동기 시작");
+        	action = new RoomSearchListService();
+        	action.execute(request, response);
+        	
+        	
+        	
+        	
+        	
+        	
         }
         
 

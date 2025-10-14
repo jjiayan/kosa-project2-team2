@@ -204,7 +204,7 @@
 
   <div class="center">
     <nav class="menu">
-      <a href="${ctx}/study.do"><i class="fa-regular fa-comments"></i>스터디</a>
+      <a href="${ctx}/roomlist.room"><i class="fa-regular fa-comments"></i>스터디</a>
       <a href="${ctx}/license.do"><i class="fa-regular fa-calendar"></i>자격증</a>
       <a href="${ctx}/notice.do"><i class="fa-solid fa-bullhorn"></i>공지</a>
     </nav>
