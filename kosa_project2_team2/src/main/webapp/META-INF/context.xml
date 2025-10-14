@@ -10,7 +10,7 @@
 			driverClassName="oracle.jdbc.OracleDriver" 
 			type="javax.sql.DataSource"
 			auth="Container" 
-			name="jdbc/oracle" />  -->
+			name="jdbc/oracle" />    -->
 <Resource 
 				maxWait="-1" 
 				maxIdle="20" 

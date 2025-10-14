@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!DOCTYPE html>
@@ -10,155 +10,111 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <style>
-    :root{
-  --ink:#222; --muted:#888; --line:#eee; --bg:#fafafa; --card:#fff;
-  --shadow:0 10px 28px rgba(0,0,0,.08);
-  --aside-w:420px;              /* 우측 ‘내가 쓴 글’ 폭 */
-  /* mypageSidebar.jsp에서 전역으로 --snav-width가 240px(모바일 72px)로 설정됨 */
-}
+    :root{ --ink:#222; --muted:#888; --line:#eee; --bg:#fafafa; --card:#fff; --shadow:0 10px 28px rgba(0,0,0,.08); --aside-w:420px; --accent:#2563eb; }
+    *{box-sizing:border-box}
+    html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink);
+      font-family:"Noto Sans KR",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue","Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+    a{color:inherit;text-decoration:none}
+    a:hover{text-decoration:underline}
 
-*{box-sizing:border-box}
-html,body{
-  margin:0; padding:0; background:var(--bg); color:var(--ink);
-  font-family:"Noto Sans KR",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-}
-a{color:inherit;text-decoration:none}
-a:hover{text-decoration:underline}
+    .page{display:flex; min-height:100vh}
+    .content{flex:1}
 
-.page{display:flex; min-height:100vh}
-.content{flex:1}
+    .mypage-sidebar{ position:relative; z-index:3; }
+    .heading-wrap{ margin-left:0; width:100%; padding:28px 20px 0; text-align:center; position:relative; z-index:1; pointer-events:none;}
+    .heading{ display:inline-block; font-size:42px; font-weight:900; color:#777; margin:24px 0 18px; pointer-events:auto; }
 
-/* ====== 제목을 '화면 전체(사이드바 포함)' 기준 중앙 정렬 ====== */
-.heading-wrap{
-  margin-left: calc(var(--snav-width, 240px) * -1);
-  width: calc(100% + var(--snav-width, 240px));
-  padding: 28px 20px 0;
-  text-align: center;
-}
-.heading{
-  display:inline-block;
-  font-size:42px; font-weight:900; color:#777;
-  margin:24px 0 18px;
-}
+    .container{ padding:0 20px 28px; }
+    .layout{ display:grid; grid-template-columns:1fr var(--aside-w); gap:18px; align-items:start; max-width:1180px; margin:0 auto; }
+    @media (max-width:1100px){ .layout{ grid-template-columns:1fr } }
+    .card{background:var(--card); border-radius:16px; box-shadow:var(--shadow)}
+    .divider{height:1px; background:#e9e9e9}
 
-/* 화면이 좁아질 때 제목 래퍼 오버플로 방지 */
-@media (max-width: 900px){
-  .heading-wrap{
-    margin-left: 0;
-    width: 100%;
-  }
-}
+    .profile-card{padding:0; overflow:hidden}
+    .profile-title{padding:12px 18px; font-size:15px; font-weight:700; color:#333; border-bottom:1px solid #dadada; background:#fff}
+    .profile-body{position:relative; padding:20px 22px 18px 34px; background:#fff}
+    .profile-main{display:flex; gap:22px; align-items:flex-start; margin:16px 0}
+    .myp-avatar-box{flex:0 0 auto; width:140px; height:140px; border:4px solid #f1f1f1; border-radius:9999px; overflow:hidden; background:#f7f7f7}
+    .myp-avatar{width:100% !important; height:100% !important; object-fit:cover; display:block}
+    .name-big{font-size:36px; font-weight:900; line-height:1.2; margin:0 0 12px}
+    .mini-rows{display:grid; grid-template-columns:auto 1fr; gap:2px 4px; font-size:16px; line-height:1.55; color:#333}
+    .mini-rows .k{width:60px; color:#444; font-weight:800}
+    .edit-link{position:absolute; right:28px; bottom:12px; font-size:12px; color:#666}
+    .edit-link:hover{color:#333}
 
-/* ====== 본문 컨테이너 ====== */
-.container{ padding: 0 20px 28px; }   /* 상단 패딩은 heading-wrap이 담당 */
+    .rooms-card .head{padding:14px 18px; font-weight:800}
+    .rooms-card.compact .divider{ margin-bottom:10px; }
 
-.layout{
-  display:grid;
-  grid-template-columns: 1fr var(--aside-w);
-  gap:18px; align-items:start;
-  max-width: 1180px;
-  margin: 0 auto;                    /* 본문 가운데 정렬 */
-}
-@media (max-width:1100px){
-  .layout{ grid-template-columns: 1fr; }
-}
+    .rooms-card.compact{
+      --title: clamp(14px, 2.0vw, 18px);
+      --lg:    clamp(12px, 1.6vw, 14px);
+      --md:    clamp(11px, 1.4vw, 13px);
+      --sm:    clamp(10px, 1.2vw, 12px);
+    }
+    .rooms-card.compact .rooms-grid{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:8px; padding:0 10px 4px; }
+    @media (max-width:1024px){ .rooms-card.compact .rooms-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width:640px){  .rooms-card.compact .rooms-grid{ grid-template-columns: 1fr; } }
+    .rooms-card.compact .room{ border-radius:10px; border:1px solid #eee; background:#fff; box-shadow:0 1px 8px rgba(0,0,0,.045); overflow:hidden; }
+    .rooms-card.compact .room .thumb-wrap{ position:relative; width:100%; background:#f6f6f6 }
+    .rooms-card.compact .room .thumb{ width:100%; aspect-ratio: 2 / 1; object-fit:cover; display:block }
+    .rooms-card.compact .room .title-overlay{
+      position:absolute; left:8px; bottom:8px; font-size:var(--title); font-weight:800; color:#fff;
+      max-width:86%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 2px rgba(0,0,0,.45);
+    }
+    .rooms-card.compact .room .meta{ padding:6px 8px 6px; }
+    .rooms-card.compact .room .meta .region{ font-size:var(--lg);  margin-bottom:3px; color:#222 }
+    .rooms-card.compact .room .meta .cert{   font-size:var(--lg);  margin-bottom:5px; color:#222 }
+    .rooms-card.compact .room .meta .date{   font-size:var(--md);  margin-bottom:5px; color:#555 }
+    .rooms-card.compact .room .meta .member{ font-size:var(--lg);  margin-bottom:5px; color:#222 }
+    .rooms-card.compact .room .like-row{ font-size:var(--md); gap:6px; display:flex; align-items:center; color:#e24343; }
+    .rooms-card.compact .room .like-icon{ display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; line-height:0; }
+    .rooms-card.compact .room .like-icon svg{ stroke: currentColor; stroke-width: 2; stroke-linecap:round; stroke-linejoin:round; }
+    .rooms-card .more-wrap{ display:flex; justify-content:flex-end; padding:6px 10px 10px; }
+    .rooms-card .more-link{ font-size:12px; color:#666; }
+    .rooms-card .more-link:hover{ color:#222; text-decoration:underline; }
 
-/* ====== 카드 공통 ====== */
-.card{background:var(--card); border-radius:16px; box-shadow:var(--shadow)}
-.divider{height:1px; background:#e9e9e9}
+    .side-card .head{padding:14px 18px; border-bottom:1px solid var(--line); font-weight:800}
+    .post-list{padding:6px 0}
+    .post{padding:10px 18px; border-top:1px solid var(--line)}
+    .post:first-child{border-top:0}
+    .post .p-title{ display:block; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .post .p-room{
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:12px; color:var(--accent); background:#eef2ff; border-radius:999px; padding:2px 8px; margin-top:6px;
+      max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .post .p-room svg{ width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; }
+    .post .p-meta{ display:flex; gap:12px; color:#888; font-size:12px; margin-top:6px; }
+    .post .p-meta .i{ display:inline-flex; align-items:center; gap:6px; }
+    .post .p-meta svg{ width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; }
 
-/* ====== 프로필 카드 ====== */
-.profile-card{padding:0; overflow:hidden}
-.profile-title{
-  padding:12px 18px; font-size:15px; font-weight:700; color:#333;
-  border-bottom:1px solid #dadada; background:#fff;
-}
-/* 프로필 전체를 살짝 오른쪽으로 밀기 → left padding +12px */
-.profile-body{
-  position:relative;
-  padding:20px 22px 18px 34px; /* T R B L (기존 L:22px → 34px) */
-  background:#fff;
-}
+    .side-more{ display:flex; justify-content:flex-end; padding:6px 10px 10px; }
+    .side-more a{ font-size:12px; color:#666; }
+    .side-more a:hover{ color:#222; text-decoration:underline; }
 
-.profile-main{
-  display:flex; gap:22px; align-items:flex-start;
-  margin:16px 0;                 /* ← 요청: 위/아래 여백 추가 */
-}
-
-/* 전역 .avatar 규칙을 피하기 위한 전용 박스 */
-.myp-avatar-box{
-  flex:0 0 auto;
-  width:140px; height:140px;           /* 초기값(아래 스크립트가 텍스트 높이에 맞춰 정사각형 재조정) */
-  border:4px solid #f1f1f1; border-radius:9999px; overflow:hidden;
-  background:#f7f7f7;
-}
-.myp-avatar{width:100% !important; height:100% !important; object-fit:cover; display:block}
-
-/* 텍스트 블록 */
-.name-big{font-size:36px; font-weight:900; line-height:1.2; margin:0 0 12px}
-
-/* 라벨-값 간격 더 축소(요청) */
-.mini-rows{
-  display:grid;
-  grid-template-columns:auto 1fr;
-  gap: 2px 4px;                 /* 행 2px / 열 4px (더 빡빡하게) */
-  font-size:16px;
-  line-height:1.55;
-  color:#333;
-}
-.mini-rows .k{
-  width:60px;                   /* 라벨 폭도 소폭 축소 */
-  color:#444;
-  font-weight:800;
-}
-
-/* ‘내 정보 수정’ 버튼을 살짝 왼쪽으로(오른쪽 여백 확대) */
-.edit-link{
-  position:absolute; right:28px; bottom:12px;  /* 기존 right:14px → 28px */
-  font-size:12px; color:#666;
-}
-.edit-link:hover{color:#333}
-
-/* ====== 내가 참여한 방 ====== */
-.rooms-card .head{padding:14px 18px; font-weight:800}
-.rooms-grid{
-  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:14px; padding:0 18px 18px;
-}
-@media (max-width:900px){ .rooms-grid{grid-template-columns:1fr 1fr} }
-@media (max-width:720px){ .rooms-grid{grid-template-columns:1fr} }
-
-.room{border:1px solid #f0f0f0; border-radius:14px; overflow:hidden; background:#fff}
-.room .thumb{width:100%; aspect-ratio:16/9; object-fit:cover; background:#f7f7f7}
-.room .meta{padding:10px 12px}
-.room .title{font-weight:700; margin-bottom:6px; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.room .sub{display:flex; gap:10px; color:#999; font-size:12px}
-
-/* ====== 우측: 내가 쓴 글 ====== */
-.side-card .head{padding:14px 18px; border-bottom:1px solid var(--line); font-weight:800}
-.post-list{padding:6px 0}
-.post{padding:10px 18px; border-top:1px solid var(--line)}
-.post:first-child{border-top:0}
-.empty{padding:30px 18px; color:#aaa; text-align:center}
-
+    .empty{padding:30px 18px; color:#aaa; text-align:center}
   </style>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+          integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+          crossorigin="anonymous"></script>
 </head>
 <body>
 
 <jsp:include page="/include/nav.jsp" />
 
-<c:set var="ctx" value="${pageContext.request.contextPath}" />
-<c:set var="me"  value="${sessionScope.LOGIN_USER}" />
+<c:set var="ctx"  value="${pageContext.request.contextPath}" />
+<c:set var="me"   value="${sessionScope.LOGIN_USER}" />
+<c:set var="meId" value="${me.user_id}" />
 
 <div class="page with-sidebar">
-  <!-- 좌측 사이드바는 그대로 -->
-  <jsp:include page="/include/mypageSidebar.jsp">
-    <jsp:param name="current" value="info"/>
-  </jsp:include>
+  <div class="mypage-sidebar">
+    <jsp:include page="/include/mypageSidebar.jsp">
+      <jsp:param name="current" value="info"/>
+    </jsp:include>
+  </div>
 
-  <!-- 우측 컨텐츠 -->
   <div class="content">
-    <!-- 제목: 사이드바 폭만큼 왼쪽으로 당겨서 화면 전체 기준 중앙 -->
     <div class="heading-wrap">
       <h1 class="heading">내정보</h1>
     </div>
@@ -193,7 +149,7 @@ a:hover{text-decoration:underline}
                     <div id="phoneDisplay"><c:out value="${empty me.user_phonenumber ? '-' : me.user_phonenumber}" /></div>
                     <div class="k">가입일</div>
                     <div>
-                    	<fmt:formatDate value="${me.createdAt}" pattern="yyyy-MM-dd" timeZone="Asia/Seoul"/>
+                      <fmt:formatDate value="${me.createdAt}" pattern="yyyy-MM-dd" timeZone="Asia/Seoul"/>
                     </div>
                   </div>
                 </div>
@@ -203,62 +159,22 @@ a:hover{text-decoration:underline}
             </div>
           </section>
 
-          <!-- 내가 참여한 방 -->
-          <section class="card rooms-card" style="margin-top:16px" aria-labelledby="rooms-title">
+          <!-- 내가 참여한 방 (AJAX) -->
+          <section class="card rooms-card compact" style="margin-top:16px" aria-labelledby="rooms-title">
             <div class="head" id="rooms-title">내가 참여한 방</div>
             <div class="divider"></div>
-
-            <c:choose>
-              <c:when test="${empty myRooms}">
-                <div class="empty">참여한 방이 없습니다.</div>
-              </c:when>
-              <c:otherwise>
-                <div class="rooms-grid">
-                  <c:forEach var="r" items="${myRooms}">
-                    <article class="room">
-                      <c:choose>
-                        <c:when test="${empty r.thumbUrl}">
-                          <img class="thumb" src="${ctx}/images/room-placeholder.jpg" alt="thumbnail"
-                               onerror="this.onerror=null; this.src='${ctx}/images/room-placeholder.jpg';" />
-                        </c:when>
-                        <c:otherwise>
-                          <img class="thumb" src="<c:url value='${r.thumbUrl}'/>" alt="thumbnail"
-                               onerror="this.onerror=null; this.src='${ctx}/images/room-placeholder.jpg';" />
-                        </c:otherwise>
-                      </c:choose>
-                      <div class="meta">
-                        <a class="title" href="${ctx}${r.url}"><c:out value="${r.title}" /></a>
-                        <div class="sub">
-                          <span>member: <c:out value="${r.memberCount}" /></span>
-                          <span>♥ <c:out value="${r.likeCount}" /></span>
-                          <span><c:out value="${r.date}" /></span>
-                        </div>
-                      </div>
-                    </article>
-                  </c:forEach>
-                </div>
-              </c:otherwise>
-            </c:choose>
+            <div id="roomsArea"><div class="empty">로딩 중...</div></div>
+            <div class="more-wrap">
+              <a class="more-link" href="${ctx}/rooms/mine">더보기 »</a>
+            </div>
           </section>
         </div>
 
-        <!-- 우측: 내가 쓴 글 -->
+        <!-- 우측: 내가 쓴 글 (AJAX) -->
         <aside class="card side-card" aria-labelledby="posts-title">
           <div class="head" id="posts-title">내가 쓴 글</div>
-          <c:choose>
-            <c:when test="${empty myPosts}">
-              <div class="empty">작성한 글이 없습니다.</div>
-            </c:when>
-            <c:otherwise>
-              <div class="post-list">
-                <c:forEach var="p" items="${myPosts}">
-                  <div class="post">
-                    <a href="${ctx}${p.url}"><c:out value="${p.title}" /></a>
-                  </div>
-                </c:forEach>
-              </div>
-            </c:otherwise>
-          </c:choose>
+          <div id="myPostsArea"><div class="empty">로딩 중...</div></div>
+          <div class="side-more"><a href="${ctx}/boards/mine">내가 쓴 글 보러가기 »</a></div>
         </aside>
       </div>
     </div>
@@ -266,40 +182,210 @@ a:hover{text-decoration:underline}
 </div>
 
 <script>
-  // 아바타 박스를 텍스트 블록의 총 높이에 맞춰 정사각형으로 조정
-  (function(){
-    const box  = document.getElementById('mypAvatarBox');
-    const text = document.getElementById('mypTextBlock');
-
-    function syncAvatar(){
-      if(!box || !text) return;
-      const h = Math.max(100, Math.round(text.getBoundingClientRect().height));
-      box.style.height = h + 'px';
-      box.style.width  = h + 'px';
+  (function boot(){
+    if (!window.jQuery) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js';
+      s.onload = init;
+      s.onerror = function(){ console.error('[mypage] jQuery 로드 실패'); };
+      document.head.appendChild(s);
+    } else {
+      init();
     }
-    window.addEventListener('load', syncAvatar);
-    window.addEventListener('resize', () => {
-      clearTimeout(window.__avtRaf); window.__avtRaf = setTimeout(syncAvatar, 80);
-    });
-    const mo = new MutationObserver(syncAvatar);
-    mo.observe(text, {childList:true, subtree:true, characterData:true});
-    setTimeout(syncAvatar, 150);
   })();
 
-  // 연락처 표기: 숫자만 들어온 경우 010-1234-5678 같은 형식으로 표시
-  (function(){
-    const el = document.getElementById('phoneDisplay');
-    if(!el) return;
-    const raw = (el.textContent || '').replace(/[^0-9]/g,'');
-    if(raw.length >= 9){
-      // 02/지역번호 케이스는 프로젝트 룰에 맞춰 단순 3-4-4 패턴으로 처리
-      const fmt =
-        raw.length === 10
+  function init(){
+    var CTX  = '<c:out value="${ctx}" />';
+    var MEID = '<c:out value="${meId}" />';
+    var $roomsArea = $('#roomsArea');
+    var $postsArea = $('#myPostsArea');
+
+    function esc(s){ return $('<div>').text(s==null?'':String(s)).html(); }
+    function roomDetailUrl(roomId){
+      var url = CTX + '/roomdetail.room?roomId=' + encodeURIComponent(roomId);
+      if (MEID) url += '&userId=' + encodeURIComponent(MEID);
+      return url;
+    }
+    // ✅ 게시글 상세: roomBoardId + userId 로만 이동 (서비스 시그니처에 맞춤)
+    function boardDetailUrl(roomBoardId){
+      var url = CTX + '/roomboarddetail.room?roomBoardId=' + encodeURIComponent(roomBoardId);
+      if (MEID) url += '&userId=' + encodeURIComponent(MEID);
+      return url;
+    }
+
+    // ===== 아바타 정사각 =====
+    (function(){
+      var $box = $('#mypAvatarBox');
+      var $txt = $('#mypTextBlock');
+      function sync(){
+        if(!$box.length || !$txt.length) return;
+        var h = Math.max(100, Math.round($txt[0].getBoundingClientRect().height));
+        $box.css({height:h+'px', width:h+'px'});
+      }
+      $(window).on('load resize', function(){ clearTimeout(window.__avtRaf); window.__avtRaf=setTimeout(sync,80); });
+      setTimeout(sync, 150);
+    })();
+
+    // ===== 연락처 포맷 =====
+    (function(){
+      var $el = $('#phoneDisplay');
+      if(!$el.length) return;
+      var raw = ($el.text()||'').replace(/[^0-9]/g,'');
+      if(raw.length>=9){
+        var fmt = (raw.length===10)
           ? raw.replace(/(\d{3})(\d{3,4})(\d{4})/, '$1-$2-$3')
           : raw.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-      el.textContent = fmt;
+        $el.text(fmt);
+      }
+    })();
+
+    // ===== 내가 참여한 방 (AJAX) =====
+    function renderRooms(payload){
+      var items = $.isArray(payload) ? payload : ($.isArray(payload.items) ? payload.items : []);
+      if(!items.length){ $roomsArea.html('<div class="empty">참여한 방이 없습니다.</div>'); return; }
+
+      var html = '<div class="rooms-grid">';
+      $.each(items, function(_, r){
+        var thumb   = r.thumbUrl ? (CTX + r.thumbUrl) : (CTX + '/images/room-placeholder.jpg');
+        var urlDet  = roomDetailUrl(r.roomId || r.room_id || r.roomNo || '');
+        var title   = esc(r.title);
+        var region  = esc((r.parentRegion||'') + (r.childRegion ? (' ' + r.childRegion) : ''));
+        var cert    = esc((r.certName||'') + ' 공부방');
+        var dateStr = esc(r.date || '');
+        var members = (r.memberCount!=null)? r.memberCount:0;
+        var likes   = (r.likeCount !=null)? r.likeCount :0;
+
+        html += ''
+          + '<article class="room">'
+          +   '<a href="'+ urlDet +'">'
+          +     '<div class="thumb-wrap">'
+          +       '<img class="thumb" src="'+thumb+'" alt="thumbnail" onerror="this.onerror=null; this.src=\''+CTX+'/images/room-placeholder.jpg\';" />'
+          +       '<div class="title-overlay">'+ title +'</div>'
+          +     '</div>'
+          +   '</a>'
+          +   '<div class="meta">'
+          +     '<div class="region">'+ region +'</div>'
+          +     '<div class="cert">'+ cert +'</div>'
+          +     '<div class="date">'+ dateStr +'</div>'
+          +     '<div class="member">member: '+ members +'</div>'
+          +     '<div class="like-row">'
+          +       '<span class="like-icon" aria-hidden="true">'
+          +         '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">'
+          +           '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>'
+          +         '</svg>'
+          +       '</span>'
+          +       '<span>'+ likes +'</span>'
+          +     '</div>'
+          +   '</div>'
+          + '</article>';
+      });
+      html += '</div>';
+      $roomsArea.html(html);
     }
-  })();
+
+    function loadMyRooms(){
+      $.ajax({
+        url: CTX + '/api/mypage/rooms',
+        type: 'GET',
+        data: { limit: 6, offset: 0 },
+        dataType: 'json'
+      }).done(function(res){ renderRooms(res); })
+        .fail(function(xhr){
+          console.error('[rooms] fail', xhr.status, xhr.responseText);
+          $roomsArea.html('<div class="empty">불러오기에 실패했습니다.</div>');
+        });
+    }
+
+    // ===== 내가 쓴 글 (AJAX) =====
+    function renderPosts(list){
+      if(!$.isArray(list) || !list.length){
+        $postsArea.html('<div class="empty">작성한 글이 없습니다.</div>');
+        return;
+      }
+
+      var html = '<div class="post-list">';
+      $.each(list, function(_, p){
+        var title   = esc(p.title);
+        var date    = esc(p.date || '');
+        var replies = (p.replyCount!=null? p.replyCount:0);
+        var views   = (p.viewCount !=null? p.viewCount :0);
+
+        // ✅ 서버 응답의 roomBoardId 사용 (필수)
+        var roomBoardId = p.roomBoardId;
+
+        // 방 이동용
+        var roomId      = p.roomId  || p.room_id  || p.roomNo  || p.room_no;
+        var roomTitle   = esc(p.roomTitle || p.roomName || '모임방');
+
+        // 데이터 속성에 담고, 클릭시 JS로 강제 이동
+        var titleData = (roomBoardId!=null ? (' data-room-board-id="'+ String(roomBoardId) +'"') : '');
+        var roomData  = (roomId!=null      ? (' data-room-id="'+ String(roomId) +'"') : '');
+
+        html += ''
+          + '<div class="post">'
+          +   '<a class="p-title" href="javascript:void(0)"'+ titleData +'>'+ title +'</a>'
+          +   (roomId ? (
+                '<a class="p-room" href="javascript:void(0)"'+ roomData +' title="모임방 상세로 이동">'
+              +   '<svg viewBox="0 0 24 24"><path d="M3 9l9-6 9 6v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3z"></path><path d="M9 22V12h6v10"></path></svg>'
+              +    roomTitle
+              +  '</a>'
+              ) : '')
+          +   '<div class="p-meta">'
+          +     '<span class="i">'
+          +       '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>'
+          +        date
+          +     '</span>'
+          +     '<span class="i">'
+          +       '<svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg>'
+          +        replies
+          +     '</span>'
+          +     '<span class="i">'
+          +       '<svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>'
+          +        views
+          +     '</span>'
+          +   '</div>'
+          + '</div>';
+      });
+      html += '</div>';
+      $postsArea.html(html);
+    }
+
+    function loadMyPosts(){
+      $.ajax({
+        url: CTX + '/api/mypage/posts',
+        type: 'GET',
+        data: { limit: 10 },
+        dataType: 'json'
+      }).done(function(res){ renderPosts(res); })
+        .fail(function(xhr){
+          console.error('[posts] fail', xhr.status, xhr.responseText);
+          $postsArea.html('<div class="empty">불러오기에 실패했습니다.</div>');
+        });
+    }
+
+    // ===== 클릭 위임 =====
+    // 제목 → /roomboarddetail.room?roomBoardId=...&userId=...
+    $(document).on('click', '.post .p-title', function(e){
+      e.preventDefault();
+      var roomBoardId = $(this).data('roomBoardId');
+      if (!roomBoardId){ return; }
+      window.location.href = boardDetailUrl(roomBoardId);
+    });
+
+    // 방 배지 → /roomdetail.room?roomId=...&userId=...
+    $(document).on('click', '.post .p-room', function(e){
+      e.preventDefault();
+      var roomId = $(this).data('roomId');
+      if (!roomId){ return; }
+      window.location.href = roomDetailUrl(roomId);
+    });
+
+    // 실행
+    $(function(){
+      loadMyRooms();
+      loadMyPosts();
+    });
+  }
 </script>
 
 </body>

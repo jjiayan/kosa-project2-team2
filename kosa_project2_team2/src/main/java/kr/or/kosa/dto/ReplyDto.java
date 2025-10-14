@@ -12,7 +12,7 @@ import java.util.List;
 public class ReplyDto {
     
     // 기본 댓글 정보 (DB 컬럼과 매핑)
-    private Long replyId;              // reply_id
+    private Long replyId;               // reply_id
     private String replyContent;        // reply_content
     private Long userId;                // user_id
     private Long roomBoardId;           // room_board_id
@@ -34,6 +34,4 @@ public class ReplyDto {
     // 대댓글 리스트 (계층 구조 표현용)
     private List<ReplyDto> replies;
     
-    // 시간 표시용 (예: "방금 전", "5분 전")
-    private String timeAgo;
 }

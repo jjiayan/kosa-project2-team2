@@ -14,6 +14,8 @@ import kr.or.kosa.service.room.RoomBoardDetailService;
 import kr.or.kosa.service.room.RoomBoardInsertFormService;
 import kr.or.kosa.service.room.RoomBoardInsertService;
 import kr.or.kosa.service.room.RoomBoardListService;
+import kr.or.kosa.service.room.RoomBoardUpdateFormService;
+import kr.or.kosa.service.room.RoomBoardUpdateService;
 import kr.or.kosa.service.room.RoomDetailService;
 import kr.or.kosa.service.room.RoomInsertService;
 import kr.or.kosa.service.room.RoomListService;
@@ -61,7 +63,7 @@ public class RoomController extends HttpServlet {
     	}else if(urlCommand.equals("/roomlist.room")) {
     		action = new RoomListService();
     		forward = action.execute(request, response);
-    	}else if(urlCommand.equals("/roomdetail.room")) {
+    	}else if(urlCommand.equals("/roomdetail.room")) { // 모임방의 정보를 보는거
     		action = new RoomDetailService();
     		forward = action.execute(request, response);
     	}else if(urlCommand.equals("/roomboardlist.room")) { // 룸 보드 리스트
@@ -77,8 +79,13 @@ public class RoomController extends HttpServlet {
     		action = new RoomBoardInsertService();
     		forward = action.execute(request, response);
     	}else if(urlCommand.equals("/roomboardnotice.room")) {
-    		
     		action = new RooBoardNoticeService();
+    		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomboardupdateform.room")) {
+    		action = new RoomBoardUpdateFormService();
+    		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomboardupdate.room")) {
+    		action = new RoomBoardUpdateService();
     		forward = action.execute(request, response);
     	}
     	

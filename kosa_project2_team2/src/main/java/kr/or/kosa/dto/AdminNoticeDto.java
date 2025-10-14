@@ -13,4 +13,5 @@ public class AdminNoticeDto {
     private String adminNoticeContent;
     private Date createdAt;
     private int adminNoticeViewCnt; 
+    private String userNickname;
 }
