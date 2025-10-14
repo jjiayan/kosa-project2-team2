@@ -12,11 +12,14 @@ public class RoomDetailService implements Action{
 	@Override
 	public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
 		int roomId = Integer.parseInt(request.getParameter("roomId"));
+		int userId = Integer.parseInt(request.getParameter("userId"));
+		
+		
 		RoomDao roomDao = new RoomDao();
 		
-		RoomDto roomDetail = roomDao.detialRoom(roomId);
+		RoomDto roomDetail = roomDao.detialRoom(roomId, userId);
 		ActionForward forward = new ActionForward();
-		System.out.println("roomdetail ==>> isLiked " + roomDetail.isLiked());
+	
 		
 		request.setAttribute("roomDetail", roomDetail);
 		forward.setRedirect(false);

@@ -1,23 +1,25 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core"%>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>모임방 생성</title>
-    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/style/default.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.18/summernote-lite.min.css" rel="stylesheet">
-    
     <style>
-        body {
+        main {
             background: #f5f5f5;
             padding: 40px 20px;
+            min-height: 100vh;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
         
-        .container {
+        .form-container {
             max-width: 800px;
             margin: 0 auto;
             background: white;
@@ -170,100 +172,104 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>모임방 생성</h1>
-        
-        <form action="insert.room" method="post" id="postForm">
+    <!-- 공통 네비게이션 -->
+    <jsp:include page="/include/nav.jsp" />
+    
+    <!-- 메인 -->
+    <main>
+        <div class="form-container">
+            <h1>모임방 생성</h1>
             
-            <!-- 지역 및 자격증 선택 -->
-            <div class="form-section">
-                <div class="select-row">
-                    <div>
-                        <select class="form-select" name="region1" id="region1">
-                            <option selected>지역</option> 
-                            <c:forEach var="region" items="${mainRegionList}" >
-                            	<option value="${region.mainRegionId}">${region.mainRegion}</option>
-                            </c:forEach>
-                        </select>
+            <form action="insert.room" method="post" id="postForm">
+                <input type="hidden" name="userId" id="userId" value="${sessionScope.LOGIN_USER.user_id}">
+                
+                <!-- 지역 및 자격증 선택 -->
+                <div class="form-section">
+                    <div class="select-row">
+                        <div>
+                            <select class="form-select" name="region1" id="region1">
+                                <option selected>지역</option> 
+                                <c:forEach var="region" items="${mainRegionList}" >
+                                    <option value="${region.mainRegionId}">${region.mainRegion}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div>
+                            <select class="form-select" name="region2" id="region2">
+                                <option selected>구/군 선택</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <select class="form-select" name="region2" id="region2">
-                            <option selected>구/군 선택</option>
-                            <option value="강남구">강남구</option>
-                            <option value="서초구">서초구</option>
-                            <option value="송파구">송파구</option>
-                        </select>
+                    
+                    <div class="select-row">
+                        <div>
+                            <select class="form-select" name="certificate1">
+                                <option selected>자격증</option>
+                                <option value="기사">기사</option>
+                                <option value="산업기사">산업기사</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select class="form-select" name="certificate2">
+                                <option selected>자격증 상세</option>
+                                <option value="정보처리기사">정보처리기사</option>
+                                <option value="전기기사">전기기사</option>
+                            </select>
+                        </div>
                     </div>
+                    
+                    <!-- 최대인원 선택 추가 -->
+                    <div class="select-row">
+                        <div>
+                            <select class="form-select" name="maxParticipant">
+                                <option selected>최대 인원</option>
+                                <option value="10">10명</option>
+                                <option value="20">20명</option>
+                                <option value="30">30명</option>
+                                <option value="40">40명</option>
+                                <option value="50">50명</option>
+                            </select>
+                        </div>
+                        <div></div>
+                    </div>
+                    
+                    <input type="text" class="form-control" placeholder="모임방 제목을 입력하세요" name="title">
                 </div>
                 
-                <div class="select-row">
-                    <div>
-                        <select class="form-select" name="certificate1">
-                            <option selected>자격증</option>
-                            <option value="기사">기사</option>
-                            <option value="산업기사">산업기사</option>
-                        </select>
+                <!-- 스터디 썸네일 -->
+                <div class="form-section">
+                    <div class="section-title">
+                        스터디 썸네일
+                        <button type="button" class="btn-delete" onclick="deleteThumbnail()" style="float: right; margin-top: -5px;">
+                            📎 파일 선택
+                        </button>
                     </div>
-                    <div>
-                        <select class="form-select" name="certificate2">
-                            <option selected>자격증 상세</option>
-                            <option value="정보처리기사">정보처리기사</option>
-                            <option value="전기기사">전기기사</option>
-                        </select>
+                    
+                    <div class="thumbnail-upload" id="thumbnailArea" onclick="document.getElementById('thumbnailInput').click()">
+                        <div id="thumbnailText">
+                            📷 클릭하거나 이미지를 드래그하세요<br>
+                            <small style="color: #ccc; font-size: 12px;">권장 크기: 800x400 (2:1 비율)</small>
+                        </div>
+                        <img id="thumbnailPreview" class="thumbnail-preview" style="display:none;">
                     </div>
+                    <input type="file" id="thumbnailInput" name="thumbnail" accept="image/*" style="display:none;">
                 </div>
                 
-                <!-- 최대인원 선택 추가 -->
-                <div class="select-row">
-                    <div>
-                        <select class="form-select" name="maxParticipant">
-                            <option selected>최대 인원</option>
-                            <option value="10">10명</option>
-                            <option value="20">20명</option>
-                            <option value="30">30명</option>
-                            <option value="40">40명</option>
-                            <option value="50">50명</option>
-                        </select>
-                    </div>
-                    <div></div>
+                <!-- 소개 -->
+                <div class="form-section">
+                    <div class="section-title">소개</div>
+                    <textarea id="summernote" name="content"></textarea>
                 </div>
                 
-                <input type="text" class="form-control" placeholder="모임방 제목을 입력하세요" name="title">
-            </div>
-            
-            <!-- 스터디 썸네일 -->
-            <div class="form-section">
-                <div class="section-title">
-                    스터디 썸네일
-                    <button type="button" class="btn-delete" onclick="deleteThumbnail()" style="float: right; margin-top: -5px;">
-                        📎 파일 선택
-                    </button>
+                <!-- 하단 버튼 -->
+                <div class="bottom-buttons">
+                    <button type="button" class="btn-cancel" onclick="history.back()">취소</button>
+                    <button type="submit" class="btn-submit">생성하기</button>
                 </div>
                 
-                <div class="thumbnail-upload" id="thumbnailArea" onclick="document.getElementById('thumbnailInput').click()">
-                    <div id="thumbnailText">
-                        📷 클릭하거나 이미지를 드래그하세요<br>
-                        <small style="color: #ccc; font-size: 12px;">권장 크기: 800x400 (2:1 비율)</small>
-                    </div>
-                    <img id="thumbnailPreview" class="thumbnail-preview" style="display:none;">
-                </div>
-                <input type="file" id="thumbnailInput" name="thumbnail" accept="image/*" style="display:none;">
-            </div>
-            
-            <!-- 소개 -->
-            <div class="form-section">
-                <div class="section-title">소개</div>
-                <textarea id="summernote" name="content"></textarea>
-            </div>
-            
-            <!-- 하단 버튼 -->
-            <div class="bottom-buttons">
-                <button type="button" class="btn-cancel" onclick="history.back()">취소</button>
-                <button type="submit" class="btn-submit">생성하기</button>
-            </div>
-            
-        </form>
-    </div>
+            </form>
+        </div>
+    </main>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
@@ -302,30 +308,30 @@
             });
             
             $('#summernote').summernote({
-			    height: 300,
-			    lang: 'ko-KR',
-			    placeholder: '내용을 입력하세요...',
-			    disableDragAndDrop: false,
-			    toolbar: [
-			        ['style', ['style']],
-			        ['font', ['bold', 'italic', 'underline', 'clear']],
-			        ['color', ['color']],
-			        ['para', ['ul', 'ol', 'paragraph']],
-			        ['table', ['table']],
-			        ['insert', ['link', 'picture']],
-			        ['view', ['codeview', 'help']]
-			    ],
-			    callbacks: {
-			        onInit: function() {
-			            $('.note-editable').attr('data-gramm', 'false');
-			            $('.note-editable').attr('data-gramm_editor', 'false');
-			            $('.note-editable').attr('data-enable-grammarly', 'false');
-			        },
-			        onImageUpload: function(files) {
-			            uploadImageToServer(files[0]);
-			        }
-			    }
-			});
+                height: 300,
+                lang: 'ko-KR',
+                placeholder: '내용을 입력하세요...',
+                disableDragAndDrop: false,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'clear']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture']],
+                    ['view', ['codeview', 'help']]
+                ],
+                callbacks: {
+                    onInit: function() {
+                        $('.note-editable').attr('data-gramm', 'false');
+                        $('.note-editable').attr('data-gramm_editor', 'false');
+                        $('.note-editable').attr('data-enable-grammarly', 'false');
+                    },
+                    onImageUpload: function(files) {
+                        uploadImageToServer(files[0]);
+                    }
+                }
+            });
         });
         
         function handleThumbnail(file) {
@@ -420,9 +426,9 @@
         }
         
         $('#region1').on('change',function(){
-        	const parentId = $(this).val();
-        	const region2Select = $('#region2');
-        	// 초기화
+            const parentId = $(this).val();
+            const region2Select = $('#region2');
+            // 초기화
             region2Select.html('<option value="">구/군 선택</option>');
             
             if (!parentId) {
@@ -431,19 +437,17 @@
             }
             
             $.ajax({
-            	url: '/kosa_project2_team2/getsubregion.roomajax',
-            	data: {parentId: parentId},
-            	success: function(response){
-            		$.each(response, function(index, item) {
+                url: '/kosa_project2_team2/getsubregion.roomajax',
+                data: {parentId: parentId},
+                success: function(response){
+                    $.each(response, function(index, item) {
                         region2Select.append(
                             '<option value="' + item.subRegionId + '">' + item.subRegion + '</option>'
                         );
                     })
-            	}
+                }
             })
-        	
         })
-                 
     </script>
 </body>
 </html>

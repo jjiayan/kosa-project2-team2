@@ -90,13 +90,18 @@
       </a>
     </li>
 
-    <li class="snav-item ${current eq 'posts' ? 'is-active' : ''}">
-      <a href="<c:url value='/roomboard.room'/>" class="snav-link" aria-label="게시글">
-        <i class="fa-regular fa-rectangle-list"></i>
-        <span class="label">게시글</span>
-        <!-- <span class="count">24</span> -->
-      </a>
-    </li>
+	<c:if test="${(roomDetail.roomId != null) or (not empty roomBoardList and roomBoardList[0].roomBoardId != null)}">
+		<li class="snav-item ${current eq 'posts' ? 'is-active' : ''}">
+		    <a href="<c:url value='/roomboardlist.room'>
+		                <c:if test="${roomDetail.roomId != null}">
+		                    <c:param name='roomId' value='${roomDetail.roomId}'/>
+		                </c:if>
+		             </c:url>" class="snav-link" aria-label="게시글">
+		        <i class="fa-regular fa-rectangle-list"></i>
+		        <span class="label">게시글</span>
+		    </a>
+		</li>
+	</c:if>
 
     <li class="snav-item ${current eq 'calendar' ? 'is-active' : ''}">
       <a href="<c:url value='/roomboard.room'/>" class="snav-link" aria-label="캘린더">
@@ -104,13 +109,18 @@
         <span class="label">캘린더</span>
       </a>
     </li>
-
-    <li class="snav-item ${current eq 'notice' ? 'is-active' : ''}">
-      <a href="<c:url value='/notice/list.do'/>" class="snav-link" aria-label="공지사항">
-        <i class="fa-regular fa-bell"></i>
-        <span class="label">공지사항</span>
-      </a>
-    </li>
+	<c:if test="${(roomDetail.roomId != null) or (not empty roomBoardList and roomBoardList[0].roomBoardId != null)}">
+	    <li class="snav-item ${current eq 'notice' ? 'is-active' : ''}">
+	      <a href="<c:url value='/roomboardnotice.room'>
+		                <c:if test="${roomDetail.roomId != null}">
+		                    <c:param name='roomId' value='${roomDetail.roomId}'/>
+		                </c:if>
+		             </c:url>" class="snav-link" aria-label="공지">
+	        <i class="fa-regular fa-bell"></i>
+	        <span class="label">공지사항</span>
+	      </a>
+	    </li>
+    </c:if>
 
     <c:if test="${roomDetail.leaderCheck}">
 	  <li class="snav-item ${current eq 'admin' ? 'is-active' : ''}">

@@ -233,9 +233,15 @@ main {
         <!-- 우측 본문 -->
         <main>
             <div class="post-detail-container">
-                <h1 class="post-title">스터디 게시글</h1>
+                  <h1>
+				    <c:choose>
+				        <c:when test="${roomBoardType == 'NOTICE'}">스터디 공지</c:when>
+				        <c:otherwise>스터디 게시글</c:otherwise>
+				    </c:choose>
+				</h1>
                 
                 <div class="post-subtitle">${roomBoardDetail.roomBoardTitle}</div>
+                
                 
                 <div class="post-info">
                     <div class="author-profile">

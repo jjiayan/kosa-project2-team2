@@ -15,4 +15,9 @@ public class PageResult<T> {
     private int currentPage;
     private int pageSize;
     private List<RegionDto> mainRegionList;
+    private String keyword;
+    private String si;
+    private String siGun;
+    
+    
 }
