@@ -599,12 +599,12 @@ body {
         </p>
         <div class="test-input-group">
             <label>📌 게시글 ID:</label>
-            <input type="number" id="testRoomBoardId" value="11">
+            <input type="number" id="testRoomBoardId" value="1">
             <label>👤 사용자 ID:</label>
-            <input type="number" id="testUserId" value="2" placeholder="필수!">
+            <input type="number" id="testUserId" value="70" placeholder="필수!">
         </div>
         <p style="color: rgba(255,255,255,0.9); font-size: 13px; margin: 10px 0 0 0;">
-            ✅ 현재: 게시글 11, 사용자 2 (봄개발자)
+            ✅ 현재: 게시글 1, 사용자 70 (김가네)
         </p>
         <div class="test-buttons">
             <button class="test-btn primary" onclick="testReloadAll()">🔄 새로고침</button>
@@ -657,7 +657,7 @@ body {
                     </c:otherwise>
                 </c:choose>
                 <span class="author-name">
-                    ${not empty sessionScope.LOGIN_USER ? sessionScope.LOGIN_USER.user_nickname : '봄개발자 (테스트)'}
+                    ${not empty sessionScope.LOGIN_USER ? sessionScope.LOGIN_USER.user_nickname : '김가네 (테스트)'}
                 </span>
             </div>
             <textarea id="replyContent" placeholder="댓글을 입력하세요..." maxlength="3000"></textarea>
