@@ -37,6 +37,29 @@
     font-size: 14px;
 }
 
+/* 탭 버튼 스타일 */
+.stat-item.tab-button {
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s;
+    user-select: none;
+}
+
+.stat-item.tab-button:hover {
+    background: #f5f5f5;
+}
+
+.stat-item.tab-button.active {
+    background: #fff5f5;
+    color: #ff5a5f;
+    font-weight: 600;
+}
+
+.stat-item.tab-button.active svg {
+    stroke: #ff5a5f;
+}
+
 .stat-icon {
     font-size: 16px;
 }
@@ -78,8 +101,17 @@
 .reply-write-form { 
     padding: 20px 24px;
     background: white;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid #f0f0f0;xr
 }
+
+/* 댓글 입력창 전환 애니메이션 */
+/* .reply-write-form {
+    transition: all 0.3s ease;
+}
+
+.reply-write-form.hidden {
+    display: none !important;
+}  */
 
 .write-form-header {
     display: flex;
@@ -468,6 +500,61 @@
 .empty-state {
     border-radius: 0;
 }
+
+/* 좋아요 목록 스타일 */
+.like-list-container {
+    padding: 20px 24px;
+    background: white;
+}
+
+.like-user-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid #f5f5f5;
+    transition: background 0.2s;
+}
+
+.like-user-item:hover {
+    background: #fafafa;
+}
+
+.like-user-item:last-child {
+    border-bottom: none;
+}
+
+.like-user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.like-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.like-user-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.like-user-date {
+    font-size: 12px;
+    color: #999;
+}
+
+/* 정렬 버튼은 댓글 탭에서만 표시 */
+#replySortButtons.hidden {
+    display: none;
+}
+
+
 </style>
 
 <!-- 댓글 영역 -->
@@ -475,11 +562,19 @@
     <!-- 댓글 통계 -->
     <div class="reply-header">
         <div class="reply-stats">
-            <div class="stat-item">
-                <span class="stat-icon">💬</span>
-                <span>댓글 <strong id="replyTotalCount">0</strong></span>
-            </div>
-        </div>
+        	<div class="stat-item tab-button" data-tab="like" onclick="switchTab('like')">
+	            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;">
+	                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+	            </svg>
+	            <span style="margin-left: 2px;">좋아요 <strong id="likeTotalCount">0</strong></span>
+	        </div>
+        
+	        <div class="stat-item tab-button active" data-tab="reply" onclick="switchTab('reply')">
+	            <span class="stat-icon">💬</span>
+	            <span>댓글 <strong id="replyTotalCount">0</strong></span>
+	        </div>
+	        
+	    </div>
         
         <div class="reply-sort">
             <button class="sort-btn active" data-order="ASC">등록순</button>
@@ -492,6 +587,11 @@
         <div class="loading">댓글을 불러오는 중...</div>
     </div>
     
+    <!-- 좋아요 목록 (새로 추가) -->
+	<div id="likeList" class="like-list-container" style="display:none;">
+	    <div class="loading">좋아요 목록을 불러오는 중...</div>
+	</div>
+
     <!-- 댓글 작성 폼 -->
     <div class="reply-write-form">
         <div class="write-form-header">
@@ -760,56 +860,56 @@ function removeImage(index) {
 /**
  * ✅ 댓글 좋아요 토글
  */
- function toggleReplyLike(replyId) {
-	    jQuery.ajax({
-	        url: '${pageContext.request.contextPath}/like/action.ajax',
-	        type: 'POST',
-	        dataType: 'json',
-	        data: {
-	            targetType: 'REPLY',
-	            targetId: replyId
-	        },
-	        success: function(response) {
-	            console.log('좋아요 응답:', response);
-	            if (response.success) {
-	                var likeBtn = jQuery('.btn-like[data-reply-id="' + replyId + '"]');
-	                var svg = likeBtn.find('svg');
-	                var likeCountSpan = likeBtn.find('.like-count');
-	                
-	                // 좋아요 상태에 따라 UI 업데이트
-	                if (response.isLiked) {
-	                    likeBtn.addClass('liked');
-	                    svg.attr('fill', '#ff5a5f');
-	                    svg.attr('stroke', '#ff5a5f');
-	                } else {
-	                    likeBtn.removeClass('liked');
-	                    svg.attr('fill', 'none');
-	                    svg.attr('stroke', 'currentColor');
-	                }
-	                
-	                // 좋아요 개수 업데이트
-	                if (response.likeCount > 0) {
-	                    if (likeCountSpan.length > 0) {
-	                        likeCountSpan.text(response.likeCount);
-	                    } else {
-	                        likeBtn.append(' <span class="like-count">' + response.likeCount + '</span>');
-	                    }
-	                } else {
-	                    likeCountSpan.remove();
-	                }
-	                
-	                console.log('좋아요 ' + response.action + '! 총 ' + response.likeCount + '개');
-	            } else {
-	                alert(response.message || '좋아요 처리에 실패했습니다.');
-	            }
-	        },
-	        error: function(xhr, status, error) {
-	            console.error('좋아요 처리 중 오류:', error);
-	            console.error('응답:', xhr.responseText);
-	            alert('좋아요 처리에 실패했습니다.');
-	        }
-	    });
-	}
+function toggleReplyLike(replyId) {
+    jQuery.ajax({
+        url: '${pageContext.request.contextPath}/like/action.ajax',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            targetType: 'REPLY',
+            targetId: replyId
+        },
+        success: function(response) {
+            console.log('좋아요 응답:', response);
+            if (response.success) {
+                var likeBtn = jQuery('.btn-like[data-reply-id="' + replyId + '"]');
+                var svg = likeBtn.find('svg');
+                var likeCountSpan = likeBtn.find('.like-count');
+                
+                // 좋아요 상태에 따라 UI 업데이트
+                if (response.isLiked) {
+                    likeBtn.addClass('liked');
+                    svg.attr('fill', '#ff5a5f');
+                    svg.attr('stroke', '#ff5a5f');
+                } else {
+                    likeBtn.removeClass('liked');
+                    svg.attr('fill', 'none');
+                    svg.attr('stroke', 'currentColor');
+                }
+                
+                // 좋아요 개수 업데이트
+                if (response.likeCount > 0) {
+                    if (likeCountSpan.length > 0) {
+                        likeCountSpan.text(response.likeCount);
+                    } else {
+                        likeBtn.append(' <span class="like-count">' + response.likeCount + '</span>');
+                    }
+                } else {
+                    likeCountSpan.remove();
+                }
+                
+                console.log('좋아요 ' + response.action + '! 총 ' + response.likeCount + '개');
+            } else {
+                alert(response.message || '좋아요 처리에 실패했습니다.');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('좋아요 처리 중 오류:', error);
+            console.error('응답:', xhr.responseText);
+            alert('좋아요 처리에 실패했습니다.');
+        }
+    });
+}
 
 /**
  * ✅ 댓글 작성 - /reply/write.ajax
@@ -1003,4 +1103,181 @@ jQuery(document).on('click', function(e) {
         jQuery('.dropdown-menu').removeClass('show');
     }
 });
+
+//현재 활성 탭 추적
+var currentTab = 'reply';
+
+/**
+ * 탭 전환 함수
+ */
+function switchTab(tabName) {
+    if (currentTab === tabName) return;
+    
+    currentTab = tabName;
+    
+    // 탭 버튼 스타일 변경
+    jQuery('.tab-button').removeClass('active');
+    jQuery('.tab-button[data-tab="' + tabName + '"]').addClass('active');
+    
+    if (tabName === 'reply') {
+    	// 댓글 탭
+        jQuery('#replyList').show();
+        jQuery('#likeList').hide();
+        jQuery('#replySortButtons').removeClass('hidden');
+        jQuery('.reply-write-form').show(); // 댓글 입력창 표시
+        loadReplyList();
+    } else {
+    	// 좋아요 탭
+        jQuery('#replyList').hide();
+        jQuery('#likeList').show();
+        jQuery('#replySortButtons').addClass('hidden');
+        jQuery('.reply-write-form').hide(); // 댓글 입력창 숨김
+        loadLikeList();
+    }
+}
+
+/**
+ * 좋아요 목록 불러오기
+ */
+function loadLikeList() {
+    jQuery.ajax({
+        url: '${pageContext.request.contextPath}/like/detail.ajax',
+        type: 'GET',
+        dataType: 'json',
+        data: {
+            roomBoardId: ROOM_BOARD_ID
+        },
+        success: function(response) {
+            console.log('좋아요 목록 응답:', response);
+            if (response.success) {
+                displayLikeList(response.likeUsers);
+                jQuery('#likeTotalCount').text(response.totalCount);
+            } else {
+                alert(response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('좋아요 목록 로드 에러:', error);
+            alert('서버 오류가 발생했습니다: ' + error);
+        }
+    });
+}
+
+/**
+ * 좋아요 목록 표시
+ */
+function displayLikeList(likeUsers) {
+    var likeList = jQuery('#likeList');
+    likeList.empty();
+    
+    if (likeUsers.length === 0) {
+        likeList.html('<div class="empty-state">아직 좋아요가 없습니다.</div>');
+        return;
+    }
+    
+    var contextPath = '${pageContext.request.contextPath}';
+    
+    for (var i = 0; i < likeUsers.length; i++) {
+        var user = likeUsers[i];
+        var profileImgSrc = user.userPhoto ? 
+            contextPath + user.userPhoto : 
+            contextPath + '/images/default-avatar.png';
+        
+        var likeDate = formatDateTime(user.likeCreatedAt);
+        
+        var userHtml = '<div class="like-user-item">' +
+            '<img src="' + profileImgSrc + '" alt="프로필" class="like-user-avatar" ' +
+            'onerror="this.src=\'' + contextPath + '/images/default-avatar.png\';">' +
+            '<div class="like-user-info">' +
+            '<div class="like-user-name">' + escapeHtml(user.userNickname) + '</div>' +
+            '<div class="like-user-date">' + likeDate + '</div>' +
+            '</div></div>';
+        
+        likeList.append(userHtml);
+    }
+}
+
+// 페이지 로드 시 좋아요 개수도 함께 로드
+jQuery(document).ready(function() {
+    console.log('댓글 시스템 로드, ROOM_BOARD_ID:', ROOM_BOARD_ID);
+    loadReplyList();
+    loadInitialLikeCount(); // 초기 좋아요 개수 로드
+    
+    // 글자 수 카운터
+    jQuery('#replyContent').on('input', function() {
+        jQuery('#currentLength').text(jQuery(this).val().length);
+    });
+    
+    // 정렬 버튼 클릭
+    jQuery('.sort-btn').on('click', function() {
+        jQuery('.sort-btn').removeClass('active');
+        jQuery(this).addClass('active');
+        currentOrder = jQuery(this).data('order');
+        loadReplyList();
+    });
+});
+
+/**
+ * 초기 좋아요 개수 로드
+ */
+function loadInitialLikeCount() {
+    jQuery.ajax({
+        url: '${pageContext.request.contextPath}/like/count.ajax',
+        type: 'GET',
+        dataType: 'json',
+        data: {
+            targetType: 'ROOM_BOARD',
+            targetId: ROOM_BOARD_ID
+        },
+        success: function(response) {
+            if (response.success) {
+                jQuery('#likeTotalCount').text(response.likeCount);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('좋아요 개수 로드 에러:', error);
+        }
+    });
+}
+
+/**
+ * 게시글 좋아요 개수 업데이트 함수 (detailRoomBoard.jsp에서 호출)
+ */
+window.updateReplyLikeCount = function(likeCount) {
+    jQuery('#likeTotalCount').text(likeCount);
+    
+    // 좋아요 탭이 활성화되어 있으면 목록도 새로고침
+    if (currentTab === 'like') {
+        loadLikeList();
+    }
+};
+
+/**
+ * 초기 좋아요 개수 로드
+ */
+function loadInitialLikeCount() {
+    jQuery.ajax({
+        url: '${pageContext.request.contextPath}/like/count.ajax',
+        type: 'GET',
+        dataType: 'json',
+        data: {
+            targetType: 'ROOM_BOARD',
+            targetId: ROOM_BOARD_ID
+        },
+        success: function(response) {
+            if (response.success) {
+                jQuery('#likeTotalCount').text(response.likeCount);
+                
+                // 게시글 상세의 좋아요 개수도 동기화
+                const postLikeCount = jQuery('.post-detail-container .like-count');
+                if (postLikeCount.length > 0) {
+                    postLikeCount.text(response.likeCount);
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('좋아요 개수 로드 에러:', error);
+        }
+    });
+}
 </script>
