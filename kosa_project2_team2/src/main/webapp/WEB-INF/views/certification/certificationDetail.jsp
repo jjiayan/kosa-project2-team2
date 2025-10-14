@@ -110,6 +110,8 @@ body{
 </style>
 </head>
 <body>
+<jsp:include page="/include/nav.jsp" />
+
 <div class="container">
 
  <!-- 타이틀 -->

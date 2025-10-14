@@ -215,6 +215,8 @@ tbody td:first-child {
 </head>
 
 <body>
+<jsp:include page="/include/nav.jsp" />
+
 <div class="container">
   <!-- 헤더 + 필터 영역 -->
   <div class="header-section">
