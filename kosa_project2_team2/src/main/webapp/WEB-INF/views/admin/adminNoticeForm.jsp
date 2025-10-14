@@ -158,23 +158,34 @@ h2 {
 
 			<div class="notice-container">
 				<form id="noticeForm" method="post"
-				    action="${pageContext.request.contextPath}/adminNoticeWrite.admin">
-					<!-- 제목 -->
-					<div class="mb-4">
-						<input type="text" name="title" class="form-control"
-							placeholder="공지사항 제목을 입력하세요." required maxlength="100">
-					</div>
-
-					<!-- 내용 -->
-					<div class="mb-4">
-						<textarea id="summernote" name="content"></textarea>
-					</div>
-
-					<!-- 버튼 -->
-					<div class="bottom-buttons">
-					    <button type="button" class="btn-cancel" onclick="goBack()">취소</button>
-					    <button type="button" class="btn-submit" id="btnWrite">작성하기</button>
-					</div>
+				      action="${pageContext.request.contextPath}/${notice != null ? 'adminNoticeUpdate.admin' : 'adminNoticeWrite.admin'}">
+				
+				    <c:if test="${notice != null}">
+				        <input type="hidden" name="noticeId" value="${notice.adminNoticeId}">
+				    </c:if>
+				
+				    <!-- 제목 -->
+				    <div class="mb-4">
+				        <input type="text" name="title" class="form-control"
+				               placeholder="공지사항 제목을 입력하세요."
+				               value="${notice != null ? notice.adminNoticeTitle : ''}"
+				               required maxlength="100">
+				    </div>
+				
+				    <!-- 내용 -->
+				    <div class="mb-4">
+				        <textarea id="summernote" name="content">
+				            ${notice != null ? notice.adminNoticeContent : ''}
+				        </textarea>
+				    </div>
+				
+				    <!-- 버튼 -->
+				    <div class="bottom-buttons">
+				        <button type="button" class="btn-cancel" onclick="goBack()">취소</button>
+				        <button type="button" class="btn-submit" id="btnWrite">
+				            ${notice != null ? '수정하기' : '작성하기'}
+				        </button>
+				    </div>
 				</form>
 			</div>
 		</main>
@@ -205,10 +216,12 @@ function goBack() {
   }
 }
 
-// ✅ 작성하기 버튼 클릭 → Ajax 요청
+// 작성하기 버튼 클릭 → Ajax 요청
 $(document).on("click", "#btnWrite", function() {
     const title = $('input[name="title"]').val().trim();
     const content = $('#summernote').summernote('code').trim();
+    const noticeId = $('input[name="noticeId"]').val(); // ← 수정 시 존재
+
 
     if (!title) {
         alert("제목을 입력해주세요.");
@@ -218,22 +231,35 @@ $(document).on("click", "#btnWrite", function() {
         alert("내용을 입력해주세요.");
         return;
     }
+    
+    const url = noticeId
+    ? "${pageContext.request.contextPath}/adminNoticeUpdate.admin"
+    : "${pageContext.request.contextPath}/adminNoticeWrite.admin";
+
+	const data = noticeId ? { noticeId, title, content } : { title, content };
+
 
     $.ajax({
-        url: "${pageContext.request.contextPath}/adminNoticeWrite.admin",
+    	url: url,
         type: "POST",
-        data: { title, content },
-        success: function(res) {
-            if (res.success) {
-                alert("공지사항이 성공적으로 등록되었습니다.");
+        data: data,
+        success: function(res) { 
+            try {
+                const json = typeof res === "string" ? JSON.parse(res) : res;
+                if (json.success) {
+                    alert(noticeId ? "공지사항이 수정되었습니다." : "공지사항이 등록되었습니다.");
+                    location.href = "${pageContext.request.contextPath}/adminNotice.admin";
+                } else {
+                    alert(json.message || "등록에 실패했습니다.");
+                }
+            } catch (e) { 
+                alert(noticeId ? "공지사항이 수정되었습니다." : "공지사항이 등록되었습니다.");
                 location.href = "${pageContext.request.contextPath}/adminNotice.admin";
-            } else {
-                alert(res.message || "등록에 실패했습니다.");
             }
         },
         error: function(xhr) {
             if (xhr.status === 403) {
-                alert("관리자만 공지사항을 작성할 수 있습니다.");
+                alert("관리자만 작성/수정할 수 있습니다.");
             } else {
                 alert("오류가 발생했습니다. 다시 시도해주세요.");
             }

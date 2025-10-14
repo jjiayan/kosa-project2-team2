@@ -12,6 +12,7 @@ import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.service.admin.AdminNoticeDetailService;
 import kr.or.kosa.service.admin.AdminNoticeInsertService;
 import kr.or.kosa.service.admin.AdminNoticeService;
+import kr.or.kosa.service.admin.AdminNoticeUpdateService;
 import kr.or.kosa.service.admin.AdminNoticeWriteService;
 
 @WebServlet("*.admin")
@@ -47,12 +48,14 @@ public class AdminController extends HttpServlet {
 		} else if (command.equals("/adminNoticeInsert.admin")) { 
 		    Action action = new AdminNoticeInsertService();
 		    forward = action.execute(request, response);
-		}
-		else if (command.equals("/adminNoticeWrite.admin")) { 
+		} else if (command.equals("/adminNoticeWrite.admin")) { 
 		    Action action = new AdminNoticeWriteService();
 		    forward = action.execute(request, response);
 		}else if (command.equals("/adminNoticeDetail.admin")) {
 			Action action = new AdminNoticeDetailService();
+		    forward = action.execute(request, response);
+		} else if (command.equals("/adminNoticeUpdate.admin")) {
+		    Action action = new AdminNoticeUpdateService();
 		    forward = action.execute(request, response);
 		}else {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);

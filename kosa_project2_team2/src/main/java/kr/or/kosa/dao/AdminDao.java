@@ -241,6 +241,23 @@ public class AdminDao {
         }
         return 0;
     }
+    
+    // 공지사항 수정
+    public int updateNotice(int noticeId, String title, String content) {
+        String sql = "UPDATE admin_notice "
+                   + "SET title = ?, content = ? "
+                   + "WHERE notice_id = ? AND is_deleted = 'N'";
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, title);
+            pstmt.setString(2, content);
+            pstmt.setInt(3, noticeId);
+            return pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
     // 공지사항 삭제 
     public int deleteNotice(int noticeId) {
