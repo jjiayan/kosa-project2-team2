@@ -10,7 +10,7 @@ import java.util.List;
 import kr.or.kosa.dto.UserDto;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
-public class AdminMemberDao {
+public class AdminDao {
 
     // 전체 회원 수 조회 
     public int getUserCount() {

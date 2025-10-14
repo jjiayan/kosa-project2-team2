@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
-import kr.or.kosa.dao.AdminMemberDao;
+import kr.or.kosa.dao.AdminDao;
 import kr.or.kosa.dto.PageResult;
 import kr.or.kosa.dto.UserDto;
 
@@ -18,7 +18,7 @@ public class AdminMemberService implements Action {
         ActionForward forward = new ActionForward();
 
         try {
-            AdminMemberDao dao = new AdminMemberDao();
+        	AdminDao dao = new AdminDao();
 
             // 현재 페이지 파라미터
             int currentPage = 1;
