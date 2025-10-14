@@ -44,14 +44,62 @@ h1{font-size:32px;font-weight:700;color:#333;margin-bottom:20px;text-align:cente
 .custom-select::after{content:'▼';position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;color:#666;pointer-events:none;}
 
 /* 테이블 */
-.table-container{background:#fff;border-radius:12px;padding:0;box-shadow:0 1px 3px rgba(0,0,0,0.08);overflow:hidden;margin-bottom:32px;}
-table{width:100%;border-collapse:collapse;}
-thead{background:linear-gradient(135deg,#FF7272 0%,#FFA07A 100%);}
-thead th{color:#fff;padding:16px 12px;font-weight:600;font-size:13px;text-align:center;letter-spacing:.3px;}
-tbody tr{border-bottom:1px solid #f1f1f1;transition:.15s;}
-tbody tr:hover{background:#fff8f8;}
-tbody td{padding:16px 12px;font-size:13px;color:#555;text-align:center;white-space:nowrap;}
-tbody td:first-child{color:#FF7272;font-weight:700;text-align:left;}
+.table-container {
+    background:#fff;
+    border-radius:12px;
+    padding:0;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+    overflow:hidden;
+    margin-bottom:32px;
+    min-height:520px;          /* ✅ 테이블 높이 고정 */
+}
+
+table {
+    width:100%;
+    border-collapse:collapse;
+    table-layout: fixed;       /* ✅ 칼럼 고정 너비 */
+}
+
+thead {
+    background:linear-gradient(135deg,#FF7272 0%,#FFA07A 100%);
+}
+
+thead th {
+    color:#fff;
+    padding:16px 12px;
+    font-weight:600;
+    font-size:13px;
+    text-align:center;
+    letter-spacing:.3px;
+}
+
+tbody tr {
+    border-bottom:1px solid #f1f1f1;
+    transition:.15s;
+}
+
+tbody tr:hover {
+    background:#fff8f8;
+}
+
+tbody td {
+    padding:0 12px;            /* ✅ 위아래 패딩 제거 */
+    height:52px;               /* ✅ 행 높이 고정 */
+    line-height:52px;          /* ✅ 텍스트 중앙 정렬 */
+    font-size:13px;
+    color:#555;
+    text-align:center;
+    white-space:nowrap;
+    overflow:hidden;           /* ✅ 넘치는 글자 숨기기 */
+    text-overflow:ellipsis;    /* ✅ … 처리 */
+}
+
+tbody td:first-child {
+    color:#FF7272;
+    font-weight:700;
+    text-align:left;
+    padding-left:16px;
+}
 
 /* 통계 카드 */
 .stats-title{font-size:22px;font-weight:700;magin-top:60px;margin:0 0 16px 0;color:#333;}
