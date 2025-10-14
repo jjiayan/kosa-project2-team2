@@ -555,6 +555,22 @@ document.addEventListener("DOMContentLoaded", function () {
     nextBtn.onclick = function () { changePage(currentPage + 1); };
     pagination.appendChild(nextBtn);
 	}
+    
+    
+ 	// 각 행에 jmcd 넣기
+    <c:forEach var="item" items="${certList}">
+    <tr ondblclick="goDetail('${item.jmcd}')">
+        <td>${item.jmcd}</td>
+        <td>${item.jmName}</td>
+        <td>${item.organName}</td>
+    </tr>
+    </c:forEach>
+    
+    function goDetail(jmcd, year, implSeq) {
+        location.href = '${ctx}/certificationDetail.cert?jmcd=' + jmcd 
+                      + '&year=' + year 
+                      + '&implSeq=' + implSeq;
+    }
 
     
     // 차트 통계
