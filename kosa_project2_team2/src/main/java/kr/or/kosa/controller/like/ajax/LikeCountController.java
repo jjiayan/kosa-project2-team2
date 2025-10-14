@@ -57,6 +57,17 @@ public class LikeCountController extends HttpServlet {
                 Long userId = getCurrentUserId(request);
                 boolean isLiked = false;
                 
+                // ✅ 테스트용: 파라미터로 userId 전달 가능
+                String testUserIdStr = request.getParameter("userId");
+                if (userId == null && testUserIdStr != null && !testUserIdStr.trim().isEmpty()) {
+                    try {
+                        userId = Long.parseLong(testUserIdStr);
+                        System.out.println("[TEST MODE] Using userId from parameter: " + userId);
+                    } catch (NumberFormatException e) {
+                        System.err.println("[ERROR] Invalid userId parameter: " + testUserIdStr);
+                    }
+                }
+                
                 if (userId != null) {
                     like.setUserId(userId);
                     isLiked = likeDao.checkIsLiked(like);
