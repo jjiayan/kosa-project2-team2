@@ -268,7 +268,7 @@ main {
                     
                     <!-- 게시글 아이템들 -->
                     <c:forEach var="roomBoard" items="${roomBoardList}">
-                        <div class="post-item" onclick="location.href='${pageContext.request.contextPath}/roomboarddetail.room?roomBoardId=${roomBoard.roomBoardId}'">
+                        <div class="post-item" onclick="location.href='${pageContext.request.contextPath}/roomboarddetail.room?roomBoardId=${roomBoard.roomBoardId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=GENERAL'">
                             <div class="post-title-cell">${roomBoard.roomBoardTitle}
                                 <c:if test="${roomBoard.replyCount > 0}">
                                     <span class="reply-count">[${roomBoard.replyCount}]</span>

@@ -17,9 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-
-
-
 public class RoomDao {
 	
 	public int insertRoom(RoomDto insertRoomDto) {
@@ -346,6 +343,10 @@ public class RoomDao {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+			ConnectionPoolHelper.close(rs);
+			ConnectionPoolHelper.close(pstmt);
+			ConnectionPoolHelper.close(conn);
 		}
 		return roomBoardList;
 	}
@@ -403,6 +404,10 @@ public class RoomDao {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+			ConnectionPoolHelper.close(rs);
+			ConnectionPoolHelper.close(pstmt);
+			ConnectionPoolHelper.close(conn);
 		}
 		return roomBoard;
 	}
@@ -456,8 +461,6 @@ public class RoomDao {
 	}
 	
 
-
-	
 	public List<RegionDto> getRegion() {
 		Connection conn = null;
 		PreparedStatement pstmt = null;

@@ -61,7 +61,7 @@ public class RoomController extends HttpServlet {
     	}else if(urlCommand.equals("/roomlist.room")) {
     		action = new RoomListService();
     		forward = action.execute(request, response);
-    	}else if(urlCommand.equals("/roomdetail.room")) {
+    	}else if(urlCommand.equals("/roomdetail.room")) { // 모임방의 정보를 보는거
     		action = new RoomDetailService();
     		forward = action.execute(request, response);
     	}else if(urlCommand.equals("/roomboardlist.room")) { // 룸 보드 리스트
