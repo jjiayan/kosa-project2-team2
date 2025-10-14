@@ -349,4 +349,81 @@ public class CertificationDao {
 
         return dto;
     }
+    
+    
+    // AJAX 필터 전용 메서드
+    public List<CertificationSummaryDto> getFilteredCertifications(String grade, String field, String keyword) {
+        List<CertificationSummaryDto> list = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder(
+            "SELECT " +
+            "    m.JMCD, " +
+            "    m.JMNAME, " +
+            "    c.GRADE, " +
+            "    c.FIELD, " +
+            "    m.YEAR, " +
+            "    m.IMPLSEQ, " +
+            "    s_doc.PASSRATE AS docPassRate, " +
+            "    s_doc.APPLICANTS AS docApplicants, " +
+            "    s_prac.PASSRATE AS pracPassRate, " +
+            "    s_prac.APPLICANTS AS pracApplicants, " +
+            "    sch.EXAMFEE, " +
+            "    m.ORGANNAME " +
+            "FROM CERTIFICATION_MASTER m " +
+            "JOIN CERTIFICATION_CATEGORY c ON m.JMCD = c.JMCD " +
+            "LEFT JOIN CERTIFICATION_SCHEDULE sch " +
+            "   ON m.JMCD = sch.JMCD AND m.YEAR = sch.YEAR AND m.IMPLSEQ = sch.IMPLSEQ " +
+            "LEFT JOIN CERTIFICATION_STATS s_doc " +
+            "   ON m.JMCD = s_doc.JMCD AND m.YEAR = s_doc.YEAR AND m.IMPLSEQ = s_doc.IMPLSEQ AND s_doc.EXAMGB = '필기' " +
+            "LEFT JOIN CERTIFICATION_STATS s_prac " +
+            "   ON m.JMCD = s_prac.JMCD AND m.YEAR = s_prac.YEAR AND m.IMPLSEQ = s_prac.IMPLSEQ AND s_prac.EXAMGB = '실기' " +
+            "WHERE 1=1 "
+        );
+
+        if (grade != null && !grade.isEmpty()) {
+            sql.append(" AND c.GRADE = ? ");
+        }
+        if (field != null && !field.isEmpty()) {
+            sql.append(" AND c.FIELD = ? ");
+        }
+        if (keyword != null && !keyword.isEmpty()) {
+            sql.append(" AND m.JMNAME LIKE '%' || ? || '%' ");
+        }
+
+        sql.append(" ORDER BY m.JMNAME ");
+
+        try (
+            Connection conn = ConnectionPoolHelper.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql.toString())
+        ) {
+            int idx = 1;
+            if (grade != null && !grade.isEmpty()) pstmt.setString(idx++, grade);
+            if (field != null && !field.isEmpty()) pstmt.setString(idx++, field);
+            if (keyword != null && !keyword.isEmpty()) pstmt.setString(idx++, keyword);
+
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                CertificationSummaryDto dto = new CertificationSummaryDto();
+                dto.setJmcd(rs.getInt("JMCD"));
+                dto.setJmName(rs.getString("JMNAME"));
+                dto.setGrade(rs.getString("GRADE"));
+                dto.setField(rs.getString("FIELD"));
+                dto.setYear(rs.getInt("YEAR"));
+                dto.setImplSeq(rs.getInt("IMPLSEQ"));
+                dto.setDocPassRate(rs.getBigDecimal("docPassRate"));
+                dto.setDocApplicants(rs.getInt("docApplicants"));
+                dto.setPracPassRate(rs.getBigDecimal("pracPassRate"));
+                dto.setPracApplicants(rs.getInt("pracApplicants"));
+                dto.setExamFee(rs.getBigDecimal("EXAMFEE"));
+                dto.setOrganName(rs.getString("ORGANNAME"));
+                list.add(dto);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
 }
