@@ -60,6 +60,41 @@
     stroke: #ff5a5f;
 }
 
+/* 좋아요 SVG 버튼 스타일 */
+.post-like-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.post-like-btn:hover {
+    background: rgba(255, 90, 95, 0.1);
+}
+
+.post-like-btn svg {
+    transition: all 0.2s;
+}
+
+.post-like-btn.liked svg {
+    fill: #ff5a5f;
+    stroke: #ff5a5f;
+}
+
+.like-text-btn {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.like-text-btn:hover {
+    background: #f5f5f5;
+}
+
 .stat-icon {
     font-size: 16px;
 }
@@ -101,17 +136,8 @@
 .reply-write-form { 
     padding: 20px 24px;
     background: white;
-    border-top: 1px solid #f0f0f0;xr
+    border-top: 1px solid #f0f0f0;
 }
-
-/* 댓글 입력창 전환 애니메이션 */
-/* .reply-write-form {
-    transition: all 0.3s ease;
-}
-
-.reply-write-form.hidden {
-    display: none !important;
-}  */
 
 .write-form-header {
     display: flex;
@@ -359,18 +385,6 @@
     color: #666;
 }
 
-/* .btn-like {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 13px;
-    color: #ccc;
-    padding: 0;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-} */
-
 .btn-like {
     background: none;
     border: none;
@@ -402,7 +416,6 @@
     fill: #ff5a5f;
     stroke: #ff5a5f;
 }
-
 
 /* 더보기 메뉴 */
 .reply-more-menu {
@@ -481,10 +494,10 @@
 /* 대댓글 폼 */
 .child-reply-form { 
     margin-top: 12px; 
-    margin-left: 52px;     /* ✅ 추가: 프로필 이미지 너비만큼 왼쪽 여백 */
-    margin-right: 0;       /* ✅ 추가: 오른쪽 여백 제거 */
+    margin-left: 52px;
+    margin-right: 0;
     padding: 12px; 
-    background: #f9f9f9;   /* ✅ 수정: 배경색 살짝 변경 */
+    background: #f9f9f9;
     border-radius: 8px; 
     border: 1px solid #e8e8e8;
 }
@@ -550,50 +563,9 @@
 }
 
 /* 정렬 버튼은 댓글 탭에서만 표시 */
-#replySortButtons.hidden {
-    display: none;
-}
-
-/* 좋아요 SVG 버튼 스타일 */
-.post-like-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 50%;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.post-like-btn:hover {
-    background: rgba(255, 90, 95, 0.1);
-}
-
-.post-like-btn svg {
-    transition: all 0.2s;
-}
-
-.post-like-btn.liked svg {
-    fill: #ff5a5f;
-    stroke: #ff5a5f;
-}
-
-.like-text-btn {
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.like-text-btn:hover {
-    background: #f5f5f5;
-}
-
-/* 정렬 버튼은 댓글 탭에서만 표시 */
 .reply-sort.hidden {
     display: none;
 }
-
 </style>
 
 <!-- 댓글 영역 -->
@@ -620,13 +592,12 @@
 	            <span class="stat-icon">💬</span>
 	            <span>댓글 <strong id="replyTotalCount">0</strong></span>
 	        </div>
-	        
-	    </div>
+        </div>
         
         <div class="reply-sort" id="replySortButtons">
-		    <button class="sort-btn active" data-order="ASC">등록순</button>
-		    <button class="sort-btn" data-order="DESC">최신순</button>
-		</div>
+            <button class="sort-btn active" data-order="ASC">등록순</button>
+            <button class="sort-btn" data-order="DESC">최신순</button>
+        </div>
     </div>
     
     <!-- 댓글 목록 -->
@@ -634,7 +605,7 @@
         <div class="loading">댓글을 불러오는 중...</div>
     </div>
     
-    <!-- 좋아요 목록 (새로 추가) -->
+    <!-- 좋아요 목록 -->
 	<div id="likeList" class="like-list-container" style="display:none;">
 	    <div class="loading">좋아요 목록을 불러오는 중...</div>
 	</div>
@@ -675,8 +646,9 @@
 // 게시글 ID (JSP에서 전달받음)
 var ROOM_BOARD_ID = ${param.roomBoardId};
 var currentOrder = 'ASC';
+var currentTab = 'reply';
 
-//게시글 좋아요 상태 전역 변수
+// 게시글 좋아요 상태 전역 변수
 var isPostLiked = false;
 
 jQuery(document).ready(function() {
@@ -685,7 +657,7 @@ jQuery(document).ready(function() {
     loadInitialLikeCount();
     loadPostLikeStatus(); // 게시글 좋아요 상태 로드
     
-    // 글자 수 카운터
+    // 글자수 카운터
     jQuery('#replyContent').on('input', function() {
         jQuery('#currentLength').text(jQuery(this).val().length);
     });
@@ -700,7 +672,94 @@ jQuery(document).ready(function() {
 });
 
 /**
- * ✅ 댓글 목록 불러오기 - /reply/list.ajax
+ * 게시글 좋아요 상태 로드
+ */
+function loadPostLikeStatus() {
+    jQuery.ajax({
+        url: '${pageContext.request.contextPath}/like/count.ajax',
+        type: 'GET',
+        dataType: 'json',
+        data: {
+            targetType: 'ROOM_BOARD',
+            targetId: ROOM_BOARD_ID
+        },
+        success: function(response) {
+            console.log('게시글 좋아요 상태 응답:', response);
+            if (response.success) {
+                isPostLiked = response.isLiked;
+                updatePostLikeUI();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('게시글 좋아요 상태 로드 에러:', error);
+        }
+    });
+}
+
+/**
+ * 게시글 좋아요 UI 업데이트
+ */
+function updatePostLikeUI() {
+    var postLikeBtn = jQuery('#postLikeBtn');
+    var svg = postLikeBtn.find('svg');
+    
+    if (isPostLiked) {
+        postLikeBtn.addClass('liked');
+        svg.attr('fill', '#ff5a5f');
+        svg.attr('stroke', '#ff5a5f');
+    } else {
+        postLikeBtn.removeClass('liked');
+        svg.attr('fill', 'none');
+        svg.attr('stroke', 'currentColor');
+    }
+}
+
+/**
+ * 게시글 좋아요 토글
+ */
+function togglePostLike() {
+    jQuery.ajax({
+        url: '${pageContext.request.contextPath}/like/action.ajax',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            targetType: 'ROOM_BOARD',
+            targetId: ROOM_BOARD_ID
+        },
+        success: function(response) {
+            console.log('게시글 좋아요 응답:', response);
+            if (response.success) {
+                isPostLiked = response.isLiked;
+                updatePostLikeUI();
+                
+                // 좋아요 개수 업데이트
+                jQuery('#likeTotalCount').text(response.likeCount);
+                
+                // 게시글 상세 페이지의 좋아요 개수도 업데이트 (window.updatePostLikeCount 가 있는 경우)
+                if (typeof window.updatePostLikeCount === 'function') {
+                    window.updatePostLikeCount(response.likeCount, response.isLiked);
+                }
+                
+                // 좋아요 탭이 활성화되어 있으면 목록도 새로고침
+                if (currentTab === 'like') {
+                    loadLikeList();
+                }
+                
+                console.log('게시글 좋아요 ' + response.action + '! 총 ' + response.likeCount + '개');
+            } else {
+                alert(response.message || '좋아요 처리에 실패했습니다.');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('게시글 좋아요 처리 중 오류:', error);
+            console.error('응답:', xhr.responseText);
+            alert('좋아요 처리에 실패했습니다.');
+        }
+    });
+}
+
+/**
+ * 댓글 목록 불러오기 - /reply/list.ajax
  */
 function loadReplyList() {
     jQuery.ajax({
@@ -910,7 +969,7 @@ function removeImage(index) {
 }
 
 /**
- * ✅ 댓글 좋아요 토글
+ * 댓글 좋아요 토글
  */
 function toggleReplyLike(replyId) {
     jQuery.ajax({
@@ -964,7 +1023,7 @@ function toggleReplyLike(replyId) {
 }
 
 /**
- * ✅ 댓글 작성 - /reply/write.ajax
+ * 댓글 작성 - /reply/write.ajax
  */
 function writeReply() {
     var content = jQuery('#replyContent').val().trim();
@@ -1014,7 +1073,7 @@ function toggleChildReplyForm(parentReplyId) {
 }
 
 /**
- * ✅ 대댓글 작성 - /reply/write.ajax
+ * 대댓글 작성 - /reply/write.ajax
  */
 function writeChildReply(parentReplyId) {
     var content = jQuery('#childContent' + parentReplyId).val().trim();
@@ -1050,7 +1109,7 @@ function writeChildReply(parentReplyId) {
 }
 
 /**
- * ✅ 댓글 수정 모드 활성화
+ * 댓글 수정 모드 활성화
  */
 function editReply(replyId) {
     jQuery('.dropdown-menu').removeClass('show');
@@ -1071,7 +1130,7 @@ function editReply(replyId) {
 }
 
 /**
- * ✅ 댓글 수정 - /reply/update.ajax
+ * 댓글 수정 - /reply/update.ajax
  */
 function updateReply(replyId) {
     var content = jQuery('#editContent' + replyId).val().trim();
@@ -1105,7 +1164,7 @@ function updateReply(replyId) {
 }
 
 /**
- * ✅ 댓글 삭제 - /reply/delete.ajax
+ * 댓글 삭제 - /reply/delete.ajax
  */
 function deleteReply(replyId) {
     jQuery('.dropdown-menu').removeClass('show');
@@ -1156,8 +1215,20 @@ jQuery(document).on('click', function(e) {
     }
 });
 
-//현재 활성 탭 추적
-var currentTab = 'reply';
+/**
+ * 탭 선택에 따른 UI 업데이트
+ */
+function updateTabActiveState(tabName) {
+    // 탭 버튼 스타일 초기화
+    jQuery('.tab-button').removeClass('active');
+    jQuery('.like-text-btn').removeClass('active');
+    
+    if (tabName === 'like') {
+        jQuery('.like-text-btn').addClass('active');
+    } else {
+        jQuery('.tab-button[data-tab="' + tabName + '"]').addClass('active');
+    }
+}
 
 /**
  * 탭 전환 함수
@@ -1166,19 +1237,21 @@ function switchTab(tabName) {
     if (currentTab === tabName) return;
     
     currentTab = tabName;
-    updateTabActiveState(tabName); // 새로 추가
+    updateTabActiveState(tabName);
     
     if (tabName === 'reply') {
+    	// 댓글 탭
         jQuery('#replyList').show();
         jQuery('#likeList').hide();
-        jQuery('#replySortButtons').removeClass('hidden'); // 수정
-        jQuery('.reply-write-form').show();
+        jQuery('#replySortButtons').removeClass('hidden');
+        jQuery('.reply-write-form').show(); // 댓글 입력창 표시
         loadReplyList();
     } else {
+    	// 좋아요 탭
         jQuery('#replyList').hide();
         jQuery('#likeList').show();
-        jQuery('#replySortButtons').addClass('hidden'); // 수정
-        jQuery('.reply-write-form').hide();
+        jQuery('#replySortButtons').addClass('hidden');
+        jQuery('.reply-write-form').hide(); // 댓글 입력창 숨김
         loadLikeList();
     }
 }
@@ -1244,105 +1317,6 @@ function displayLikeList(likeUsers) {
     }
 }
 
-// 페이지 로드 시 좋아요 개수도 함께 로드
-jQuery(document).ready(function() {
-    console.log('댓글 시스템 로드, ROOM_BOARD_ID:', ROOM_BOARD_ID);
-    loadReplyList();
-    loadInitialLikeCount(); // 초기 좋아요 개수 로드
-    
-    // 글자 수 카운터
-    jQuery('#replyContent').on('input', function() {
-        jQuery('#currentLength').text(jQuery(this).val().length);
-    });
-    
-    // 정렬 버튼 클릭
-    jQuery('.sort-btn').on('click', function() {
-        jQuery('.sort-btn').removeClass('active');
-        jQuery(this).addClass('active');
-        currentOrder = jQuery(this).data('order');
-        loadReplyList();
-    });
-});
-
-/**
- * 초기 좋아요 개수 로드
- */
-function loadInitialLikeCount() {
-    jQuery.ajax({
-        url: '${pageContext.request.contextPath}/like/count.ajax',
-        type: 'GET',
-        dataType: 'json',
-        data: {
-            targetType: 'ROOM_BOARD',
-            targetId: ROOM_BOARD_ID
-        },
-        success: function(response) {
-            if (response.success) {
-                jQuery('#likeTotalCount').text(response.likeCount);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('좋아요 개수 로드 에러:', error);
-        }
-    });
-}
-
-/**
- * 게시글 좋아요 토글
- */
-function togglePostLike() {
-    jQuery.ajax({
-        url: '${pageContext.request.contextPath}/like/action.ajax',
-        type: 'POST',
-        dataType: 'json',
-        data: {
-            targetType: 'ROOM_BOARD',
-            targetId: ROOM_BOARD_ID
-        },
-        success: function(response) {
-            console.log('게시글 좋아요 응답:', response);
-            if (response.success) {
-                isPostLiked = response.isLiked;
-                updatePostLikeUI();
-                
-                // 좋아요 개수 업데이트
-                jQuery('#likeTotalCount').text(response.likeCount);
-                
-                // 게시글 상세 페이지의 좋아요 개수도 업데이트 (window.updatePostLikeCount 가 있는 경우)
-                if (typeof window.updatePostLikeCount === 'function') {
-                    window.updatePostLikeCount(response.likeCount, response.isLiked);
-                }
-                
-                // 좋아요 탭이 활성화되어 있으면 목록도 새로고침
-                if (currentTab === 'like') {
-                    loadLikeList();
-                }
-                
-                console.log('게시글 좋아요 ' + response.action + '! 총 ' + response.likeCount + '개');
-            } else {
-                alert(response.message || '좋아요 처리에 실패했습니다.');
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('게시글 좋아요 처리 중 오류:', error);
-            console.error('응답:', xhr.responseText);
-            alert('좋아요 처리에 실패했습니다.');
-        }
-    });
-}
-
-/**
- * 게시글 좋아요 개수 업데이트 함수 (detailRoomBoard.jsp에서 호출)
- */
-window.updateReplyLikeCount = function(likeCount) {
-    jQuery('#likeTotalCount').text(likeCount);
-    
-    // 좋아요 탭이 활성화되어 있으면 목록도 새로고침
-    if (currentTab === 'like') {
-        loadLikeList();
-    }
-};
-
 /**
  * 초기 좋아요 개수 로드
  */
@@ -1373,105 +1347,14 @@ function loadInitialLikeCount() {
 }
 
 /**
- * 게시글 좋아요 상태 로드
+ * 게시글 좋아요 개수 업데이트 함수 (detailRoomBoard.jsp에서 호출)
  */
-function loadPostLikeStatus() {
-    jQuery.ajax({
-        url: '${pageContext.request.contextPath}/like/count.ajax',
-        type: 'GET',
-        dataType: 'json',
-        data: {
-            targetType: 'ROOM_BOARD',
-            targetId: ROOM_BOARD_ID
-        },
-        success: function(response) {
-            console.log('게시글 좋아요 상태 응답:', response);
-            if (response.success) {
-                isPostLiked = response.isLiked;
-                updatePostLikeUI();
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('게시글 좋아요 상태 로드 에러:', error);
-        }
-    });
-}
-
-/**
- * 게시글 좋아요 UI 업데이트
- */
-function updatePostLikeUI() {
-    var postLikeBtn = jQuery('#postLikeBtn');
-    var svg = postLikeBtn.find('svg');
+window.updateReplyLikeCount = function(likeCount) {
+    jQuery('#likeTotalCount').text(likeCount);
     
-    if (isPostLiked) {
-        postLikeBtn.addClass('liked');
-        svg.attr('fill', '#ff5a5f');
-        svg.attr('stroke', '#ff5a5f');
-    } else {
-        postLikeBtn.removeClass('liked');
-        svg.attr('fill', 'none');
-        svg.attr('stroke', 'currentColor');
+    // 좋아요 탭이 활성화되어 있으면 목록도 새로고침
+    if (currentTab === 'like') {
+        loadLikeList();
     }
-}
-
-/**
- * 게시글 좋아요 토글
- */
-function togglePostLike() {
-    jQuery.ajax({
-        url: '${pageContext.request.contextPath}/like/action.ajax',
-        type: 'POST',
-        dataType: 'json',
-        data: {
-            targetType: 'ROOM_BOARD',
-            targetId: ROOM_BOARD_ID
-        },
-        success: function(response) {
-            console.log('게시글 좋아요 응답:', response);
-            if (response.success) {
-                isPostLiked = response.isLiked;
-                updatePostLikeUI();
-                
-                // 좋아요 개수 업데이트
-                jQuery('#likeTotalCount').text(response.likeCount);
-                
-                // 게시글 상세 페이지의 좋아요 개수도 업데이트
-                if (typeof window.updatePostLikeCount === 'function') {
-                    window.updatePostLikeCount(response.likeCount, response.isLiked);
-                }
-                
-                // 좋아요 탭이 활성화되어 있으면 목록도 새로고침
-                if (currentTab === 'like') {
-                    loadLikeList();
-                }
-                
-                console.log('게시글 좋아요 ' + response.action + '! 총 ' + response.likeCount + '개');
-            } else {
-                alert(response.message || '좋아요 처리에 실패했습니다.');
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('게시글 좋아요 처리 중 오류:', error);
-            console.error('응답:', xhr.responseText);
-            alert('좋아요 처리에 실패했습니다.');
-        }
-    });
-}
-
-/**
- * 탭 선택에 따른 UI 업데이트
- */
-function updateTabActiveState(tabName) {
-    // 탭 버튼 스타일 초기화
-    jQuery('.tab-button').removeClass('active');
-    jQuery('.like-text-btn').removeClass('active');
-    
-    if (tabName === 'like') {
-        jQuery('.like-text-btn').addClass('active');
-    } else {
-        jQuery('.tab-button[data-tab="' + tabName + '"]').addClass('active');
-    }
-}
-
+};
 </script>
