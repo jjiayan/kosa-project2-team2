@@ -66,7 +66,7 @@ table {
 	table-layout: fixed; 
 }
 
-.table-title, .table-content {
+.table-title {
 	max-width: 250px;
 	white-space: nowrap;
 	overflow: hidden;
@@ -191,7 +191,7 @@ main {
 		text-overflow: ellipsis;  
 	}
 
-	.table-title, .table-content {
+	.table-title{
 		max-width: 150px;          
 	}
 		.btn-edit, .btn-delete {
@@ -223,13 +223,8 @@ main {
 		text-overflow: ellipsis; 
 	}
 
-	.table-title, .table-content {
+	.table-title{
 		max-width: 100px;
-	}
- 
-	th:nth-child(1),
-	td:nth-child(1){
-		display: none;
 	}
 	.btn-edit, .btn-delete {
 		padding: 4px 6px;
@@ -276,7 +271,9 @@ main {
 				<div class="notice-header">
 					<c:if
 						test="${not empty sessionScope.LOGIN_USER and sessionScope.LOGIN_USER.user_status eq 'ADMIN'}">
-						<button class="btn-write">글쓰기</button>
+						<button class="btn-write" onclick="location.href='${pageContext.request.contextPath}/adminNoticeInsert.admin'">
+						    글쓰기
+						</button>
 					</c:if>
 				</div>
 				<!-- 공지사항 테이블 더미-->
@@ -284,8 +281,7 @@ main {
 					<thead>
 						<tr>
 							<th style="width: 10%;">순번</th>
-							<th style="width: 30%;">제목</th>
-							<th style="width: 40%;">내용</th>
+							<th style="width: 40%;">제목</th> 
 							<th style="width: 10%;">조회수</th>
 							<c:if
 								test="${not empty sessionScope.LOGIN_USER and sessionScope.LOGIN_USER.user_status eq 'ADMIN'}">
@@ -300,7 +296,6 @@ main {
 									<tr>
 										<td>${notice.adminNoticeId}</td>
 										<td class="table-title">${notice.adminNoticeTitle}</td>
-										<td class="table-content">${notice.adminNoticeContent}</td>
 										<td>${notice.adminNoticeViewCnt}</td>
 										<c:if
 											test="${not empty sessionScope.LOGIN_USER and sessionScope.LOGIN_USER.user_status eq 'ADMIN'}">
@@ -324,8 +319,7 @@ main {
 				<div class="pagination">
 					<c:if test="${totalPage > 1}">
 						<c:forEach var="i" begin="1" end="${totalPage}">
-							<a
-								href="${pageContext.request.contextPath}/adminNotice.admin?page=${i}"
+							<a href="${pageContext.request.contextPath}/adminNotice.admin?page=${i}"
 								class="page-num ${i == currentPage ? 'active' : ''}"> ${i} </a>
 						</c:forEach>
 					</c:if>
