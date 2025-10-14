@@ -437,7 +437,7 @@
             }
             
             $.ajax({
-                url: '/kosa_project2_team2/getsubregion.roomajax',
+                url: '/getsubregion.roomajax',
                 data: {parentId: parentId},
                 success: function(response){
                     $.each(response, function(index, item) {

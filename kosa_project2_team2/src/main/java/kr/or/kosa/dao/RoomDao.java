@@ -6,6 +6,7 @@ import kr.or.kosa.dto.RegionDto;
 import kr.or.kosa.dto.RoomBoardDto;
 import kr.or.kosa.dto.RoomDto;
 import kr.or.kosa.dto.SearchCondition;
+import kr.or.kosa.dto.user.MyPostItem;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
 import java.sql.Connection;
@@ -17,6 +18,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -675,6 +677,58 @@ public class RoomDao {
         res.put("items", items);
         res.put("hasMore", Boolean.valueOf(hasMore));
         return res;
+    }
+	
+
+	public List<Map<String, Object>> findRecentPostsByUser(int userId, int limit) throws Exception {
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        String sql =
+            "SELECT rb.ROOM_BOARD_ID, " +
+            "       rb.ROOM_BOARD_TITLE, " +
+            "       rb.CREATED_AT, " +
+            "       rb.ROOM_BOARD_VIEW_CNT, " +
+            "       r.ROOM_ID, " +
+            "       r.ROOM_TITLE, " +
+            "       (SELECT COUNT(*) " +
+            "          FROM \"REPLY\" rp " +
+            "         WHERE rp.ROOM_BOARD_ID = rb.ROOM_BOARD_ID " +
+            "           AND rp.PARENT_REPLY_ID IS NULL) AS REPLY_COUNT " +
+            "  FROM ROOM_BOARD rb " +
+            "  JOIN \"ROOM\" r ON r.ROOM_ID = rb.ROOM_ID " +
+            " WHERE rb.USER_ID = ? " +
+            "   AND rb.IS_DELETED = 'N' " +
+            " ORDER BY rb.CREATED_AT DESC, rb.ROOM_BOARD_ID DESC " +
+            " FETCH FIRST ? ROWS ONLY";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+            ps.setInt(2, (limit <= 0 ? 10 : limit));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    int boardId = rs.getInt("ROOM_BOARD_ID");
+
+                    m.put("id", boardId);
+                    m.put("title", rs.getString("ROOM_BOARD_TITLE"));
+                    m.put("createdAt", rs.getTimestamp("CREATED_AT"));
+                    m.put("viewCount", rs.getInt("ROOM_BOARD_VIEW_CNT"));
+                    m.put("replyCount", rs.getInt("REPLY_COUNT"));
+
+                    m.put("roomId", rs.getInt("ROOM_ID"));
+                    m.put("roomTitle", rs.getString("ROOM_TITLE"));
+
+                    // (선택) 서블릿이 없으면 만들어주는 기본 URL
+                    m.put("url", "/room/board/detail?roomBoardId=" + boardId);
+
+                    list.add(m);
+                }
+            }
+        }
+        return list;
     }
 	
 
