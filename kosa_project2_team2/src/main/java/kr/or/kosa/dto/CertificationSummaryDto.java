@@ -1,6 +1,5 @@
 package kr.or.kosa.dto;
 
-import java.math.BigDecimal;
 
 public class CertificationSummaryDto {
 
@@ -15,15 +14,15 @@ public class CertificationSummaryDto {
     private int implSeq;            // 회차
 
     // 필기 통계
-    private BigDecimal docPassRate; // 필기 합격률 (0.00~100.00)
+    private Double docPassRate; // 필기 합격률 (0.00~100.00)
     private int docApplicants;      // 필기 응시자 수
 
     // 실기 통계
-    private BigDecimal pracPassRate;// 실기 합격률
+    private Double pracPassRate;// 실기 합격률
     private int pracApplicants;     // 실기 응시자 수
 
     // 시험 비용
-    private BigDecimal examFee;     // 시험 응시 총비용 (필기+실기 합산 or 한 번 기준)
+    private int examFee;     // 시험 응시 총비용 (필기+실기 합산 or 한 번 기준)
     
     // 시행기관
     private String organName;
@@ -65,10 +64,10 @@ public class CertificationSummaryDto {
     public void setImplSeq(int implSeq) {
         this.implSeq = implSeq;
     }
-    public BigDecimal getDocPassRate() {
+    public Double getDocPassRate() {
         return docPassRate;
     }
-    public void setDocPassRate(BigDecimal docPassRate) {
+    public void setDocPassRate(Double docPassRate) {
         this.docPassRate = docPassRate;
     }
     public int getDocApplicants() {
@@ -77,10 +76,10 @@ public class CertificationSummaryDto {
     public void setDocApplicants(int docApplicants) {
         this.docApplicants = docApplicants;
     }
-    public BigDecimal getPracPassRate() {
+    public Double getPracPassRate() {
         return pracPassRate;
     }
-    public void setPracPassRate(BigDecimal pracPassRate) {
+    public void setPracPassRate(Double pracPassRate) {
         this.pracPassRate = pracPassRate;
     }
     public int getPracApplicants() {
@@ -89,10 +88,10 @@ public class CertificationSummaryDto {
     public void setPracApplicants(int pracApplicants) {
         this.pracApplicants = pracApplicants;
     }
-    public BigDecimal getExamFee() {
+    public int getExamFee() {
         return examFee;
     }
-    public void setExamFee(BigDecimal examFee) {
+    public void setExamFee(int examFee) {
         this.examFee = examFee;
     }
     public String getOrganName() {

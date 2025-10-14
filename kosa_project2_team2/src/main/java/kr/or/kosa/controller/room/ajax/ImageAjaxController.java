@@ -7,108 +7,88 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
-import kr.or.kosa.service.room.RoomInsertService;
+import kr.or.kosa.utils.FileUploadUtil;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
- * Servlet implementation class ImageAjaxController
+ * 이미지 업로드 AJAX 컨트롤러
+ * - 반환값: /files/yyyy-MM-dd/uuid.ext (텍스트)
+ * - 실제 파일 저장 위치는 FileUploadUtil 규칙에 따름
+ *   (web.xml context-param(upload.base) > 환경변수 UPLOAD_BASE > {user.home}/upload)
  */
 @WebServlet("*.imageajax")
 @MultipartConfig(
-	    maxFileSize = 10485760,      // 10MB
-	    maxRequestSize = 20971520     // 20MB
-	)
+    maxFileSize = 10 * 1024 * 1024,     // 10MB
+    maxRequestSize = 20 * 1024 * 1024   // 20MB
+)
 public class ImageAjaxController extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-       
-    /**
-     * @see HttpServlet#HttpServlet()
-     */
-    public ImageAjaxController() {
-        super();
-        // TODO Auto-generated constructor stub
-    }
-    
-    private void doProcess(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {        
-    	String requestURI = request.getRequestURI();
+    private static final long serialVersionUID = 1L;
+
+    public ImageAjaxController() { super(); }
+
+    private void doProcess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String requestURI  = request.getRequestURI();
         String contextPath = request.getContextPath();
-        String urlCommand = requestURI.substring(contextPath.length());
-        
-        System.out.println("이미지 요청: " + urlCommand);
-        System.out.println("이미지 업로드 인증 요청 성공??? ");
-        
-        if(urlCommand.equals("/imageupload.imageajax")) {
-        	 // 썸네일과 본문 이미지 둘 다 처리
-            Part filePart = request.getPart("file");
-            if (filePart == null) {
-                filePart = request.getPart("thumbnail");
-                System.out.println("썸네일 파라미터로 받음");
-            }
-            if(filePart != null && filePart.getSize() > 0) {
-                // 프로젝트 소스 경로에 직접 저장
-                String uploadPath = "/Users/fengyunlong/upload/thumbnail/";
-                File uploadDir = new File(uploadPath);
-                if (!uploadDir.exists()) {
-                    uploadDir.mkdirs();
-                    System.out.println("폴더 생성: " + uploadPath);
-                }
-                
-                
-                String originalFileName = getFileName(filePart);
-                String extension = "";
-                int lastDot = originalFileName.lastIndexOf(".");
-                if (lastDot > 0) {
-                    extension = originalFileName.substring(lastDot); // .png, .jpg 등
-                }
-                
-                // 파일명 생성 (타임스탬프 + 원본파일명)
-                String fileName = System.currentTimeMillis() + "_thumbnail" + extension;
-                
-                // 파일 저장
-                filePart.write(uploadPath + fileName);
-                System.out.println("저장 완료: " + uploadPath + fileName);
-                
-                // 웹 접근 경로 반환
-                String imageUrl = fileName;
-                response.getWriter().write(imageUrl);
-                
-                System.out.println("반환 URL: " + imageUrl);
-            } else {
-                System.out.println("파일이 없음");
-                response.getWriter().write("ERROR");
-            }
-    		
-    	}
+        String urlCommand  = requestURI.substring(contextPath.length());
 
-	}
-    
-    private String getFileName(Part filePart) {
-        String contentDisp = filePart.getHeader("content-disposition");
-        String[] tokens = contentDisp.split(";");
-        for(String token : tokens) {
-            if(token.trim().startsWith("filename")) {
-                return token.substring(token.indexOf("=") + 2, token.length() - 1);
+        System.out.println("[ImageAjax] url = " + urlCommand);
+
+        if ("/imageupload.imageajax".equals(urlCommand)) {
+            // 1) 업로드 파트 찾기 (에디터/폼 마다 파라미터명이 다를 수 있어 순차 탐색)
+            Part part = null;
+            String[] candidates = {"file", "thumbnail", "image", "upload"};
+            for (String name : candidates) {
+                part = request.getPart(name);
+                if (part != null && part.getSize() > 0) {
+                    System.out.println("[ImageAjax] part name = " + name + ", size = " + part.getSize());
+                    break;
+                }
             }
+
+            response.setCharacterEncoding("UTF-8");
+
+            if (part == null || part.getSize() == 0) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.setContentType("text/plain; charset=UTF-8");
+                response.getWriter().write("ERROR: no-file");
+                return;
+            }
+
+            // 2) 저장 (실제 물리 경로/권한/OS 차이는 FileUploadUtil이 처리)
+            String savedWebPath = FileUploadUtil.saveImageToUpload(part, getServletContext());
+            // 예) /files/2025-10-14/0c9b1f2a3b4c.png
+
+            if (savedWebPath == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.setContentType("text/plain; charset=UTF-8");
+                response.getWriter().write("ERROR: invalid-file");
+                return;
+            }
+
+            // 3) 클라이언트로 "웹 경로" 그대로 반환 (DB에는 이 문자열 그대로 저장)
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.setContentType("text/plain; charset=UTF-8");
+            response.getWriter().write(savedWebPath);
+            System.out.println("[ImageAjax] saved -> " + savedWebPath);
+            return;
         }
-        return "";
+
+        // 정의되지 않은 경로
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 
-	/**
-	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doProcess(request, response);
-	}
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doProcess(request, response);
+    }
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doProcess(request, response);
-	}
-
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doProcess(request, response);
+    }
 }
