@@ -119,7 +119,7 @@ public class ReplyDao {
 	}
 	
 	// 4. 댓글 삭제
-	public int replyDelete(ReplyDto reply) {
+	public int deleteReply(ReplyDto reply) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		int row = 0;
