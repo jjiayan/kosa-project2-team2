@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.CertificationDao;
-import kr.or.kosa.dto.CertificationSummaryDto;
+import kr.or.kosa.dto.CertificationDetailDto;
 
 public class CertificationDetailService implements Action {
 
@@ -13,39 +13,38 @@ public class CertificationDetailService implements Action {
     public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
 
         ActionForward forward = new ActionForward();
-        CertificationDao dao = new CertificationDao();
 
         try {
-            //파라미터 받기 (jmcd, year, implSeq)
-            String jmcdParam = request.getParameter("jmcd");
+            // 파라미터 받기
+            int jmcd = Integer.parseInt(request.getParameter("jmcd"));
+
             String yearParam = request.getParameter("year");
             String implSeqParam = request.getParameter("implSeq");
 
-            if (jmcdParam == null || yearParam == null || implSeqParam == null) {
-                throw new IllegalArgumentException("잘못된 요청입니다. (필수 파라미터 누락)");
+            CertificationDao dao = new CertificationDao();
+            CertificationDetailDto detailDto = null;
+
+            if (yearParam == null || implSeqParam == null) {
+                //  year/implSeq가 없으면 "올해 최신 회차" 자동 설정
+                detailDto = dao.getCurrentYearLatestCertification(jmcd);
+            } else {
+                int year = Integer.parseInt(yearParam);
+                int implSeq = Integer.parseInt(implSeqParam);
+
+                // 지정된 회차 상세 조회 + rounds 세팅
+                detailDto = dao.getDetailWithRounds(jmcd, year, implSeq);
             }
 
-            int jmcd = Integer.parseInt(jmcdParam);
-            int year = Integer.parseInt(yearParam);
-            int implSeq = Integer.parseInt(implSeqParam);
+            // DTO를 request에 저장
+            request.setAttribute("cert", detailDto);
 
-            // DB 상세 조회
-            CertificationSummaryDto certification = dao.getCertificationDetail(jmcd, year, implSeq);
-
-            if (certification == null) {
-                throw new IllegalStateException("해당 자격증 정보를 찾을 수 없습니다.");
-            }
-
-            // JSP로 전달
-            request.setAttribute("certification", certification);
-
-            // 페이지 이동
+            // JSP 경로 설정
             forward.setRedirect(false);
             forward.setPath("/WEB-INF/views/certification/certificationDetail.jsp");
 
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("errorMessage", e.getMessage());
+            // 에러 시 에러 페이지 이동 가능
             forward.setRedirect(false);
             forward.setPath("/WEB-INF/views/error.jsp");
         }
