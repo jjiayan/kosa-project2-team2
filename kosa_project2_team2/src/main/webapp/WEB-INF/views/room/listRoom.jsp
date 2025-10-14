@@ -391,37 +391,43 @@
                 
                 <div class="study-grid">
                     <!-- PageResult를 사용한 실제 데이터 렌더링 -->
-                    <c:forEach var="room" items="${pageResult.data}">
-                        <a href="${pageContext.request.contextPath}/roomdetail.room?roomId=${room.roomId}&userId=${sessionScope.LOGIN_USER.user_id}" class="study-info" style="text-decoration:none; color:inherit;">
-                            <div class="study-card">
-                                <div class="study-image">
-                                    <img src="${room.thumbnailUrl != null && room.thumbnailUrl != '' ? room.thumbnailUrl : '/upload/thumbnail/default-thumbnail.jpg'}" alt="${room.title}">
-                                    <span class="study-status">${room.roomStatus}</span>
-                                </div>
-                                <div class="study-info">
-                                    <h3 class="study-title">${room.title}</h3>
-                                    <h4>${room.certName} 자격증 스터디</h4>
-                                    <p class="study-description">${room.parentRegion} ${room.childRegion}</p>
-                                    <p class="study-date">${room.updatedAt}</p>
-                                    <div class="study-footer">
-                                        <span class="member-count">member: ${room.participantCount} / ${room.maxParticipant}</span>
-                                        <div class="like-section">
-                                            <button class="like-btn" onclick="event.stopPropagation(); toggleLike(this)">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" 
-                                                     fill="${room.isLiked() ? '#ff6b6b' : 'none'}" stroke="currentColor" stroke-width="2">
-                                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 
-                                                             5.5 0 0 0-7.78 7.78l1.06 1.06L12 
-                                                             21.23l7.78-7.78 1.06-1.06a5.5 
-                                                             5.5 0 0 0 0-7.78z"></path>
-                                                </svg>
-                                            </button>
-                                            <span class="like-count">${room.likeCount}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                    </c:forEach>
+                   <c:forEach var="room" items="${pageResult.data}">
+					    <div class="study-card">
+					        <!-- 카드 내용을 클릭 가능한 영역과 좋아요 버튼 분리 -->
+					        <a href="${pageContext.request.contextPath}/roomdetail.room?roomId=${room.roomId}&userId=${sessionScope.LOGIN_USER.user_id}" 
+					           class="study-link" style="text-decoration:none; color:inherit;">
+					            <div class="study-image">
+					                <img src="${room.thumbnailUrl != null && room.thumbnailUrl != '' ? room.thumbnailUrl : '/upload/thumbnail/default-thumbnail.jpg'}" alt="${room.title}">
+					                <span class="study-status">${room.roomStatus}</span>
+					            </div>
+					            <div class="study-info">
+					                <h3 class="study-title">${room.title}</h3>
+					                <h4>${room.certName} 자격증 스터디</h4>
+					                <p class="study-description">${room.parentRegion} ${room.childRegion}</p>
+					                <p class="study-date">${room.updatedAt}</p>
+					                <div class="study-footer">
+					                    <span class="member-count">member: ${room.participantCount} / ${room.maxParticipant}</span>
+					                </div>
+					            </div>
+					        </a>
+					        
+					        <!-- 좋아요 섹션을 카드 외부로 분리 -->
+					        <div class="like-section-independent">
+					            <button class="like-btn ${room.isLiked() ? 'liked' : ''}" 
+					                    onclick="toggleLike(this, ${room.roomId})">
+					                <svg width="20" height="20" viewBox="0 0 24 24" 
+					                     fill="${room.isLiked() ? '#ff6b6b' : 'none'}" 
+					                     stroke="currentColor" stroke-width="2">
+					                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 
+					                             5.5 0 0 0-7.78 7.78l1.06 1.06L12 
+					                             21.23l7.78-7.78 1.06-1.06a5.5 
+					                             5.5 0 0 0 0-7.78z"></path>
+					                </svg>
+					            </button>
+					            <span class="like-count">${room.likeCount}</span>
+					        </div>
+					    </div>
+					</c:forEach>
                 </div>
                 
                 <div class="pagination">
