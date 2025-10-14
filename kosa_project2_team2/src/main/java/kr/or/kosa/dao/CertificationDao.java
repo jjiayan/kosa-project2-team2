@@ -7,9 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import kr.or.kosa.dto.CertificationSummaryDto;
+import kr.or.kosa.dto.CertificationDetailDto;
 import kr.or.kosa.dto.CertificationMasterDto;
 import kr.or.kosa.dto.CertificationScheduleDto;
 import kr.or.kosa.dto.CertificationStatsDto;
+import kr.or.kosa.dto.CertificationChartDto;
+import kr.or.kosa.dto.CertificationChartRowDto;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
 public class CertificationDao {
@@ -76,15 +79,15 @@ public class CertificationDao {
                 dto.setImplSeq(rs.getInt("IMPLSEQ"));
 
                 // 필기 통계
-                dto.setDocPassRate(rs.getBigDecimal("docPassRate"));    // null 가능
+                dto.setDocPassRate(rs.getDouble("docPassRate"));    // null 가능
                 dto.setDocApplicants(rs.getInt("docApplicants"));       // 0 처리 자동
 
                 // 실기 통계
-                dto.setPracPassRate(rs.getBigDecimal("pracPassRate"));
+                dto.setPracPassRate(rs.getDouble("pracPassRate"));
                 dto.setPracApplicants(rs.getInt("pracApplicants"));
 
                 // 응시료
-                dto.setExamFee(rs.getBigDecimal("EXAMFEE"));            // null 가능
+                dto.setExamFee(rs.getInt("EXAMFEE"));            // null 가능
 
                 // 시행기관
                 dto.setOrganName(rs.getString("ORGANNAME"));
@@ -295,60 +298,6 @@ public class CertificationDao {
 //
 //        return total;
 //    }
-
-
-
-    public CertificationSummaryDto getCertificationDetail(int jmcd, int year, int implSeq) {
-        CertificationSummaryDto dto = null;
-
-        String sql =
-            "SELECT m.JMCD, m.JMNAME, c.GRADE, c.FIELD, "
-          + "       m.YEAR, m.IMPLSEQ, m.ORGANNAME, "
-          + "       s_doc.PASSRATE AS docPassRate, s_doc.APPLICANTS AS docApplicants, "
-          + "       s_prac.PASSRATE AS pracPassRate, s_prac.APPLICANTS AS pracApplicants, "
-          + "       sch.EXAMFEE "
-          + "FROM CERTIFICATION_MASTER m "
-          + "JOIN CERTIFICATION_CATEGORY c ON m.JMCD = c.JMCD "
-          + "LEFT JOIN CERTIFICATION_SCHEDULE sch "
-          + "  ON m.JMCD = sch.JMCD AND m.YEAR = sch.YEAR AND m.IMPLSEQ = sch.IMPLSEQ "
-          + "LEFT JOIN CERTIFICATION_STATS s_doc "
-          + "  ON m.JMCD = s_doc.JMCD AND m.YEAR = s_doc.YEAR AND m.IMPLSEQ = s_doc.IMPLSEQ "
-          + "  AND s_doc.EXAMGB = '필기' "
-          + "LEFT JOIN CERTIFICATION_STATS s_prac "
-          + "  ON m.JMCD = s_prac.JMCD AND m.YEAR = s_prac.YEAR AND m.IMPLSEQ = s_prac.IMPLSEQ "
-          + "  AND s_prac.EXAMGB = '실기' "
-          + "WHERE m.JMCD = ? AND m.YEAR = ? AND m.IMPLSEQ = ?";
-
-        try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, jmcd);
-            ps.setInt(2, year);
-            ps.setInt(3, implSeq);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    dto = new CertificationSummaryDto();
-                    dto.setJmcd(rs.getInt("JMCD"));
-                    dto.setJmName(rs.getString("JMNAME"));
-                    dto.setGrade(rs.getString("GRADE"));
-                    dto.setField(rs.getString("FIELD"));
-                    dto.setYear(rs.getInt("YEAR"));
-                    dto.setImplSeq(rs.getInt("IMPLSEQ"));
-                    dto.setOrganName(rs.getString("ORGANNAME"));
-                    dto.setDocPassRate(rs.getBigDecimal("docPassRate"));
-                    dto.setDocApplicants(rs.getInt("docApplicants"));
-                    dto.setPracPassRate(rs.getBigDecimal("pracPassRate"));
-                    dto.setPracApplicants(rs.getInt("pracApplicants"));
-                    dto.setExamFee(rs.getBigDecimal("EXAMFEE"));
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return dto;
-    }
     
     
     // AJAX 필터 전용 메서드
@@ -410,11 +359,11 @@ public class CertificationDao {
                 dto.setField(rs.getString("FIELD"));
                 dto.setYear(rs.getInt("YEAR"));
                 dto.setImplSeq(rs.getInt("IMPLSEQ"));
-                dto.setDocPassRate(rs.getBigDecimal("docPassRate"));
+                dto.setDocPassRate(rs.getDouble("docPassRate"));
                 dto.setDocApplicants(rs.getInt("docApplicants"));
-                dto.setPracPassRate(rs.getBigDecimal("pracPassRate"));
+                dto.setPracPassRate(rs.getDouble("pracPassRate"));
                 dto.setPracApplicants(rs.getInt("pracApplicants"));
-                dto.setExamFee(rs.getBigDecimal("EXAMFEE"));
+                dto.setExamFee(rs.getInt("EXAMFEE"));
                 dto.setOrganName(rs.getString("ORGANNAME"));
                 list.add(dto);
             }
@@ -425,5 +374,194 @@ public class CertificationDao {
 
         return list;
     }
+    
+    // 상세정보 조회
+    public CertificationDetailDto getCertificationDetail(int jmcd, int year, int implSeq) {
+        CertificationDetailDto dto = null;
+
+        String sql =
+            "SELECT m.JMCD, m.JMNAME, c.GRADE, c.FIELD, " +
+            "       m.YEAR, m.IMPLSEQ, m.ORGANNAME, " +
+            "       sch.DOCREGSTARTDT, sch.DOCREGENDDT, " +
+            "       sch.DOCEXAMSTARTDT, sch.DOCEXAMENDDT, sch.DOCEXAMDT, sch.DOCPASSDT, " +
+            "       sch.PRACREGSTARTDT, sch.PRACREGENDDT, " +
+            "       sch.PRACEXAMSTARTDT, sch.PRACEXAMENDDT, sch.PRACPASSDT, " +
+            "       s_doc.PASSRATE AS docPassRate, s_doc.APPLICANTS AS docApplicants, " +
+            "       s_prac.PASSRATE AS pracPassRate, s_prac.APPLICANTS AS pracApplicants " +
+            "FROM CERTIFICATION_MASTER m " +
+            "JOIN CERTIFICATION_CATEGORY c ON m.JMCD = c.JMCD " +
+            "LEFT JOIN CERTIFICATION_SCHEDULE sch " +
+            "  ON m.JMCD = sch.JMCD AND m.YEAR = sch.YEAR AND m.IMPLSEQ = sch.IMPLSEQ " +
+            "LEFT JOIN CERTIFICATION_STATS s_doc " +
+            "  ON m.JMCD = s_doc.JMCD AND m.YEAR = s_doc.YEAR AND m.IMPLSEQ = s_doc.IMPLSEQ " +
+            "  AND s_doc.EXAMGB = '필기' " +
+            "LEFT JOIN CERTIFICATION_STATS s_prac " +
+            "  ON m.JMCD = s_prac.JMCD AND m.YEAR = s_prac.YEAR AND m.IMPLSEQ = s_prac.IMPLSEQ " +
+            "  AND s_prac.EXAMGB = '실기' " +
+            "WHERE m.JMCD = ? AND m.YEAR = ? AND m.IMPLSEQ = ?";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, jmcd);
+            pstmt.setInt(2, year);
+            pstmt.setInt(3, implSeq);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    dto = new CertificationDetailDto();
+
+                    // 기본 정보
+                    dto.setJmcd(rs.getInt("JMCD"));
+                    dto.setJmName(rs.getString("JMNAME"));
+                    dto.setGrade(rs.getString("GRADE"));
+                    dto.setField(rs.getString("FIELD"));
+                    dto.setOrganName(rs.getString("ORGANNAME"));
+                    dto.setYear(rs.getInt("YEAR"));
+                    dto.setImplSeq(rs.getInt("IMPLSEQ"));
+
+                    // 필기 일정
+                    dto.setDocRegStartDt(rs.getDate("DOCREGSTARTDT"));
+                    dto.setDocRegEndDt(rs.getDate("DOCREGENDDT"));
+                    dto.setDocExamStartDt(rs.getDate("DOCEXAMSTARTDT"));
+                    dto.setDocExamEndDt(rs.getDate("DOCEXAMENDDT"));
+                    dto.setDocExamDt(rs.getDate("DOCEXAMDT"));
+                    dto.setDocPassDt(rs.getDate("DOCPASSDT"));
+
+                    // 실기 일정
+                    dto.setPracRegStartDt(rs.getDate("PRACREGSTARTDT"));
+                    dto.setPracRegEndDt(rs.getDate("PRACREGENDDT"));
+                    dto.setPracExamStartDt(rs.getDate("PRACEXAMSTARTDT"));
+                    dto.setPracExamEndDt(rs.getDate("PRACEXAMENDDT"));
+                    dto.setPracPassDt(rs.getDate("PRACPASSDT"));
+
+                    // 통계
+                    dto.setDocPassRate(rs.getDouble("docPassRate"));
+                    dto.setDocApplicants(rs.getInt("docApplicants"));
+                    dto.setPracPassRate(rs.getDouble("pracPassRate"));
+                    dto.setPracApplicants(rs.getInt("pracApplicants"));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return dto;
+    }
+    
+    // 회차 목록 조회 메소드
+    public List<CertificationDetailDto> getRoundsByJmcd(int jmcd) {
+        List<CertificationDetailDto> rounds = new ArrayList<>();
+
+        String sql =
+            "SELECT YEAR, IMPLSEQ " +
+            "FROM CERTIFICATION_MASTER " +
+            "WHERE JMCD = ? " +
+            "AND YEAR BETWEEN (EXTRACT(YEAR FROM SYSDATE) - 2) AND EXTRACT(YEAR FROM SYSDATE) " +
+            "ORDER BY YEAR DESC, IMPLSEQ ASC";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, jmcd);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    CertificationDetailDto dto = new CertificationDetailDto();
+                    dto.setYear(rs.getInt("YEAR"));
+                    dto.setImplSeq(rs.getInt("IMPLSEQ"));
+                    rounds.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return rounds;
+    }
+    
+    // Controller가 편하게 사용하도록 상세 + 회차 목록을 묶어주는 메서드
+    public CertificationDetailDto getDetailWithRounds(int jmcd, int year, int implSeq) {
+    	
+        // 현재 회차 상세 조회
+        CertificationDetailDto detail = getCertificationDetail(jmcd, year, implSeq);
+        if (detail == null) return null;
+
+        // 최근 3년치 회차 목록 조회
+        List<CertificationDetailDto> rounds = getRoundsByJmcd(jmcd);
+
+        // DTO에 저장
+        detail.setRounds(rounds);
+        
+        return detail;
+    }
+
+
+    public CertificationDetailDto getCurrentYearLatestCertification(int jmcd) {
+        CertificationDetailDto dto = null;
+
+        String sql =
+            "SELECT jmcd, year, MAX(implSeq) AS latestImplSeq " +
+            "FROM CERTIFICATION_MASTER " +
+            "WHERE jmcd = ? " +
+            "AND year = EXTRACT(YEAR FROM SYSDATE) " +
+            "GROUP BY jmcd, year";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, jmcd);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    int year = rs.getInt("year");
+                    int implSeq = rs.getInt("latestImplSeq");
+
+                    // 최신 회차 상세 정보 + rounds까지 포함
+                    dto = getDetailWithRounds(jmcd, year, implSeq);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return dto;
+    }
+
+
+    public List<CertificationChartRowDto> getStatsByJmcd(int jmcd) {
+        List<CertificationChartRowDto> list = new ArrayList<>();
+
+        String sql = "SELECT year, implSeq, examGb, applicants, passedCnt, " +
+                     "       ROUND((passedCnt / NULLIF(applicants, 0)) * 100, 2) AS passRate " +
+                     "FROM CERTIFICATION_STATS " +
+                     "WHERE jmcd = ? " +
+                     "ORDER BY year DESC, implSeq ASC";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection(); 
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, jmcd);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    CertificationChartRowDto dto = new CertificationChartRowDto();
+                    dto.setYear(rs.getInt("year"));
+                    dto.setImplSeq(rs.getInt("implSeq"));
+                    dto.setExamGb(rs.getString("examGb"));
+                    dto.setApplicants(rs.getInt("applicants"));
+                    dto.setPassedCnt(rs.getInt("passedCnt"));
+                    dto.setPassRate(rs.getDouble("passRate"));
+                    list.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
 
 }
