@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.service.admin.AdminMemberService;
+import kr.or.kosa.service.admin.AdminNoticeService;
 
 
 @WebServlet("*.admin")
@@ -37,11 +38,10 @@ public class AdminController extends HttpServlet {
     			} else if(command.equals("/adminStat.admin")) { //관리자통계보드페이지 
     				forward = new ActionForward();
     				forward.setRedirect(false); 
-    				forward.setPath("/WEB-INF/views/admin/adminStat.jsp");
+    				forward.setPath(USER_VIEW_PATH + "adminStat.jsp");
     			} else if(command.equals("/adminNotice.admin")) { //관리자공지사항페이지 
-    				forward = new ActionForward();
-    				forward.setRedirect(false); 
-    				forward.setPath(USER_VIEW_PATH + "adminNotice.jsp");
+    			    Action action = new AdminNoticeService();
+    			    forward = action.execute(request, response);
     			} else {
     	            response.sendError(HttpServletResponse.SC_NOT_FOUND);
     	            return;
