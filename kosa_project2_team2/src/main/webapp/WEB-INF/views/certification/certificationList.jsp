@@ -54,7 +54,7 @@ tbody td{padding:16px 12px;font-size:13px;color:#555;text-align:center;white-spa
 tbody td:first-child{color:#FF7272;font-weight:700;text-align:left;}
 
 /* 통계 카드 */
-.stats-title{font-size:22px;font-weight:700;margin:0 0 16px 0;color:#333;}
+.stats-title{font-size:22px;font-weight:700;magin-top:60px;margin:0 0 16px 0;color:#333;}
 .stats-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:32px;}
 .stat-card{background:#fff;border-radius:12px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.08);border-left:4px solid #FF7272;text-align:left;transition:.2s;}
 .stat-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.12);transform:translateY(-2px);}
@@ -68,51 +68,86 @@ tbody td:first-child{color:#FF7272;font-weight:700;text-align:left;}
 .graph-box:hover{box-shadow:0 2px 8px rgba(0,0,0,0.12);}
 .graph-title{font-weight:700;font-size:15px;color:#555;margin-bottom:12px;}
 
-/* 페이지네이션 컨테이너 */
+/* 페이지네이션 전체 영역 */
 .pagination {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 10px;
+    gap: 16px;
     margin-top: 40px;
+    margin-bottom: 40px;
+    width: 100%;
 }
 
-/* 기본 버튼 스타일 */
+/* 공통 버튼 스타일 */
 .page-btn {
-    width: 40px;
-    height: 40px;
+    background: none;
     border: none;
-    background: #f8f9fa;
-    color: #666;
-    border-radius: 8px;
+    font-size: 16px;
+    color: #888;
     cursor: pointer;
-    font-size: 14px;
     transition: all 0.2s;
+    padding: 4px 8px;
 }
 
-/* 호버 시 (비활성 버튼) */
-.page-btn:hover:not(.active):not(:disabled) {
-    background: #e9ecef;
+/* 숫자 버튼 */
+.page-btn.number {
+    font-size: 18px;
+    font-weight: 500;
+}
+
+/* 숫자 hover */
+.page-btn.number:hover {
+    color: #FF7272;
 }
 
 /* 현재 페이지 */
 .page-btn.active {
-    background: linear-gradient(45deg, #ff6b9d, #ff8a80);
-    color: white;
+    background-color: #FF7272;
+    color: #fff !important;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-weight: bold;
 }
 
-/* 이전 / 다음 버튼 화살표 */
-.page-btn.nav {
-    font-size: 16px;
-    font-weight: bold;
+/* SVG 버튼 */
+.page-btn.svg-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
 }
 
-/* 비활성 상태 (페이지 범위 밖) */
+.page-btn.svg-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* SVG 기본 색상 */
+.page-btn.svg-btn svg path {
+    stroke: #888;
+    transition: stroke 0.2s;
+}
+
+/* SVG hover */
+.page-btn.svg-btn:hover svg path {
+    stroke: #FF7272;
+}
+
+/* 비활성 */
 .page-btn:disabled {
     opacity: 0.3;
     cursor: not-allowed;
 }
+
+.page-btn:disabled svg path {
+    stroke: #ccc;
+}
+
 
 
 @media(max-width:768px){
@@ -243,7 +278,25 @@ tbody td:first-child{color:#FF7272;font-weight:700;text-align:left;}
   </div>
 
   <!-- 페이지네이션 -->
-  <div class="pagination" id="pagination"></div>
+  <div class="pagination" id="pagination">
+    <button class="page-btn svg-btn" id="prevBtn">
+        <!-- 왼쪽 SVG -->
+        <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 26L2 14L14 2" stroke="#FF7272" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+
+    <button class="page-btn number">1</button>
+    <button class="page-btn number">2</button>
+    <button class="page-btn number">3</button>
+
+    <button class="page-btn svg-btn" id="nextBtn">
+        <!-- 오른쪽 SVG -->
+        <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2L14 14L2 26" stroke="#FF7272" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+</div>
 
   <!-- 통계 카드 -->
   <h2 class="stats-title">통계 정보</h2>
@@ -407,38 +460,54 @@ document.addEventListener("DOMContentLoaded", function () {
     
     // 페이지네이션 렌더링
     function renderPagination() {
-        var pagination = document.getElementById("pagination");
-        pagination.innerHTML = "";
+    var pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
 
-        // 이전 버튼
-        var prevBtn = document.createElement("button");
-        prevBtn.className = "page-btn nav";
-        prevBtn.textContent = "‹";
-        prevBtn.disabled = (currentPage === 1);
-        prevBtn.onclick = function() { changePage(currentPage - 1); };
-        pagination.appendChild(prevBtn);
+    var maxPagesToShow = 5;
+    var startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+    var endPage = startPage + maxPagesToShow - 1;
 
-        // 숫자 버튼 1~5만 표시
-        var maxPageToShow = Math.min(5, totalPages);
-        for (var i = 1; i <= maxPageToShow; i++) {
-            var btn = document.createElement("button");
-            btn.className = "page-btn" + (i === currentPage ? " active" : "");
-            btn.textContent = i;
-            btn.setAttribute("data-page", i);
-            btn.onclick = function() { 
-                changePage(parseInt(this.getAttribute("data-page"))); 
-            };
-            pagination.appendChild(btn);
-        }
-
-        // 다음 버튼
-        var nextBtn = document.createElement("button");
-        nextBtn.className = "page-btn nav";
-        nextBtn.textContent = "›";
-        nextBtn.disabled = (currentPage === totalPages);
-        nextBtn.onclick = function() { changePage(currentPage + 1); };
-        pagination.appendChild(nextBtn);
+    if (endPage > totalPages) {
+        endPage = totalPages;
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
+
+    // 이전 버튼 (SVG 그대로)
+    var prevBtn = document.createElement("button");
+    prevBtn.className = "page-btn svg-btn";
+    prevBtn.innerHTML = `
+        <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 26L2 14L14 2" stroke="#FF7272" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    `;
+    prevBtn.disabled = (currentPage === 1);
+    prevBtn.onclick = function () { changePage(currentPage - 1); };
+    pagination.appendChild(prevBtn);
+
+    // 숫자 버튼
+    for (var i = startPage; i <= endPage; i++) {
+        var btn = document.createElement("button");
+        btn.className = "page-btn number" + (i === currentPage ? " active" : "");
+        btn.textContent = i;
+        btn.onclick = (function(page) {
+            return function () { changePage(page); };
+        })(i);
+        pagination.appendChild(btn);
+    }
+
+    // 다음 버튼 (SVG 그대로)
+    var nextBtn = document.createElement("button");
+    nextBtn.className = "page-btn svg-btn";
+    nextBtn.innerHTML = `
+        <svg width="16" height="28" viewBox="0 0 16 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2L14 14L2 26" stroke="#FF7272" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    `;
+    nextBtn.disabled = (currentPage === totalPages);
+    nextBtn.onclick = function () { changePage(currentPage + 1); };
+    pagination.appendChild(nextBtn);
+	}
+
     
     // 차트 통계
     function renderCharts(data) {
