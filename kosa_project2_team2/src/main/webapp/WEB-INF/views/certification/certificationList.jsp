@@ -257,6 +257,8 @@ certData.push({
   jmName: "<c:out value='${c.jmName}'/>",
   grade: "<c:out value='${c.grade}'/>",
   field: "<c:out value='${c.field}'/>",
+  year: ${c.year},         
+  implSeq: ${c.implSeq},   
   docPassRate: ${c.docPassRate != null ? c.docPassRate : 0},
   pracPassRate: ${c.pracPassRate != null ? c.pracPassRate : 0},
   docApplicants: ${c.docApplicants != null ? c.docApplicants : 0},
@@ -265,7 +267,7 @@ certData.push({
   organName: "<c:out value='${c.organName}'/>"
 });
 </c:forEach>
-
+console.log(certData[0]);
 var contextPath = "<c:out value='${ctx}'/>";
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -346,6 +348,15 @@ document.addEventListener("DOMContentLoaded", function () {
         '<td>' + toNum(cert.pracApplicants) + '</td>' +
         '<td>' + toCurrency(cert.examFee) + '</td>' +
         '<td>' + escapeHtml(cert.organName || "-") + '</td>';
+        
+        /* 더블클릭 이벤트 -> 상세페이지 */
+        row.addEventListener("dblclick", function () {
+          var url = contextPath + "/certificationDetail.cert"
+                  + "?jmcd=" + encodeURIComponent(cert.jmcd)
+                  + "&year=" + encodeURIComponent(cert.year)
+                  + "&implSeq=" + encodeURIComponent(cert.implSeq);
+          window.location.href = url;
+        });
       tbody.appendChild(row);
     });
   }
