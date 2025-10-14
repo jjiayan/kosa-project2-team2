@@ -52,8 +52,9 @@ public class ReplyListController extends HttpServlet {
 				if (orderBy == null || orderBy.trim().isEmpty()) {
 					orderBy = "ASC";
 				}
-			
-				List<ReplyDto> replies = replyDao.replyListByRoomBoardId(roomBoardId, orderBy);
+				
+				// userId를 전달하여 좋아요 정보 포함
+				List<ReplyDto> replies = replyDao.replyListByRoomBoardId(roomBoardId, orderBy, currentUserId);
 						
 				if (replies == null || replies.isEmpty()) {
 	                result.put("success", true);

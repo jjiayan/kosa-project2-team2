@@ -327,6 +327,18 @@
     color: #666;
 }
 
+/* .btn-like {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: #ccc;
+    padding: 0;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+} */
+
 .btn-like {
     background: none;
     border: none;
@@ -343,13 +355,22 @@
     color: #ff5a5f;
 }
 
-.btn-like.liked {
-    color: #ff5a5f;
+.btn-like svg {
+    transition: all 0.2s;
 }
 
-.btn-like .heart-icon {
-    font-size: 16px;
+/* 좋아요 카운트 스타일 추가 */
+.btn-like .like-count {
+    font-size: 12px;
+    margin-left: 4px;
+    font-weight: 500;
 }
+
+.btn-like.liked svg {
+    fill: #ff5a5f;
+    stroke: #ff5a5f;
+}
+
 
 /* 더보기 메뉴 */
 .reply-more-menu {
@@ -626,8 +647,18 @@ function createReplyHtml(reply, isChild) {
     }
     
     var replyButton = '<button class="btn-reply-write" onclick="toggleChildReplyForm(' + reply.replyId + ')">답글쓰기</button>';
-    var likeButton = '<button class="btn-like" onclick="toggleLike(' + reply.replyId + ')">' +
-        '<span class="heart-icon">♥</span></button>';
+
+    // 좋아요 버튼 (isLiked 상태 반영)
+    var isLikedClass = reply.isLiked ? 'liked' : '';
+    var fillColor = reply.isLiked ? '#ff5a5f' : 'none';
+    var strokeColor = reply.isLiked ? '#ff5a5f' : 'currentColor';
+    
+    var likeButton = '<button class="btn-like ' + isLikedClass + '" data-reply-id="' + reply.replyId + '" onclick="toggleReplyLike(' + reply.replyId + ')">' +
+       '<svg width="14" height="14" viewBox="0 0 24 24" fill="' + fillColor + '" stroke="' + strokeColor + '" stroke-width="2">' +
+       '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>' +
+       '</svg>' +
+       (reply.likeCount > 0 ? ' <span class="like-count">' + reply.likeCount + '</span>' : '') +
+       '</button>';
     
     var childForm = '<div class="child-reply-form" id="childForm' + reply.replyId + '" style="display:none;">' +
         '<textarea class="reply-textarea" id="childContent' + reply.replyId + '" ' +
@@ -655,10 +686,10 @@ function createReplyHtml(reply, isChild) {
         '<div class="reply-content" data-original="' + escapeHtml(reply.replyContent) + '">' +
         escapeHtml(reply.replyContent) + '</div>' +
         '<span class="reply-time">' + timeText + '</span>' + replyButton + likeButton +
-	    '</div></div>' +              // ✅ reply-author 닫기
+	    '</div></div>' +
 	    actionButtons +
-	    '</div>' +                     // ✅ reply-item-header 닫기
-	    childForm +                    // ✅ childForm을 여기로 이동 (reply-item 바로 아래)
+	    '</div>' +
+	    childForm +
 	    '</div>';  
 }
 
@@ -726,10 +757,59 @@ function removeImage(index) {
     displayAttachedImages();
 }
 
-function toggleLike(replyId) {
-    console.log('좋아요 토글:', replyId);
-    alert('좋아요 기능은 준비 중입니다.');
-}
+/**
+ * ✅ 댓글 좋아요 토글
+ */
+ function toggleReplyLike(replyId) {
+	    jQuery.ajax({
+	        url: '${pageContext.request.contextPath}/like/action.ajax',
+	        type: 'POST',
+	        dataType: 'json',
+	        data: {
+	            targetType: 'REPLY',
+	            targetId: replyId
+	        },
+	        success: function(response) {
+	            console.log('좋아요 응답:', response);
+	            if (response.success) {
+	                var likeBtn = jQuery('.btn-like[data-reply-id="' + replyId + '"]');
+	                var svg = likeBtn.find('svg');
+	                var likeCountSpan = likeBtn.find('.like-count');
+	                
+	                // 좋아요 상태에 따라 UI 업데이트
+	                if (response.isLiked) {
+	                    likeBtn.addClass('liked');
+	                    svg.attr('fill', '#ff5a5f');
+	                    svg.attr('stroke', '#ff5a5f');
+	                } else {
+	                    likeBtn.removeClass('liked');
+	                    svg.attr('fill', 'none');
+	                    svg.attr('stroke', 'currentColor');
+	                }
+	                
+	                // 좋아요 개수 업데이트
+	                if (response.likeCount > 0) {
+	                    if (likeCountSpan.length > 0) {
+	                        likeCountSpan.text(response.likeCount);
+	                    } else {
+	                        likeBtn.append(' <span class="like-count">' + response.likeCount + '</span>');
+	                    }
+	                } else {
+	                    likeCountSpan.remove();
+	                }
+	                
+	                console.log('좋아요 ' + response.action + '! 총 ' + response.likeCount + '개');
+	            } else {
+	                alert(response.message || '좋아요 처리에 실패했습니다.');
+	            }
+	        },
+	        error: function(xhr, status, error) {
+	            console.error('좋아요 처리 중 오류:', error);
+	            console.error('응답:', xhr.responseText);
+	            alert('좋아요 처리에 실패했습니다.');
+	        }
+	    });
+	}
 
 /**
  * ✅ 댓글 작성 - /reply/write.ajax
