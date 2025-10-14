@@ -13,9 +13,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 
 
 
@@ -521,6 +524,7 @@ public class RoomDao {
 		}finally{
 			ConnectionPoolHelper.close(rs);
 			ConnectionPoolHelper.close(pstmt);
+			ConnectionPoolHelper.close(conn);
 		}
 		
 		return regionList;
@@ -602,7 +606,73 @@ public class RoomDao {
 		return regionList;
 	}
 	
-	
+	public Map<String, Object> findMyRoomCards(int userId, int offset, int limit) throws Exception {
+        // hasMore 판단하려면 fetch = limit + 1 로 가져온 후 초과 여부로 표시
+        int fetch = limit + 1;
+
+        String sql =
+            "SELECT r.room_id, r.room_title, r.room_thumbnail, r.created_at, " +
+            "       r1.region_name AS child_region, r2.region_name AS parent_region, " +
+            "       cm.jmName, " +
+            "       (SELECT COUNT(*) FROM JOIN_ROOM jx WHERE jx.room_id = r.room_id) AS member_count, " +
+            "       (SELECT COUNT(*) FROM LIKE_ROOM lx WHERE lx.room_id = r.room_id) AS like_count " +
+            "FROM ROOM r " +
+            "JOIN JOIN_ROOM jr ON jr.room_id = r.room_id AND jr.user_id = ? " +
+            "JOIN REGION r1 ON r1.region_id = r.region_id " +
+            "LEFT JOIN REGION r2 ON r2.region_id = r1.parent_id " +
+            "JOIN CERTIFICATION_MASTER cm " +
+            "  ON cm.jmcd = r.jmcd AND cm.year = r.year AND cm.implSeq = r.implSeq " +
+            "WHERE r.is_deleted = 'N' " +
+            "ORDER BY r.created_at DESC, r.room_id DESC " +
+            "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
+        boolean hasMore = false;
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = ConnectionPoolHelper.getConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, userId);
+            ps.setInt(2, offset);
+            ps.setInt(3, fetch);
+
+            rs = ps.executeQuery();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd");
+
+            while (rs.next()) {
+                if (items.size() == limit) { // 초과 한 개는 hasMore 판단용
+                    hasMore = true;
+                    break;
+                }
+                Map<String, Object> m = new HashMap<String, Object>();
+                int roomId = rs.getInt("room_id");
+                m.put("roomId", Integer.valueOf(roomId));
+                m.put("title", rs.getString("room_title"));
+                m.put("thumbUrl", rs.getString("room_thumbnail"));
+                m.put("parentRegion", rs.getString("parent_region")); // 예: 서울시
+                m.put("childRegion", rs.getString("child_region"));   // 예: 강남구
+                m.put("certName", rs.getString("jmName"));            // 예: 정보처리기사
+                Timestamp ts = rs.getTimestamp("created_at");
+                m.put("date", ts != null ? sdf.format(ts) : "");
+                m.put("memberCount", Integer.valueOf(rs.getInt("member_count")));
+                m.put("likeCount", Integer.valueOf(rs.getInt("like_count")));
+                items.add(m);
+            }
+        } finally {
+            ConnectionPoolHelper.close(rs);
+            ConnectionPoolHelper.close(ps);
+            ConnectionPoolHelper.close(conn);
+        }
+
+        Map<String, Object> res = new HashMap<String, Object>();
+        res.put("items", items);
+        res.put("hasMore", Boolean.valueOf(hasMore));
+        return res;
+    }
 	
 
 }
