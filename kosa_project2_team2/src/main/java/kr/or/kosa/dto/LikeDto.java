@@ -32,9 +32,9 @@ public class LikeDto {
     // Helper 메서드: 테이블명 반환
     public String getTableName() {
         switch(targetType) {
-            case "ROOM": return "모임방좋아요";
-            case "ROOM_BOARD": return "게시글좋아요";
-            case "REPLY": return "댓글좋아요";
+            case "ROOM": return "LIKE_ROOM";
+            case "ROOM_BOARD": return "LIKE_ROOM_BOARD";
+            case "REPLY": return "LIKE_REPLY";
             default: throw new IllegalArgumentException("Invalid target type: " + targetType);
         }
     }
