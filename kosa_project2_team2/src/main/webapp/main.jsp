@@ -124,57 +124,63 @@
     margin-top: 40px;
   }
 
-  .btn {
-    display: inline-block;
-    position: relative;
-    font-size: 18px;
-    font-weight: 600;
-    color: #666;
-    text-decoration: none;
-    padding: 16px 70px;
-    background: transparent;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 40px;
-  }
 
-  .btn:hover {
-    color: #FF7272;
-    letter-spacing: 1px;
-    transform: translateY(-3px);
-  }
+.btn-2 {
+  display: inline-block;
+  position: relative;
+  font-size: 16px;
+  font-weight: 600;
+  color: #666;
+  text-decoration: none;
+  background-color: transparent;
+  padding: 12px 40px;
+  border-top: 2px solid #666;
+  border-bottom: 2px solid #666;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  letter-spacing: 1px;
+  margin-top: 30px;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
 
-  .btn:active {
-    color: #ff4c4c;
-    letter-spacing: 3px;
-    transform: translateY(1px);
-  }
+/* 좌우 라인 효과 */
+.btn-2::before,
+.btn-2::after {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 0;
+  background-color: #FF7272;
+  transition: height 0.3s ease;
+}
 
-  .btn-2::before,
-  .btn-2::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background-color: rgba(255, 114, 114, 0.4);
-    transition: all 0.35s ease;
-  }
+.btn-2::before {
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
 
-  .btn-2::before { top: 0; }
-  .btn-2::after { bottom: 0; }
+.btn-2::after {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
 
-  .btn-2:hover::before,
-  .btn-2:hover::after {
-    width: 80%;
-    background-color: #FF7272;
-  }
+.btn-2:hover {
+  color: #FF7272;
+  border-top: 2px solid #FF7272;
+  border-bottom: 2px solid #FF7272;
+  transform: translateY(-3px);
+}
 
-  .btn-2:active::before,
-  .btn-2:active::after {
-    background-color: #ff4c4c;
-  }
+/* hover 시 세로 라인 올라오는 애니메이션 */
+.btn-2:hover::before,
+.btn-2:hover::after {
+  height: 100%;
+}
+
 
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(30px); }
@@ -206,7 +212,7 @@
     window.addEventListener('load', () => {
       setTimeout(() => {
         document.getElementById('hero').classList.add('shrink');
-      }, 2000);
+      }, 1100);
     });
 
     const bg = document.getElementById('floating-bg');
