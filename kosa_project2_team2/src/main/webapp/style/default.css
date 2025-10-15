@@ -1,15 +1,19 @@
+/* ✅ 전역: 스크롤은 되지만 스크롤바는 보이지 않음 */
 html, body {
-  margin: 0;
-  padding: 0;
-  overflow-x: hidden;  /* 가로 스크롤 차단 */
-  overflow-y: auto;    /* 세로 스크롤 가능 */
+  height:auto;
+  overflow-y:scroll;     /* 스크롤 가능 유지 */
+  overflow-x:hidden;
+  -ms-overflow-style:none;  /* IE/Edge */
+  scrollbar-width:none;     /* Firefox */
 }
 
-/* 스크롤바 숨기기 (브라우저별) — html에 적용 */
-html::-webkit-scrollbar {
-  display: none;              /* Chrome, Safari, Edge */
+/* ✅ Chrome, Safari 등 WebKit 계열 */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display:none;
 }
-html {
-  -ms-overflow-style: none;   /* IE/Old Edge */
-  scrollbar-width: none;      /* Firefox */
+
+/* 필요할 때만 완전히 잠그고 싶으면 이 클래스 사용 */
+.lock-scroll {
+  overflow:hidden !important;
 }
