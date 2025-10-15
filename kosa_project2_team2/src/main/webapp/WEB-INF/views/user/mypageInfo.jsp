@@ -147,6 +147,21 @@
                   <div class="mini-rows">
                     <div class="k">연락처</div>
                     <div id="phoneDisplay"><c:out value="${empty me.user_phonenumber ? '-' : me.user_phonenumber}" /></div>
+
+                    <!-- ✅ 연령대 표시 -->
+                    <div class="k">연령대</div>
+<div>
+  <c:choose>
+    <c:when test="${me.age_group == 10}">10대</c:when>
+    <c:when test="${me.age_group == 20}">20대</c:when>
+    <c:when test="${me.age_group == 30}">30대</c:when>
+    <c:when test="${me.age_group == 40}">40대</c:when>
+    <c:when test="${me.age_group == 50}">50대</c:when>
+    <c:otherwise>-</c:otherwise>
+  </c:choose>
+</div>
+
+
                     <div class="k">가입일</div>
                     <div>
                       <fmt:formatDate value="${me.createdAt}" pattern="yyyy-MM-dd" timeZone="Asia/Seoul"/>
@@ -206,14 +221,14 @@
       if (MEID) url += '&userId=' + encodeURIComponent(MEID);
       return url;
     }
-    // ✅ 게시글 상세: roomBoardId + userId 로만 이동 (서비스 시그니처에 맞춤)
+    // 게시글 상세(서비스 시그니처에 맞춤)
     function boardDetailUrl(roomBoardId){
       var url = CTX + '/roomboarddetail.room?roomBoardId=' + encodeURIComponent(roomBoardId);
       if (MEID) url += '&userId=' + encodeURIComponent(MEID);
       return url;
     }
 
-    // ===== 아바타 정사각 =====
+    // 아바타 정사각
     (function(){
       var $box = $('#mypAvatarBox');
       var $txt = $('#mypTextBlock');
@@ -226,7 +241,7 @@
       setTimeout(sync, 150);
     })();
 
-    // ===== 연락처 포맷 =====
+    // 연락처 포맷
     (function(){
       var $el = $('#phoneDisplay');
       if(!$el.length) return;
@@ -239,7 +254,7 @@
       }
     })();
 
-    // ===== 내가 참여한 방 (AJAX) =====
+    // 내가 참여한 방 (AJAX)
     function renderRooms(payload){
       var items = $.isArray(payload) ? payload : ($.isArray(payload.items) ? payload.items : []);
       if(!items.length){ $roomsArea.html('<div class="empty">참여한 방이 없습니다.</div>'); return; }
@@ -296,7 +311,7 @@
         });
     }
 
-    // ===== 내가 쓴 글 (AJAX) =====
+    // 내가 쓴 글 (AJAX)
     function renderPosts(list){
       if(!$.isArray(list) || !list.length){
         $postsArea.html('<div class="empty">작성한 글이 없습니다.</div>');
@@ -309,15 +324,11 @@
         var date    = esc(p.date || '');
         var replies = (p.replyCount!=null? p.replyCount:0);
         var views   = (p.viewCount !=null? p.viewCount :0);
-
-        // ✅ 서버 응답의 roomBoardId 사용 (필수)
         var roomBoardId = p.roomBoardId;
 
-        // 방 이동용
         var roomId      = p.roomId  || p.room_id  || p.roomNo  || p.room_no;
         var roomTitle   = esc(p.roomTitle || p.roomName || '모임방');
 
-        // 데이터 속성에 담고, 클릭시 JS로 강제 이동
         var titleData = (roomBoardId!=null ? (' data-room-board-id="'+ String(roomBoardId) +'"') : '');
         var roomData  = (roomId!=null      ? (' data-room-id="'+ String(roomId) +'"') : '');
 
@@ -336,7 +347,7 @@
           +        date
           +     '</span>'
           +     '<span class="i">'
-          +       '<svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg>'
+          +       '<svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1-4-4h10a4 4 0 0 1 4 4z"></path></svg>'
           +        replies
           +     '</span>'
           +     '<span class="i">'
@@ -363,8 +374,7 @@
         });
     }
 
-    // ===== 클릭 위임 =====
-    // 제목 → /roomboarddetail.room?roomBoardId=...&userId=...
+    // 클릭 위임
     $(document).on('click', '.post .p-title', function(e){
       e.preventDefault();
       var roomBoardId = $(this).data('roomBoardId');
@@ -372,7 +382,6 @@
       window.location.href = boardDetailUrl(roomBoardId);
     });
 
-    // 방 배지 → /roomdetail.room?roomId=...&userId=...
     $(document).on('click', '.post .p-room', function(e){
       e.preventDefault();
       var roomId = $(this).data('roomId');

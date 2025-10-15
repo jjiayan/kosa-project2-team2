@@ -11,26 +11,30 @@ import kr.or.kosa.utils.ConnectionPoolHelper;
 public class UserDao {
 
     /** 회원가입: CREATED_AT은 SYSDATE로 명시 입력 */
-	public int insertUser(UserDto user) throws Exception {
-	    String sql =
-	        "INSERT INTO \"USER\" (" +
-	        "  user_login_id, user_pw, user_status, user_nickname, " +
-	        "  user_bio, user_phonenumber, user_photo, age_group, CREATED_AT" +
-	        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
-	    try (Connection conn = ConnectionPoolHelper.getConnection();
-	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
-	        pstmt.setString(1, user.getUser_login_id());
-	        pstmt.setString(2, user.getUser_pw());
-	        pstmt.setString(3, user.getUser_status());
-	        pstmt.setString(4, user.getUser_nickname());
-	        pstmt.setString(5, user.getUser_bio());
-	        pstmt.setString(6, user.getUser_phonenumber());
-	        pstmt.setString(7, user.getUser_photo());
-	        pstmt.setInt(8, user.getAge_group());  // ✅ int로 저장
-	        return pstmt.executeUpdate();
-	    }
-	}
-
+    public int insertUser(UserDto user) throws Exception {
+        String sql =
+            "INSERT INTO \"USER\" (" +
+            "  user_login_id, user_pw, user_status, user_nickname, " +
+            "  user_bio, user_phonenumber, user_photo, age_group, CREATED_AT" +
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, user.getUser_login_id());
+            pstmt.setString(2, user.getUser_pw());
+            pstmt.setString(3, user.getUser_status());
+            pstmt.setString(4, user.getUser_nickname());
+            pstmt.setString(5, user.getUser_bio());
+            pstmt.setString(6, user.getUser_phonenumber());
+            pstmt.setString(7, user.getUser_photo());
+            // age_group: null 허용 시 setNull 처리, 아니면 setInt
+            if (user.getAge_group() == 0) {
+                pstmt.setNull(8, Types.INTEGER);
+            } else {
+                pstmt.setInt(8, user.getAge_group());
+            }
+            return pstmt.executeUpdate();
+        }
+    }
 
     /** 아이디 중복 확인 */
     public int findUserByLoginId(String loginId) {
@@ -137,7 +141,7 @@ public class UserDao {
         String sql =
             "SELECT user_id, user_login_id, user_pw, user_status, " +
             "       user_nickname, user_bio, user_phonenumber, user_photo, " +
-            "       age_group, CREATED_AT " +                    // ✅ 포함
+            "       age_group, CREATED_AT " +
             "FROM \"USER\" WHERE user_login_id = ?";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -154,7 +158,7 @@ public class UserDao {
         String sql =
             "SELECT user_id, user_login_id, user_pw, user_status, " +
             "       user_nickname, user_bio, user_phonenumber, user_photo, " +
-            "       age_group, CREATED_AT " +                    // ✅ 포함
+            "       age_group, CREATED_AT " +
             "FROM \"USER\" WHERE user_id = ?";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -167,17 +171,19 @@ public class UserDao {
     }
 
     /**
-     * 프로필 업데이트 (사진 제어 포함)
+     * 프로필 업데이트 (사진/연령대 제어 포함)
      *  - setPhoto == null  : user_photo 컬럼 미변경
      *  - setPhoto == true  : photoUrl == null → NULL 저장(기본 이미지 의도)
      *                        photoUrl 값 존재 → URL 저장
+     *  - ageGroup == null  : age_group 컬럼 미변경
      */
     public int updateUserProfileById(int userId,
                                      String nickname,
                                      String bio,
                                      String phoneDigits,
                                      Boolean setPhoto,
-                                     String photoUrl) throws Exception {
+                                     String photoUrl,
+                                     Integer ageGroup) throws Exception {
 
         StringBuilder sb = new StringBuilder();
         sb.append("UPDATE \"USER\" SET ")
@@ -187,6 +193,9 @@ public class UserDao {
 
         if (setPhoto != null) {
             sb.append(", user_photo = ? ");
+        }
+        if (ageGroup != null) {
+            sb.append(", age_group = ? ");
         }
 
         sb.append(" WHERE user_id = ?");
@@ -218,6 +227,11 @@ public class UserDao {
                 }
             }
 
+            // age_group (옵션)
+            if (ageGroup != null) {
+                ps.setInt(idx++, ageGroup);
+            }
+
             // userId
             ps.setInt(idx, userId);
 
@@ -247,7 +261,10 @@ public class UserDao {
         u.setUser_bio(rs.getString("user_bio"));
         u.setUser_phonenumber(rs.getString("user_phonenumber"));
         u.setUser_photo(rs.getString("user_photo"));
-        u.setAge_group(rs.getInt("age_group")); // ✅ 매핑
+
+        int age = rs.getInt("age_group");
+        if (rs.wasNull()) age = 0;
+        u.setAge_group(age);
 
         java.sql.Timestamp ts = rs.getTimestamp("CREATED_AT");
         if (ts != null) u.setCreatedAt(new java.util.Date(ts.getTime()));

@@ -145,6 +145,22 @@
                     </div>
                   </div>
 
+                  <!-- ✅ 연령대 선택 -->
+                  <div class="form-grid">
+                    <label for="ageGroup">연령대</label>
+                    <div class="field-wrap">
+                      <select id="ageGroup" name="ageGroup" class="input" required>
+                        <option value="0" ${user.age_group == 0 ? "selected" : ""} disabled>선택</option>
+                        <option value="10" ${user.age_group == 10 ? "selected" : ""}>10대</option>
+                        <option value="20" ${user.age_group == 20 ? "selected" : ""}>20대</option>
+                        <option value="30" ${user.age_group == 30 ? "selected" : ""}>30대</option>
+                        <option value="40" ${user.age_group == 40 ? "selected" : ""}>40대</option>
+                        <option value="50" ${user.age_group == 50 ? "selected" : ""}>50대</option>
+                      </select>
+                    </div>
+                  </div>
+                  <!-- /연령대 -->
+
                   <div class="form-grid">
                     <label for="newPassword">새 비밀번호(선택)</label>
                     <div class="field-wrap">
