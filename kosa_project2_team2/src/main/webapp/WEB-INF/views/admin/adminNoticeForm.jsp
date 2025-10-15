@@ -50,15 +50,29 @@ main {
 	padding: 24px 28px;
 	min-height: 100vh;
 }
-
+header.nav-root * {
+		  line-height: normal;
+		  padding: 0;
+		  margin: 0;
+		}
 /* ===== 제목 ===== */
-h2 {
-	text-align: center;
-	font-weight: 700;
-	color: #444;
-	margin-top: 80px;
-	margin-bottom: 40px;
-}
+.page-header{
+	      display:flex;
+	      justify-content:center;
+	      align-items:center;
+	      flex-direction:column;
+	      text-align:center;
+	      margin-top: 20px; 
+	      margin-bottom:40px;
+	      padding:20px 0;
+	    }
+	    .page-header h1{
+	      font-size:32px;
+	      font-weight:700;
+	      color:#333;
+	      text-align:center;
+	      margin:0;
+	    }
 
 /* ===== 폼 컨테이너 ===== */
 .notice-container {
@@ -154,8 +168,9 @@ h2 {
 
 		<!-- 우측 본문 -->
 		<main>
-			<h2>공지사항 글쓰기</h2>
-
+		     <header class="page-header">
+		        <h1>공지사항 글쓰기</h1>
+		     </header>
 			<div class="notice-container">
 				<form id="noticeForm" method="post"
 				      action="${pageContext.request.contextPath}/${notice != null ? 'adminNoticeUpdate.admin' : 'adminNoticeWrite.admin'}">
@@ -204,10 +219,41 @@ $(document).ready(function() {
           ['font', ['fontsize', 'color']],
           ['para', ['ul', 'ol', 'paragraph']],
           ['insert', ['link', 'picture']],
-          ['view', ['fullscreen', 'codeview', 'help']]
-      ]
+          ['view', ['codeview', 'help']]
+      ],
+      callbacks: { // 이미지 업로드 시 서버로 전송
+          onImageUpload: function(files) {
+              if (files && files[0]) uploadImageToServer(files[0]);
+          }
+      }
   });
 });
+
+// room/ajax/ImageAjaxController 사용  
+function uploadImageToServer(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+
+    $.ajax({
+        url: '${pageContext.request.contextPath}/imageupload.imageajax',
+        method: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        success: function(resp) {
+            const saved = resp.trim(); 
+            $('#summernote').summernote('insertImage', '${pageContext.request.contextPath}' + saved);
+        },
+        error: function() {
+            const fr = new FileReader();
+            fr.onload = e => {
+                $('#summernote').summernote('insertImage', e.target.result);
+                alert('이미지 업로드 실패! 임시로 삽입되었습니다.');
+            };
+            fr.readAsDataURL(file);
+        }
+    });
+}
 
 // 뒤로가기 버튼
 function goBack() {
