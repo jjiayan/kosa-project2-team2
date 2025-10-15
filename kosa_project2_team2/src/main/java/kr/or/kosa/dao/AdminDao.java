@@ -113,16 +113,38 @@ public class AdminDao {
 
     // 회원탈퇴
     public int deleteUser(int userId) {
-        String sql = "UPDATE \"USER\" SET user_status = 'DELETED' WHERE user_id = ?";
+        String sqlUser = "UPDATE \"USER\" SET user_status = 'DELETED' WHERE user_id = ?";
+        String sqlRoom = """
+            UPDATE ROOM r
+            SET r.is_deleted = 'Y'
+            WHERE r.room_id IN (
+                SELECT jr.room_id
+                FROM JOIN_ROOM jr
+                WHERE jr.user_id = ?
+            )
+            """;
+
         try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            return pstmt.executeUpdate();
+             PreparedStatement pstmtUser = conn.prepareStatement(sqlUser);
+             PreparedStatement pstmtRoom = conn.prepareStatement(sqlRoom)) {
+
+            conn.setAutoCommit(false); // 트랜잭션 시작
+
+            pstmtUser.setInt(1, userId);
+            int userResult = pstmtUser.executeUpdate();
+
+            pstmtRoom.setInt(1, userId);
+            int roomResult = pstmtRoom.executeUpdate();
+
+            conn.commit(); // 둘 다 성공 시 커밋
+
+            return userResult + roomResult;
         } catch (SQLException e) {
             e.printStackTrace();
+            return 0;
         }
-        return 0;
     }
+
     
 	//adminNotice
     

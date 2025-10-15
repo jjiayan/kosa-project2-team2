@@ -20,15 +20,28 @@ body {
 	background-color: #fffdfd;
 	color: #333;
 }
-
-h2 {
-	text-align: center;
-	font-weight: 700;
-	color: #444;
-	margin-top: 80px;
-	margin-bottom: 40px;
+header.nav-root * {
+  line-height: normal;
+  padding: 0;
+  margin: 0;
 }
-
+.page-header{
+	      display:flex;
+	      justify-content:center;
+	      align-items:center;
+	      flex-direction:column;
+	      text-align:center;
+	      margin-top: 20px; 
+	      margin-bottom:40px;
+	      padding:20px 0;
+	    }
+	    .page-header h1{
+	      font-size:32px;
+	      font-weight:700;
+	      color:#333;
+	      text-align:center;
+	      margin:0;
+	    }
 .notice-container {
 	max-width: 1000px;
 	margin: 0 auto 80px;
@@ -166,7 +179,18 @@ tr:hover {
 	margin: 0;
 	padding: 0;
 }
+/* === admin이 아닐 때 중앙 정렬용 === */
+.center-layout {
+	display: flex;
+	justify-content: center;
+}
 
+.center-layout main {
+	max-width: 1000px;   /* 공지사항 컨테이너 크기와 맞춤 */
+	width: 100%;
+	border-left: none;   /* 사이드바 구분선 제거 */
+	padding: 40px 50px;
+}
 main {
 	background: #fff; 
 	border-left: 1px solid #e5e7eb;
@@ -258,15 +282,19 @@ main {
 <body>
 	<jsp:include page="/include/nav.jsp" />
 	<!-- 사이드바 + 메인 레이아웃 -->
-	<div class="layout-wrap">
+ 	<div class="layout-wrap ${empty sessionScope.LOGIN_USER or sessionScope.LOGIN_USER.user_status ne 'ADMIN' ? 'center-layout' : ''}">
 		<!-- 좌측 사이드바 -->
-		<jsp:include page="/include/adminSidebar.jsp">
-			<jsp:param name="current" value="adminNotice" />
-		</jsp:include>
+	    <jsp:include page="/include/adminSidebar.jsp">
+	        <jsp:param name="current" value="adminNotice" />
+	    </jsp:include>
+		
 		<!-- 우측 본문 -->
 		<main>
 			<!-- 제목 -->
-			<h2>공지사항</h2>
+		     <header class="page-header">
+		        <h1>공지사항</h1>
+		     </header>
+		
 			<div class="notice-container">
 				<div class="notice-header">
 					<c:if

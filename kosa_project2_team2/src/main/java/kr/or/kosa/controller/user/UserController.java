@@ -105,6 +105,10 @@ public class UserController extends HttpServlet {
         	forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "mypageInfo.jsp");
+        }else if (command.equals("/mypage/myroomspage.user")) {
+            forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath(USER_VIEW_PATH + "mypageRooms.jsp");
         }
         
         

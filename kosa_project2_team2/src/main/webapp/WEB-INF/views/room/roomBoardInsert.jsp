@@ -38,9 +38,8 @@
 
 <div class="layout-wrap">
   <jsp:include page="/include/sidebar.jsp">
-    <jsp:param name="current" value="posts"/>
-  </jsp:include>
-
+    <jsp:param name="current" value="${roomBoardType == 'NOTICE' ? 'notice' : 'posts'}"/>
+</jsp:include>
   <main>
     <div class="write-container">
       <h1>

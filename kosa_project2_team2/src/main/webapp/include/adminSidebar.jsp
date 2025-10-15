@@ -78,19 +78,19 @@
     }
   }
 </style>
-
+<c:if test="${not empty sessionScope.LOGIN_USER and sessionScope.LOGIN_USER.user_status eq 'ADMIN'}">
 <nav class="app-sidenav" aria-label="사이드바">
   <ul class="snav-list">
     <li class="snav-item ${current eq 'adminMember' ? 'is-active' : ''}">
       <a href="<c:url value='/adminMember.admin'/>" class="snav-link" aria-label="회원관리">
-		<i class="fa-solid fa-users"></i>
-		<span class="label">회원관리</span>
+        <i class="fa-solid fa-users"></i>
+        <span class="label">회원관리</span>
       </a>
     </li>
     <li class="snav-item ${current eq 'adminStat' ? 'is-active' : ''}">
       <a href="<c:url value='/adminStat.admin'/>" class="snav-link" aria-label="통계보드">
-		<i class="fa-solid fa-chart-column"></i>
-		<span class="label">통계보드</span>
+        <i class="fa-solid fa-chart-column"></i>
+        <span class="label">통계보드</span>
       </a>
     </li>
     <li class="snav-item ${current eq 'adminNotice' ? 'is-active' : ''}">
@@ -101,3 +101,4 @@
     </li> 
   </ul>
 </nav>
+</c:if>

@@ -17,13 +17,17 @@ public class RoomDetailService implements Action{
 		
 		
 		// 세션에 현재 방 ID 저장 (덮어쓰기)
-        HttpSession session = request.getSession();
-        session.setAttribute("currentRoomId", roomId);
+        
 		
 		RoomDao roomDao = new RoomDao();
 		
 		RoomDto roomDetail = roomDao.detialRoom(roomId, userId);
 		ActionForward forward = new ActionForward();
+		
+		HttpSession session = request.getSession();
+        session.setAttribute("currentRoomId", roomId);
+        session.setAttribute("leaderCheck", roomDetail.isLeaderCheck());
+        System.out.println(roomDetail.isLeaderCheck());
 	
 		
 		request.setAttribute("roomDetail", roomDetail);

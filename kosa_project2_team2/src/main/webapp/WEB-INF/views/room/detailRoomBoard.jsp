@@ -48,6 +48,10 @@
   </jsp:include>
 
   <main>
+	<input type="hidden" id="roomBoardId" name="roomBoardId" value="${roomBoardDetail.roomBoardId}">
+    <input type="hidden" id="roomId" name="roomId" value="${sessionScope.currentRoomId}">
+    <input type="hidden" id="userId" name="userId" value="${sessionScope.LOGIN_USER.user_id}">
+    <input type="hidden" id="roomBoardType" name="roomBoardType" value="${roomBoardType}">
     <div class="post-detail-container">
       <h1>
         <c:choose>
@@ -88,7 +92,7 @@
 
         <div class="action-buttons">
           <c:if test="${roomBoardDetail.isMyPost()}">
-            <button class="btn btn-edit" onclick="location.href='${ctx}/roomboard/edit?roomBoardId=${roomBoardDetail.roomBoardId}'">수정</button>
+            <button class="btn btn-edit" onclick="location.href='/roomboardupdateform.room?roomBoardId=${roomBoardDetail.roomBoardId}&roomBoardtype=${roomBoardType}'">수정</button>
             <button class="btn btn-delete" onclick="deletePost(${roomBoardDetail.roomBoardId})">삭제</button>
           </c:if>
         </div>
@@ -120,9 +124,35 @@
       body: JSON.stringify({ roomBoardId, isLiked: button.classList.contains('liked') })
     }).catch(()=>{});
   }
-  function deletePost(roomBoardId){
-    if(!confirm('정말 삭제하시겠습니까?')) return;
-    location.href = ctx + '/roomboard/delete?roomBoardId=' + roomBoardId;
+  
+  
+  function deletePost(roomBoardId) {
+      if(confirm('정말 삭제하시겠습니까?')) {
+      	 	let roomId = $('#roomId').val();
+           	let roomBoardType = $('#roomBoardType').val();
+           	let userId = $('#userId').val();
+           	
+          $.ajax({
+          	url: "/roomboarddelete.roomajax",
+          	data:{
+                roomBoardId: roomBoardId,
+                roomBoardType: roomBoardType,
+                roomId: roomId,
+                userId: userId
+            },
+            success: function(response) {
+            	if(roomBoardType === "GENERAL"){
+            		alert('게시글이 삭제되었습니다.');
+            		window.location.href = '/roomboardlist.room?roomId=' + roomId;
+            	}else{
+            		alert('공지글이 삭제되었습니다.');
+            		window.location.href = '/roomboardnotice.room?roomId=' + roomId;
+            	}
+                
+                
+            }
+          })
+      }
   }
 </script>
 </body>

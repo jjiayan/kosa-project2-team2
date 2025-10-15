@@ -48,6 +48,8 @@
   </jsp:include>
 
   <main>
+  	<input type="hidden" id="roomId" name="roomId" value="${sessionScope.currentRoomId}">
+    <input type="hidden" id="userId" name="userId" value="${sessionScope.LOGIN_USER.user_id}">
     <div class="main-container">
       <div class="content-section">
         <div class="content-title">${roomDetail.title}</div>
@@ -125,17 +127,35 @@
   }
 
   function openRatingModal(){ alert('별점주기 기능을 구현해주세요!'); }
-
+	
   function joinRoom(){
     if(!confirm('이 모임에 참가하시겠습니까?')) return;
-    fetch(ctx + '/room/join', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ roomId: ${roomDetail.roomId} })
+    let roomId = $('#roomId').val();
+   	let userId = $('#userId').val();
+   	console.log("userId => " ,userId)
+   	console.log("roomId => " ,roomId)
+    $.ajax({
+    	url: "/roomjoin.roomajax",
+    	data: {
+    		userId: userId,
+    		roomId: roomId
+    	},
+    	success: function(res){
+            console.log(res);
+            // 성공시 버튼 상태 변경
+            $('#joinroom')
+                .removeClass('join-btn')
+                .addClass('joined-btn')
+                .text('참가 대기중')
+                .prop('disabled', true);
+            
+            alert('참가 신청이 완료되었습니다.');
+        },
+        error: function(){
+            alert('참가 신청 중 오류가 발생했습니다.');
+        }
+    	
     })
-    .then(r=>r.json()).then(d=>{
-      if(d.success){ alert('모임에 참가되었습니다!'); location.reload(); }
-      else { alert('참가 중 오류가 발생했습니다.'); }
-    });
   }
 </script>
 </body>

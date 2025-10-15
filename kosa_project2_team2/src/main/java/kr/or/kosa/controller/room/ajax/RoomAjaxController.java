@@ -11,6 +11,7 @@ import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.RoomDao;
 import kr.or.kosa.dto.RegionDto;
+import kr.or.kosa.service.room.RoomBoardDeleteService;
 import kr.or.kosa.service.room.RoomSearchListService;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
@@ -62,11 +63,39 @@ public class RoomAjaxController extends HttpServlet {
         	action.execute(request, response);
         	
         }else if(urlCommand.equals("/roomboarddelete.roomajax")) {
-        	System.out.println("모임방 삭제");
-//        	action = new RoomSearchListService();
-//        	action.execute(request, response);
+        	int roomBoardId = Integer.parseInt(request.getParameter("roomBoardId"));
+    		String roomBoardType =  request.getParameter("roomBoardType"); //대기 혹시몰라 
+    		int roomId = Integer.parseInt(request.getParameter("roomId"));
+    		
+    		RoomDao roomDao = new RoomDao();
+    		int deleteCheck = roomDao.deleteRoomBoard(roomBoardId);
+    		
+    		if(deleteCheck > 0) {
+    			response.setContentType("application/json; charset=UTF-8");
+    			response.getWriter().print("{\"success\": true, \"roomId\": " + roomId + "}");
+    		}
+        }else if(urlCommand.equals("/roomjoin.roomajax")) {
+        	int userId = Integer.parseInt(request.getParameter("userId"));
+    		int roomId = Integer.parseInt(request.getParameter("roomId"));
+    		
+        	RoomDao roomDao = new RoomDao();
         	
+        	int result = roomDao.joinRoom(userId, roomId);
+        	if(result > 0) {
+        		response.setContentType("application/json; charset=UTF-8");
+    			response.getWriter().print("{\"success\": true, \"roomId\": " + roomId + "}");
+        	}
+        }else if(urlCommand.equals("/joinroomusermanage.roomajax")) {
+        	int userId = Integer.parseInt(request.getParameter("userId"));
+    		int roomId = Integer.parseInt(request.getParameter("roomId"));
+    		String type = request.getParameter("type");
+    		
+    		RoomDao roomDao = new RoomDao();
+    		String result = roomDao.manageRoomMember(roomId, userId, type);
+    		
         }
+        
+       
         
 
 	}

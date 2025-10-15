@@ -10,6 +10,7 @@ import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.RoomDao;
 import kr.or.kosa.dto.RegionDto;
 import kr.or.kosa.service.room.RooBoardNoticeService;
+import kr.or.kosa.service.room.RoomAdminFormService;
 import kr.or.kosa.service.room.RoomBoardDetailService;
 import kr.or.kosa.service.room.RoomBoardInsertFormService;
 import kr.or.kosa.service.room.RoomBoardInsertService;
@@ -19,6 +20,7 @@ import kr.or.kosa.service.room.RoomBoardUpdateService;
 import kr.or.kosa.service.room.RoomDetailService;
 import kr.or.kosa.service.room.RoomInsertService;
 import kr.or.kosa.service.room.RoomListService;
+import kr.or.kosa.service.room.RoomMemberManageService;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
 import java.io.IOException;
@@ -87,9 +89,15 @@ public class RoomController extends HttpServlet {
     	}else if(urlCommand.equals("/roomboardupdate.room")) {
     		action = new RoomBoardUpdateService();
     		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomadminform.room")) {
+    		action = new RoomAdminFormService();
+    		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roommembermanageform.room")) {
+    		action = new RoomMemberManageService();
+    		forward = action.execute(request, response);
     	}
     	
-    	
+
     	if(forward != null) {
     		if (forward.isRedirect()) {
                 // redirect (주소창 변경, 새 요청)
@@ -100,8 +108,6 @@ public class RoomController extends HttpServlet {
                        .forward(request, response);
             }
     	}
-
-
 	}
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

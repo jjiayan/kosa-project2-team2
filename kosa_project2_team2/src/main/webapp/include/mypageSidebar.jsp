@@ -94,12 +94,14 @@
     </li>
 
     <!-- 내가 참여한 모임 -->
-    <li class="snav-item ${current eq 'group' ? 'is-active' : ''}">
-      <a href="<c:url value='/mypage/myGroups.jsp?current=group'/>" class="snav-link" aria-label="내가 참여한 모임">
-        <i class="fa-solid fa-users"></i>
-        <span class="label">내가 참여한 모임</span>
-      </a>
-    </li>
+	<li class="snav-item ${current eq 'group' ? 'is-active' : ''}">
+	  <a href="<c:url value='/mypage/myroomspage.user?current=group'/>"
+	     class="snav-link" aria-label="내가 참여한 모임">
+	    <i class="fa-solid fa-users"></i>
+	    <span class="label">내가 참여한 모임</span>
+	  </a>
+	</li>
+
 
     <!-- 내가 작성한 글 -->
     <li class="snav-item ${current eq 'posts' ? 'is-active' : ''}">

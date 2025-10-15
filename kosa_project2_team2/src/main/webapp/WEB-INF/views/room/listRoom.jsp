@@ -11,8 +11,25 @@
     .layout-wrap{ display:grid; grid-template-columns:auto 1fr; gap:0; align-items:flex-start; margin:0; padding:0 }
     main{ background:#fff; border-left:1px solid #e5e7eb; padding:24px 28px; min-height:100vh }
     .container{ max-width:1200px; margin:0 auto; padding:20px }
-    header{ text-align:center; margin-bottom:40px; padding:20px 0 }
-    header h1{ font-size:32px; font-weight:700; color:#333 }
+
+    /* ✅ 이 페이지만: 제목 헤더 중앙정렬 (nav.jsp의 header에는 영향 없음) */
+    .page-header{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      text-align:center;
+      margin-bottom:40px;
+      padding:20px 0;
+    }
+    .page-header h1{
+      font-size:32px;
+      font-weight:700;
+      color:#333;
+      text-align:center;
+      margin:0;
+    }
+
     .search-section{ margin-bottom:40px }
     .search-bar{ position:relative; max-width:600px; margin:0 auto 20px }
     .search-bar input{ width:100%; padding:15px 50px 15px 20px; border:1px solid #ddd; border-radius:8px; font-size:16px; outline:none }
@@ -24,8 +41,26 @@
     .filter-select{ padding:12px 40px 12px 20px; border:1px solid #ddd; border-radius:8px; font-size:16px; background:#fff; cursor:pointer; outline:none; appearance:none; min-width:150px }
     .create-study-btn{ padding:12px 30px; background:#ff6b6b; color:#fff; border:none; border-radius:8px; font-size:16px; font-weight:600; cursor:pointer; transition:.3s; margin-left:auto }
     .create-study-btn:hover{ background:#ff5252 }
-    .study-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:25px; margin-bottom:60px }
-    .study-card{ background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.1); transition:.3s; cursor:pointer }
+
+    /* ✅ 스터디 카드 그리드 중앙 정렬 */
+    .study-grid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+      gap:25px;
+      margin-bottom:60px;
+      justify-content:center;
+    }
+    .study-card{
+      background:#fff;
+      border-radius:12px;
+      overflow:hidden;
+      box-shadow:0 2px 8px rgba(0,0,0,.1);
+      transition:.3s;
+      cursor:pointer;
+      width:100%;
+      max-width:320px;
+    }
+
     .study-card:hover{ transform:translateY(-5px); box-shadow:0 4px 16px rgba(0,0,0,.15) }
     .study-image{ position:relative; width:100%; height:180px; overflow:hidden; background:#ddd; display:flex; align-items:center; justify-content:center }
     .study-image img{ width:100%; height:100%; object-fit:cover }
@@ -45,16 +80,17 @@
     .page-arrow,.page-num{ display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; color:#666; font-size:16px; border:none; background:#fff; cursor:pointer }
     .page-arrow:hover,.page-num:hover{ background:#f0f0f0 }
     .page-num.active{ background:#ff6b6b; color:#fff; font-weight:600 }
+
     @media (max-width:900px){
       .layout-wrap{ grid-template-columns:1fr }
       main{ border-left:none; border-top:1px solid #e5e7eb; padding:16px }
-      .study-grid{ grid-template-columns:repeat(auto-fill, minmax(250px,1fr)); gap:20px }
+      .study-grid{ grid-template-columns:repeat(auto-fill, minmax(250px,1fr)); gap:20px; justify-content:center }
       .filter-section{ flex-direction:column; width:100% }
       .filter-left{ width:100% }
       .filter-select{ width:100% }
       .create-study-btn{ width:100%; margin-left:0 }
     }
-    @media (max-width:480px){ .study-grid{ grid-template-columns:1fr } }
+    @media (max-width:480px){ .study-grid{ grid-template-columns:1fr; justify-content:center } }
   </style>
 </head>
 <body>
@@ -68,7 +104,9 @@
 
   <main>
     <div class="container">
-      <header><h1>스터디 리스트</h1></header>
+      <header class="page-header">
+        <h1>스터디 리스트</h1>
+      </header>
 
       <div class="search-section">
         <div class="search-bar">
@@ -283,6 +321,5 @@
     });
   });
 </script>
-
 </body>
 </html>

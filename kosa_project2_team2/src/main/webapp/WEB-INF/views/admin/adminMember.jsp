@@ -17,16 +17,32 @@
 			background-color: #fffdfd;
 			color: #333;
 		}
+		header.nav-root * {
+		  line-height: normal;
+		  padding: 0;
+		  margin: 0;
+		}
 		.member-container {
 			max-width: 1100px;
-			margin: 80px auto;
+			margin: 60px auto;
 		}
-		h2 {
-			font-weight: 700;
-			margin-bottom: 40px;
-			text-align: center;
-			color: #444;
-		}
+		.page-header{
+	      display:flex;
+	      justify-content:center;
+	      align-items:center;
+	      flex-direction:column;
+	      text-align:center;
+	      margin-top: 20px; 
+	      margin-bottom:40px;
+	      padding:20px 0;
+	    }
+	    .page-header h1{
+	      font-size:32px;
+	      font-weight:700;
+	      color:#333;
+	      text-align:center;
+	      margin:0;
+	    }
 		/* 검색창 */
 		.search-box {
 			position: relative;
@@ -246,8 +262,11 @@
         
         <!-- 우측 본문 -->
         <main>
+        	 <header class="page-header">
+		        <h1>회원관리</h1>
+		     </header>
             <div class="member-container">
-				<h2>회원관리</h2>
+
 		
 				<!-- 검색창 -->
 				<div class="search-box">
