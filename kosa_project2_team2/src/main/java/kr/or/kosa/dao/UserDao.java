@@ -11,24 +11,26 @@ import kr.or.kosa.utils.ConnectionPoolHelper;
 public class UserDao {
 
     /** 회원가입: CREATED_AT은 SYSDATE로 명시 입력 */
-    public int insertUser(UserDto user) throws Exception {
-        String sql =
-            "INSERT INTO \"USER\" (" +
-            "  user_login_id, user_pw, user_status, user_nickname, " +
-            "  user_bio, user_phonenumber, user_photo, CREATED_AT" +
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, SYSDATE)";
-        try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, user.getUser_login_id());
-            pstmt.setString(2, user.getUser_pw());
-            pstmt.setString(3, user.getUser_status());
-            pstmt.setString(4, user.getUser_nickname());
-            pstmt.setString(5, user.getUser_bio());
-            pstmt.setString(6, user.getUser_phonenumber());
-            pstmt.setString(7, user.getUser_photo());
-            return pstmt.executeUpdate();
-        }
-    }
+	public int insertUser(UserDto user) throws Exception {
+	    String sql =
+	        "INSERT INTO \"USER\" (" +
+	        "  user_login_id, user_pw, user_status, user_nickname, " +
+	        "  user_bio, user_phonenumber, user_photo, age_group, CREATED_AT" +
+	        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
+	    try (Connection conn = ConnectionPoolHelper.getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+	        pstmt.setString(1, user.getUser_login_id());
+	        pstmt.setString(2, user.getUser_pw());
+	        pstmt.setString(3, user.getUser_status());
+	        pstmt.setString(4, user.getUser_nickname());
+	        pstmt.setString(5, user.getUser_bio());
+	        pstmt.setString(6, user.getUser_phonenumber());
+	        pstmt.setString(7, user.getUser_photo());
+	        pstmt.setInt(8, user.getAge_group());  // ✅ int로 저장
+	        return pstmt.executeUpdate();
+	    }
+	}
+
 
     /** 아이디 중복 확인 */
     public int findUserByLoginId(String loginId) {
@@ -69,7 +71,7 @@ public class UserDao {
         return 0;
     }
 
-    /** 닉네임으로 간단 조회 (createdAt 포함) */
+    /** 닉네임으로 간단 조회 (createdAt 포함) — age_group는 필요 없어서 생략해도 OK */
     public UserDto findByNickname(String nickname) throws Exception {
         String sql =
             "SELECT user_id, user_login_id, user_nickname, user_photo, CREATED_AT " +
@@ -84,7 +86,6 @@ public class UserDao {
                     dto.setUser_login_id(rs.getString("user_login_id"));
                     dto.setUser_nickname(rs.getString("user_nickname"));
                     dto.setUser_photo(rs.getString("user_photo"));
-                    // createdAt
                     java.sql.Timestamp ts = rs.getTimestamp("CREATED_AT");
                     if (ts != null) dto.setCreatedAt(new java.util.Date(ts.getTime()));
                     return dto;
@@ -131,12 +132,12 @@ public class UserDao {
         }
     }
 
-    /** 로그인용 (loginId 기준 상세 조회) — createdAt 포함 */
+    /** 로그인용 (loginId 기준 상세 조회) — createdAt/age_group 포함 */
     public UserDto findByLoginId(String loginId) throws Exception {
         String sql =
             "SELECT user_id, user_login_id, user_pw, user_status, " +
             "       user_nickname, user_bio, user_phonenumber, user_photo, " +
-            "       CREATED_AT " +
+            "       age_group, CREATED_AT " +                    // ✅ 포함
             "FROM \"USER\" WHERE user_login_id = ?";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -148,12 +149,12 @@ public class UserDao {
         return null;
     }
 
-    /** PK로 상세 조회 — createdAt 포함 */
+    /** PK로 상세 조회 — createdAt/age_group 포함 */
     public UserDto findById(int userId) throws Exception {
         String sql =
             "SELECT user_id, user_login_id, user_pw, user_status, " +
             "       user_nickname, user_bio, user_phonenumber, user_photo, " +
-            "       CREATED_AT " +
+            "       age_group, CREATED_AT " +                    // ✅ 포함
             "FROM \"USER\" WHERE user_id = ?";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -170,8 +171,6 @@ public class UserDao {
      *  - setPhoto == null  : user_photo 컬럼 미변경
      *  - setPhoto == true  : photoUrl == null → NULL 저장(기본 이미지 의도)
      *                        photoUrl 값 존재 → URL 저장
-     *
-     *  createdAt은 변경하지 않음.
      */
     public int updateUserProfileById(int userId,
                                      String nickname,
@@ -248,9 +247,9 @@ public class UserDao {
         u.setUser_bio(rs.getString("user_bio"));
         u.setUser_phonenumber(rs.getString("user_phonenumber"));
         u.setUser_photo(rs.getString("user_photo"));
+        u.setAge_group(rs.getInt("age_group")); // ✅ 매핑
 
-        // createdAt 매핑
-        java.sql.Timestamp ts = rs.getTimestamp("CREATED_AT"); // DATE여도 getTimestamp 가능
+        java.sql.Timestamp ts = rs.getTimestamp("CREATED_AT");
         if (ts != null) u.setCreatedAt(new java.util.Date(ts.getTime()));
 
         return u;
