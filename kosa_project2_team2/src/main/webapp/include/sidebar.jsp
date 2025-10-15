@@ -56,6 +56,66 @@
   .snav-item.is-active .snav-link i,
   .snav-item.is-active .snav-link .label,
   .snav-item.is-active .snav-link .count{ color: var(--ink); }
+  /* 서브메뉴 스타일 */
+.has-submenu {
+    position: relative;
+}
+
+.submenu-arrow {
+    margin-left: auto;
+    font-size: 12px;
+    transition: transform 0.3s ease;
+}
+
+.has-submenu.active .submenu-arrow {
+    transform: rotate(180deg);
+}
+
+.submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    z-index: 1000;
+}
+
+.submenu.show {
+    display: block;
+}
+
+.submenu li {
+    list-style: none;
+}
+
+.submenu-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    color: #666;
+    text-decoration: none;
+    transition: all 0.2s;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.submenu-link:hover {
+    background: #f8f9fa;
+    color: #333;
+}
+
+.submenu-link.active {
+    background: #ff6b6b;
+    color: white;
+}
+
+.submenu li:last-child .submenu-link {
+    border-bottom: none;
+}
 
   /* ====== 반응형 ====== */
   /* 1200px 이하면 살짝 더 좁게 */
@@ -120,13 +180,42 @@
 	    </li>
 	</c:if>
 
-    <c:if test="${roomDetail.leaderCheck}">
-	  <li class="snav-item ${current eq 'admin' ? 'is-active' : ''}">
-	    <a href="<c:url value='/admin/index.do'/>" class="snav-link" aria-label="관리">
-	      <i class="fa-regular fa-user"></i>
-	      <span class="label">관리</span>
-	    </a>
-	  </li>
-	</c:if>
+   <%-- <c:if test="${sessionScope.leaderCheck}"> --%>
+		<li class="snav-item ${current eq 'admin' ? 'is-active' : ''} has-submenu">
+		     <a href="<c:url value='/roomboardadmin.room'>
+	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+	        	</c:url>" class="snav-link" aria-label="관리">
+		        <i class="fa-regular fa-user"></i>
+		        <span class="label">관리</span>
+		        <i class="fa-solid fa-chevron-down submenu-arrow"></i>
+		    </a>
+		</li>
+		
+		<!-- 서브메뉴들을 별도 li로 분리 -->
+		<li class="submenu-item ${current eq 'admin' ? 'show' : ''}" data-parent="admin">
+		    <a href="<c:url value='/roommembermanageform.room'>
+		        <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+		    </c:url>" class="snav-link submenu-link ${current eq 'members' ? 'is-active' : ''}">
+		        <i class="fa-solid fa-users"></i>
+		        <span class="label">회원관리</span>
+		    </a>
+		</li>
+		
+		<li class="submenu-item ${current eq 'admin' ? 'show' : ''}" data-parent="admin">
+		    <a href="<c:url value='/roomupdateform.room'>
+		        <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+		    </c:url>" class="snav-link submenu-link ${current eq 'room-edit' ? 'is-active' : ''}">
+		        <i class="fa-solid fa-edit"></i>
+		        <span class="label">방정보 수정</span>
+		    </a>
+		</li>
+		
+		<li class="submenu-item ${current eq 'admin' ? 'show' : ''}" data-parent="admin">
+		    <a href="#" class="snav-link submenu-link" onclick="deleteRoom(${sessionScope.currentRoomId})">
+		        <i class="fa-solid fa-trash"></i>
+		        <span class="label">방 삭제</span>
+		    </a>
+		</li>
+	<%-- </c:if> --%>
   </ul>
 </nav>
