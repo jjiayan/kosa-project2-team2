@@ -25,7 +25,7 @@
 
 .reply-stats {
     display: flex;
-    gap: 20px;
+    gap: 10px;
     align-items: center;
 }
 
@@ -310,7 +310,8 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-bottom: 6px;
+    margin-bottom: 0px;
+    margin-top: 2px;
 }
 
 .author-name { 
@@ -777,7 +778,7 @@
 			        좋아요 <strong id="likeTotalCount">0</strong>
 			    </span>
 			</div>
-	        <div class="stat-item tab-button active" data-tab="reply" onclick="switchTab('reply')">
+	        <div class="stat-item tab-button active" data-tab="reply" onclick="switchTab('reply')" style="padding-left: 10px; padding-right: 20px;">
 	            <span class="stat-icon">💬</span>
 	            <span>댓글 <strong id="replyTotalCount">0</strong></span>
 	        </div>
