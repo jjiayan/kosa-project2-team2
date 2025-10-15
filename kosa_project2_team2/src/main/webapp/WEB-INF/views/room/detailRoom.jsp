@@ -25,8 +25,8 @@
     .rating-count{ background:#ff5252; color:#fff; padding:2px 6px; border-radius:10px; font-size:11px; font-weight:bold }
     .created-date{ color:#666; font-size:13px; margin:5px 0 }
     .like-section{ display:flex; align-items:center; gap:8px; margin:5px 0 }
-    .like-btn{ background:none; border:none; cursor:pointer; padding:0; display:flex; align-items:center; justify-content:center; transition:.2s }
-    .like-btn:hover{ transform:scale(1.1) }
+    .like-btn{ background:none; border:none; cursor:pointer; font-size: 5px; padding:0; color:#ccc; display:inline-flex; align-items:center; justify-content:center; transition:.2s }
+    .like-btn:hover{ color: #ff5a5f; }
     .like-btn.liked svg{ fill:#ff6b6b; stroke:#ff6b6b }
     .like-count{ font-size:14px; color:#666; font-weight:500 }
     .rating-btn{ padding:8px 12px; border:none; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer; background:linear-gradient(45deg,#ffa726,#ff9800); color:#fff; margin-left:auto }
@@ -77,15 +77,14 @@
           </div>
 
           <div class="like-section">
-            <button class="like-btn ${roomDetail.isLiked() ? 'liked' : ''}" onclick="toggleLike(this, ${roomDetail.roomId})">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="${roomDetail.isLiked() ? '#ff6b6b' : 'none'}" stroke="currentColor" stroke-width="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 
-                         5.5 0 0 0-7.78 7.78l1.06 1.06L12 
-                         21.23l7.78-7.78 1.06-1.06a5.5 
-                         5.5 0 0 0 0-7.78z"></path>
-              </svg>
-            </button>
-            <span class="like-count">${roomDetail.likeCount}</span>
+            <button type="button" id="roomLikeBtn" class="like-btn" aria-pressed="false" title="좋아요">
+			    <svg id="roomLikeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+			         viewBox="0 0 24 24" fill="none" stroke="currentColor">
+			      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+			    </svg>
+			    <span class="sr-only">좋아요</span>
+			  </button>
+			  <span id="roomLikeCount" class="like-count">0</span>
           </div>
 
           <div class="created-date">
@@ -157,6 +156,49 @@
     	
     })
   }
+  
+  //===== 스터디 좋아요 =====
+  //===== 좋아요 UI 헬퍼 =====
+  function setRoomLikeVisual(isLiked){
+    const $b=$('#roomLikeBtn'),$i=$('#roomLikeIcon');
+    $b.toggleClass('liked',!!isLiked).attr('aria-pressed',!!isLiked);
+    $i.attr('fill',isLiked?'#ff6b6b':'none').attr('stroke',isLiked?'#ff6b6b':'currentColor');
+  }
+  function setRoomLikeCount(n){$('#roomLikeCount').text(String(n||0));}
+
+  // ===== 현재 상태/개수 조회 =====
+  function loadRoomLike(){
+    const id=$('#roomId').val(); if(!id) return;
+    $.ajax({
+      url:ctx+'/like/count.ajax',type:'GET',dataType:'json',
+      data:{targetType:'ROOM',targetId:id},
+      success:r=>{
+        if(r&&r.success){setRoomLikeVisual(!!r.isLiked);setRoomLikeCount(r.likeCount||0);}
+        else{setRoomLikeVisual(false);setRoomLikeCount(0);}
+      },
+      error:()=>{setRoomLikeVisual(false);setRoomLikeCount(0);}
+    });
+  }
+
+  // ===== 토글 (좋아요 추가/취소) =====
+  function likeRoom(){
+    const id=$('#roomId').val(); if(!id) return;
+    const $b=$('#roomLikeBtn'); $b.prop('disabled',true);
+    $.ajax({
+      url:ctx+'/like/action.ajax',type:'POST',dataType:'json',
+      data:$.param({targetType:'ROOM',targetId:id}),
+      success:r=>{
+        if(r&&r.success){setRoomLikeVisual(!!r.isLiked);setRoomLikeCount(r.likeCount||0);}
+        else{alert(r&&r.message?r.message:'좋아요 처리에 실패했습니다.');loadRoomLike();}
+      },
+      error:()=>{alert('네트워크 오류로 좋아요 처리에 실패했습니다.');loadRoomLike();},
+      complete:()=>$b.prop('disabled',false)
+    });
+  }
+
+  // ===== 초기 바인딩 =====
+  $(function(){loadRoomLike();$('#roomLikeBtn').on('click',likeRoom);});
+
 </script>
 </body>
 </html>
