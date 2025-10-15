@@ -39,6 +39,16 @@ public class UserEditOkService implements Action {
             String bio      = trim(request.getParameter("bio"));
             String newPw    = trim(request.getParameter("newPassword"));
 
+            // ✅ ageGroup 수집 및 검증 (10/20/30/40/50만 허용)
+            String ageParam = request.getParameter("ageGroup");
+            Integer ageGroup = null;
+            try {
+                int val = Integer.parseInt(ageParam);
+                if (val == 10 || val == 20 || val == 30 || val == 40 || val == 50) {
+                    ageGroup = val;
+                }
+            } catch (Exception ignore) {}
+
             String phoneDigits = (phone == null) ? null : phone.replaceAll("\\D", "");
 
             // 사진: reset 여부 + 업로드 파일 확인
@@ -70,8 +80,8 @@ public class UserEditOkService implements Action {
 
             UserDao dao = new UserDao();
 
-            // 프로필 업데이트
-            dao.updateUserProfileById(userId, nickname, bio, phoneDigits, setPhoto, photoUrl);
+            // ✅ 프로필 업데이트 (연령대 포함)
+            dao.updateUserProfileById(userId, nickname, bio, phoneDigits, setPhoto, photoUrl, ageGroup);
 
             // 비밀번호 업데이트 (입력한 경우만 + 규칙검증)
             if (newPw != null && !newPw.isBlank()) {
