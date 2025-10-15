@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpSession;
 import kr.or.kosa.dao.LikeDao;
 import kr.or.kosa.dto.LikeDto;
 import kr.or.kosa.dto.UserDto;
+import kr.or.kosa.utils.Pager;
 
 @WebServlet("/like/detail.ajax")
 public class LikeDetailController extends HttpServlet {
@@ -38,6 +39,7 @@ public class LikeDetailController extends HttpServlet {
         response.setContentType("application/json; charset=UTF-8");
         
         String roomBoardIdStr = request.getParameter("roomBoardId");
+        String pageStr = request.getParameter("page");
         
         Map<String, Object> result = new HashMap<>();
         
@@ -50,6 +52,11 @@ public class LikeDetailController extends HttpServlet {
             try {
                 Long roomBoardId = Long.parseLong(roomBoardIdStr);
                 
+                int currentPage = 1;
+                if (pageStr != null && !pageStr.trim().isEmpty()) {
+                    currentPage = Integer.parseInt(pageStr);
+                }
+                
                 // LikeDto 설정
                 LikeDto like = new LikeDto();
                 like.setTargetType("ROOM_BOARD");
@@ -58,8 +65,12 @@ public class LikeDetailController extends HttpServlet {
                 // 전체 좋아요 개수 조회
                 int totalCount = likeDao.getLikeCnt(like);
                 
-                // 좋아요 누른 사용자 목록 조회
-                List<LikeDto> likeUsers = likeDao.likeListByRoomBoardId(like);
+                // 페이저 생성
+                Pager pager = new Pager(totalCount, currentPage, Pager.TYPE_LIKE);
+                
+                // 페이지네이션이 적용된 좋아요 사용자 목록 조회
+                List<LikeDto> likeUsers = likeDao.likeListByRoomBoardIdWithPaging(
+                    like, pager.getOffset(), pager.getLimit());
                 
                 // 현재 사용자의 좋아요 여부 확인 (로그인한 경우만)
                 Long userId = getCurrentUserId(request);
@@ -72,6 +83,8 @@ public class LikeDetailController extends HttpServlet {
                 
                 result.put("success", true);
                 result.put("totalCount", totalCount);
+                result.put("currentPage", currentPage);
+                result.put("totalPages", pager.getPageCount());
                 result.put("isLiked", isLiked);
                 result.put("likeUsers", likeUsers);
                 

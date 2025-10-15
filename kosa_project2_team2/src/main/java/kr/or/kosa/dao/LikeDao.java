@@ -164,4 +164,47 @@ public class LikeDao {
 		
 		return list;
 	}
+	
+	// 페이지네이션이 적용된 좋아요 목록 조회 메서드 추가
+	public List<LikeDto> likeListByRoomBoardIdWithPaging(LikeDto like, int offset, int limit){
+	    Connection conn = null;
+	    PreparedStatement pstmt = null;
+	    ResultSet rs = null;
+	    List<LikeDto> list = new ArrayList<>();
+	    
+	    try {
+	        conn = ConnectionPoolHelper.getConnection();
+	        String sql = "SELECT * FROM (" +
+	                "SELECT L.USER_ID, L.ROOM_BOARD_ID, L.LIKE_CREATED_AT, " +
+	                "U.USER_PHOTO, U.USER_NICKNAME, U.USER_STATUS, " +
+	                "ROW_NUMBER() OVER (ORDER BY L.LIKE_CREATED_AT DESC) AS RN " +
+	                "FROM LIKE_ROOM_BOARD L INNER JOIN \"USER\" U ON L.USER_ID = U.USER_ID " +
+	                "WHERE L.ROOM_BOARD_ID = ? AND U.USER_STATUS = 'ACTIVE'" +
+	                ") WHERE RN BETWEEN ? AND ?";
+	        
+	        pstmt = conn.prepareStatement(sql);
+	        pstmt.setLong(1, like.getTargetId());
+	        pstmt.setInt(2, offset + 1);
+	        pstmt.setInt(3, offset + limit);
+	        rs = pstmt.executeQuery();
+	        
+	        while(rs.next()) {
+	            LikeDto likes = new LikeDto();
+	            likes.setUserId(rs.getLong("USER_ID"));
+	            likes.setUserNickname(rs.getString("USER_NICKNAME"));
+	            likes.setUserPhoto(rs.getString("USER_PHOTO"));
+	            likes.setLikeCreatedAt(rs.getTimestamp("LIKE_CREATED_AT"));
+	            list.add(likes);
+	        }
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    } finally {
+	        ConnectionPoolHelper.close(rs);
+	        ConnectionPoolHelper.close(pstmt);
+	        ConnectionPoolHelper.close(conn);
+	    }
+	    
+	    return list;
+	}
 }

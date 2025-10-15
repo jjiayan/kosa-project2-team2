@@ -520,21 +520,23 @@
     background: white;
 }
 
+.like-users-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
 .like-user-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 16px;
-    border-bottom: 1px solid #f5f5f5;
-    transition: background 0.2s;
+    padding: 0;
+    transition: all 0.2s;
 }
 
 .like-user-item:hover {
-    background: #fafafa;
-}
-
-.like-user-item:last-child {
-    border-bottom: none;
+    transform: translateY(-2px);
 }
 
 .like-user-avatar {
@@ -543,6 +545,7 @@
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+    border: 2px solid #f0f0f0;
 }
 
 .like-user-info {
@@ -560,6 +563,64 @@
 .like-user-date {
     font-size: 12px;
     color: #999;
+}
+
+/* 페이지네이션 컨테이너 */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 0;
+    background: white;
+    border-top: 1px solid #f0f0f0;
+}
+
+/* 페이지네이션 버튼 스타일 */
+.pagination-btn {
+    background: none;
+    border: 1px solid #e0e0e0;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 2px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: #f5f5f5;
+    border-color: #d0d0d0;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.pagination-number {
+    background: none;
+    border: 1px solid #e0e0e0;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    min-width: 40px;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0 2px;
+}
+
+.pagination-number:hover {
+    background: #f5f5f5;
+    border-color: #d0d0d0;
+}
+
+.pagination-number.active {
+    background: #ff5a5f;
+    color: white;
+    border-color: #ff5a5f;
 }
 
 /* 정렬 버튼은 댓글 탭에서만 표시 */
@@ -609,6 +670,16 @@
 	<div id="likeList" class="like-list-container" style="display:none;">
 	    <div class="loading">좋아요 목록을 불러오는 중...</div>
 	</div>
+	
+	<!-- 페이지네이션 (좋아요 목록용) -->
+	<div id="likePagination" class="pagination-container" style="display:none;">
+	    <!-- 동적으로 생성됨 -->
+	</div>
+	
+	<!-- 페이지네이션 (댓글 목록용) -->
+	<div id="replyPagination" class="pagination-container" style="display:none;">
+	    <!-- 동적으로 생성됨 -->
+	</div>
 
     <!-- 댓글 작성 폼 -->
     <div class="reply-write-form">
@@ -651,6 +722,12 @@ var currentTab = 'reply';
 // 게시글 좋아요 상태 전역 변수
 var isPostLiked = false;
 
+// 페이지네이션 변수들
+var replyCurrentPage = 1;
+var replyTotalPages = 1;
+var likeCurrentPage = 1;
+var likeTotalPages = 1;
+
 jQuery(document).ready(function() {
     console.log('댓글 시스템 로드, ROOM_BOARD_ID:', ROOM_BOARD_ID);
     loadReplyList();
@@ -667,6 +744,7 @@ jQuery(document).ready(function() {
         jQuery('.sort-btn').removeClass('active');
         jQuery(this).addClass('active');
         currentOrder = jQuery(this).data('order');
+        replyCurrentPage = 1; // 정렬 변경 시 첫 페이지로
         loadReplyList();
     });
 });
@@ -735,7 +813,7 @@ function togglePostLike() {
                 // 좋아요 개수 업데이트
                 jQuery('#likeTotalCount').text(response.likeCount);
                 
-                // 게시글 상세 페이지의 좋아요 개수도 업데이트 (window.updatePostLikeCount 가 있는 경우)
+                // 게시글 상세 페이지의 좋아요 개수도 업데이트
                 if (typeof window.updatePostLikeCount === 'function') {
                     window.updatePostLikeCount(response.likeCount, response.isLiked);
                 }
@@ -761,20 +839,29 @@ function togglePostLike() {
 /**
  * 댓글 목록 불러오기 - /reply/list.ajax
  */
-function loadReplyList() {
+function loadReplyList(page) {
+    if (page) {
+        replyCurrentPage = page;
+    }
+    
     jQuery.ajax({
         url: '${pageContext.request.contextPath}/reply/list.ajax',
         type: 'GET',
         dataType: 'json',
         data: {
             roomBoardId: ROOM_BOARD_ID,
-            orderBy: currentOrder
+            orderBy: currentOrder,
+            page: replyCurrentPage
         },
         success: function(response) {
             console.log('댓글 목록 응답:', response);
             if (response.success) {
                 displayReplyList(response.replies);
                 jQuery('#replyTotalCount').text(response.totalCount);
+                
+                // 페이지네이션 정보 업데이트
+                replyTotalPages = response.totalPages || 1;
+                updateReplyPagination();
             } else {
                 alert(response.message);
             }
@@ -1049,6 +1136,7 @@ function writeReply() {
                 jQuery('#currentLength').text('0');
                 selectedImages = [];
                 displayAttachedImages();
+                replyCurrentPage = 1; // 새 댓글 작성 후 첫 페이지로
                 loadReplyList();
                 alert(response.message);
             } else {
@@ -1243,15 +1331,25 @@ function switchTab(tabName) {
     	// 댓글 탭
         jQuery('#replyList').show();
         jQuery('#likeList').hide();
+        jQuery('#likePagination').hide();
+        jQuery('#replyPagination').show();
         jQuery('#replySortButtons').removeClass('hidden');
         jQuery('.reply-write-form').show(); // 댓글 입력창 표시
+        
+        // 페이지 초기화
+        replyCurrentPage = 1;
         loadReplyList();
     } else {
     	// 좋아요 탭
         jQuery('#replyList').hide();
         jQuery('#likeList').show();
+        jQuery('#likePagination').show();
+        jQuery('#replyPagination').hide();
         jQuery('#replySortButtons').addClass('hidden');
         jQuery('.reply-write-form').hide(); // 댓글 입력창 숨김
+        
+        // 페이지 초기화
+        likeCurrentPage = 1;
         loadLikeList();
     }
 }
@@ -1259,19 +1357,28 @@ function switchTab(tabName) {
 /**
  * 좋아요 목록 불러오기
  */
-function loadLikeList() {
+function loadLikeList(page) {
+    if (page) {
+        likeCurrentPage = page;
+    }
+    
     jQuery.ajax({
         url: '${pageContext.request.contextPath}/like/detail.ajax',
         type: 'GET',
         dataType: 'json',
         data: {
-            roomBoardId: ROOM_BOARD_ID
+            roomBoardId: ROOM_BOARD_ID,
+            page: likeCurrentPage
         },
         success: function(response) {
             console.log('좋아요 목록 응답:', response);
             if (response.success) {
                 displayLikeList(response.likeUsers);
                 jQuery('#likeTotalCount').text(response.totalCount);
+                
+                // 페이지네이션 정보 업데이트
+                likeTotalPages = response.totalPages || 1;
+                updateLikePagination();
             } else {
                 alert(response.message);
             }
@@ -1297,6 +1404,9 @@ function displayLikeList(likeUsers) {
     
     var contextPath = '${pageContext.request.contextPath}';
     
+    // 그리드 컨테이너 생성
+    var gridContainer = jQuery('<div class="like-users-grid"></div>');
+    
     for (var i = 0; i < likeUsers.length; i++) {
         var user = likeUsers[i];
         var profileImgSrc = user.userPhoto ? 
@@ -1313,8 +1423,10 @@ function displayLikeList(likeUsers) {
             '<div class="like-user-date">' + likeDate + '</div>' +
             '</div></div>';
         
-        likeList.append(userHtml);
+        gridContainer.append(userHtml);
     }
+    
+    likeList.append(gridContainer);
 }
 
 /**
@@ -1344,6 +1456,88 @@ function loadInitialLikeCount() {
             console.error('좋아요 개수 로드 에러:', error);
         }
     });
+}
+
+/**
+ * 댓글 페이지네이션 UI 업데이트
+ */
+function updateReplyPagination() {
+    var container = jQuery('#replyPagination');
+    
+    if (replyTotalPages <= 1) {
+        container.hide();
+        return;
+    }
+    
+    container.show();
+    container.html(createPaginationHTML(replyCurrentPage, replyTotalPages, 'reply'));
+}
+
+/**
+ * 좋아요 페이지네이션 UI 업데이트
+ */
+function updateLikePagination() {
+    var container = jQuery('#likePagination');
+    
+    if (likeTotalPages <= 1) {
+        container.hide();
+        return;
+    }
+    
+    container.show();
+    container.html(createPaginationHTML(likeCurrentPage, likeTotalPages, 'like'));
+}
+
+/**
+ * 페이지네이션 HTML 생성
+ */
+function createPaginationHTML(currentPage, totalPages, type) {
+    var html = '<div style="display: flex; align-items: center; justify-content: center; gap: 4px;">';
+    
+    // 이전 버튼
+    var prevDisabled = currentPage <= 1;
+    html += '<button class="pagination-btn" onclick="goTo' + (type === 'reply' ? 'Reply' : 'Like') + 'Page(' + (currentPage - 1) + ')" ' +
+           (prevDisabled ? 'disabled' : '') + '>' +
+           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+           '<path d="M15 18L9 12L15 6"></path></svg></button>';
+    
+    // 페이지 번호들 (최대 5개 표시)
+    var startPage = Math.max(1, currentPage - 2);
+    var endPage = Math.min(totalPages, startPage + 4);
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+    }
+    
+    for (var i = startPage; i <= endPage; i++) {
+        var isActive = i === currentPage;
+        html += '<button class="pagination-number' + (isActive ? ' active' : '') + '" onclick="goTo' + (type === 'reply' ? 'Reply' : 'Like') + 'Page(' + i + ')">' + i + '</button>';
+    }
+    
+    // 다음 버튼
+    var nextDisabled = currentPage >= totalPages;
+    html += '<button class="pagination-btn" onclick="goTo' + (type === 'reply' ? 'Reply' : 'Like') + 'Page(' + (currentPage + 1) + ')" ' +
+           (nextDisabled ? 'disabled' : '') + '>' +
+           '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+           '<path d="M9 18L15 12L9 6"></path></svg></button>';
+    
+    html += '</div>';
+    return html;
+}
+
+/**
+ * 댓글 페이지 이동
+ */
+function goToReplyPage(page) {
+    if (page < 1 || page > replyTotalPages || page === replyCurrentPage) return;
+    loadReplyList(page);
+}
+
+/**
+ * 좋아요 페이지 이동
+ */
+function goToLikePage(page) {
+    if (page < 1 || page > likeTotalPages || page === likeCurrentPage) return;
+    loadLikeList(page);
 }
 
 /**
