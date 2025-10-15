@@ -24,14 +24,29 @@ body {
 	color: #333;
 }
 
-/* 제목 */
-h2 {
-	text-align: center;
-	font-weight: 700;
-	color: #444;
-	margin-top: 80px;
-	margin-bottom: 40px;
-}
+header.nav-root * {
+		  line-height: normal;
+		  padding: 0;
+		  margin: 0;
+		}
+/* ===== 제목 ===== */
+.page-header{
+	      display:flex;
+	      justify-content:center;
+	      align-items:center;
+	      flex-direction:column;
+	      text-align:center;
+	      margin-top: 20px; 
+	      margin-bottom:40px;
+	      padding:20px 0;
+	    }
+	    .page-header h1{
+	      font-size:32px;
+	      font-weight:700;
+	      color:#333;
+	      text-align:center;
+	      margin:0;
+	    }
 
 /* 본문 카드 */
 .notice-container {
@@ -208,9 +223,10 @@ main {
 		</jsp:include>
 
 		<!-- 본문 -->
-		<main>
-			<h2>공지사항</h2>
-
+		<main> 
+<header class="page-header">
+		        <h1>공지사항</h1>
+		     </header>
 			<div class="notice-container">
 				<!-- 공지 제목 -->
 				<div class="notice-title">${notice.adminNoticeTitle}</div>
