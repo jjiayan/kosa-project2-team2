@@ -14,7 +14,7 @@ import kr.or.kosa.utils.ConnectionPoolHelper;
 public class ReplyDao {
 	
 	// 1. 댓글 목록 조회 (등록순/최신순)
-	public List<ReplyDto> replyListByRoomBoardId(Long room_board_id, String orderby){
+	public List<ReplyDto> replyListByRoomBoardId(Long room_board_id, String orderby, Long userId){
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -22,9 +22,22 @@ public class ReplyDao {
 		
 		try {
 			conn = ConnectionPoolHelper.getConnection();
+//			String sql = "SELECT R.REPLY_ID, R.REPLY_CONTENT, R.USER_ID, R.ROOM_BOARD_ID, " +
+//					"R.REPLY_CREATED_AT, R.REPLY_UPDATED_AT, R.STATUS, R.PARENT_REPLY_ID, " +
+//					"U.USER_NICKNAME, U.USER_PHOTO " +
+//					"FROM REPLY R INNER JOIN \"USER\" U ON R.USER_ID = U.USER_ID " +
+//					"WHERE R.ROOM_BOARD_ID = ? AND R.STATUS IN ('ACTIVE', 'DELETED') " +
+//					"ORDER BY NVL(R.PARENT_REPLY_ID, R.REPLY_ID) " + orderby + ", " + 
+//					"CASE WHEN R.PARENT_REPLY_ID IS NULL THEN 0 ELSE 1 END ASC, " +
+//					"R.REPLY_CREATED_AT ASC";
+			// 좋아요 개수와 현재 사용자의 좋아요 여부를 함께 조회
 			String sql = "SELECT R.REPLY_ID, R.REPLY_CONTENT, R.USER_ID, R.ROOM_BOARD_ID, " +
 					"R.REPLY_CREATED_AT, R.REPLY_UPDATED_AT, R.STATUS, R.PARENT_REPLY_ID, " +
-					"U.USER_NICKNAME, U.USER_PHOTO " +
+					"U.USER_NICKNAME, U.USER_PHOTO, " +
+					"(SELECT COUNT(*) FROM LIKE_REPLY LR WHERE LR.REPLY_ID = R.REPLY_ID) AS LIKE_COUNT, " +
+					(userId != null ? 
+					"(SELECT COUNT(*) FROM LIKE_REPLY LR2 WHERE LR2.REPLY_ID = R.REPLY_ID AND LR2.USER_ID = ?) AS IS_LIKED " :
+					"0 AS IS_LIKED ") +
 					"FROM REPLY R INNER JOIN \"USER\" U ON R.USER_ID = U.USER_ID " +
 					"WHERE R.ROOM_BOARD_ID = ? AND R.STATUS IN ('ACTIVE', 'DELETED') " +
 					"ORDER BY NVL(R.PARENT_REPLY_ID, R.REPLY_ID) " + orderby + ", " + 
@@ -32,7 +45,13 @@ public class ReplyDao {
 					"R.REPLY_CREATED_AT ASC";
 			
 			pstmt = conn.prepareStatement(sql);
-			pstmt.setLong(1, room_board_id);
+//			pstmt.setLong(1, room_board_id);
+			int paramIndex = 1;
+			
+			if (userId != null) {
+				pstmt.setLong(paramIndex++, userId);
+			}
+			pstmt.setLong(paramIndex, room_board_id);
 			rs = pstmt.executeQuery();
 			
 			while(rs.next()) {
@@ -237,6 +256,10 @@ public class ReplyDao {
 		
 		reply.setUserNickname(rs.getString("user_nickname"));
 		reply.setUserPhoto(rs.getString("user_photo"));
+		
+		// 좋아요 정보 설정
+		reply.setLikeCount(rs.getInt("LIKE_COUNT"));
+		reply.setLiked(rs.getInt("IS_LIKED") > 0);
 		
 		return reply;
 	}
