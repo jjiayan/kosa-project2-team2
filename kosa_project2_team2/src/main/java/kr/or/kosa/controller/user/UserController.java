@@ -49,7 +49,7 @@ public class UserController extends HttpServlet {
         if (command.equals("/login.user")) {
             forward = new ActionForward();
             forward.setRedirect(false);
-            forward.setPath(USER_VIEW_PATH + "login.jsp");
+            forward.setPath(USER_VIEW_PATH + "main.jsp");
         }else if (command.equals("/logout.user")) {
             request.getSession().invalidate();
             forward = new ActionForward();
