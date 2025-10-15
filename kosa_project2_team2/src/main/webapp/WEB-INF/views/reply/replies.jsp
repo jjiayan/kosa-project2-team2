@@ -651,16 +651,16 @@
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px;
-    border-radius: 50%;
+    color: #ccc;
+    padding: 0;
     transition: all 0.2s;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
 .post-like-btn:hover {
-    background: rgba(255, 90, 95, 0.1);
+    color: #ff5a5f;
 }
 
 .post-like-btn svg {
@@ -675,6 +675,9 @@
 .like-text-btn {
     cursor: pointer;
     transition: all 0.2s;
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+    text-align: right;
 }
 
 .like-text-btn:hover {
@@ -731,6 +734,28 @@
     font-size: 12px;
     opacity: 0.7;
 }
+
+.stat-item .like-text-btn strong#likeTotalCount {
+  display: inline-block;
+  width: 0.8ch;              /* 최대 자릿수에 맞춰 조절: 0~9999 -> 4ch */
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 댓글 탭 숫자 칸 폭 고정 ===== */
+/* 0~9999까지 가정 → 4ch. (0~999면 3ch로 줄여도 OK) */
+.stat-item.tab-button[data-tab="reply"] strong#replyTotalCount {
+  display: inline-block;
+  width: 0.8ch;               /* 필요시 3ch/5ch로 조정 */
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 숫자+라벨 줄바꿈 방지(선택) */
+.stat-item.tab-button[data-tab="reply"] > span {
+  white-space: nowrap;
+}
+
 </style>
 
 <!-- 댓글 영역 -->
@@ -738,19 +763,6 @@
     <!-- 댓글 통계 -->
     <div class="reply-header">
         <div class="reply-stats">
-        	<!-- <div class="stat-item">
-        	    좋아요 SVG 버튼 (게시글 좋아요 토글)
-        	    <button class="post-like-btn" id="postLikeBtn" onclick="togglePostLike()" title="좋아요">
-    	            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    	                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-    	            </svg>
-    	        </button>
-    	        좋아요 텍스트 (탭 전환용)
-    	        <span class="like-text-btn tab-button" data-tab="like" onclick="switchTab('like')" 
-    	              style="margin-left: 0px; padding: 4px 0px; border-radius: 4px;">
-    	            좋아요 <strong id="likeTotalCount">0</strong>
-    	        </span>
-	        </div> -->
 	        <!-- 컨테이너 자체를 탭 버튼으로 인식시키기 위해 tab-button과 data-tab="like" 부여 -->
 			<div class="stat-item tab-button" data-tab="like" style="padding-left: 10px;">
 			    <!-- 좋아요 SVG 버튼 (게시글 좋아요 토글) -->
@@ -759,11 +771,6 @@
     	                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
     	            </svg>
     	        </button>
-			    <!-- <button class="post-like-btn" id="postLikeBtn" onclick="togglePostLike()" title="좋아요">
-			        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-			            <path d="M20.84 4.61 ..."></path>
-			        </svg>
-			    </button> -->
 			    <!-- 좋아요 텍스트(탭 전환용): span에서는 tab-button 제거 (컨테이너가 탭 역할을 함) -->
 			    <span class="like-text-btn" onclick="switchTab('like')" 
 			          style="margin-left: 0px; padding: 4px 0px; border-radius: 4px;">
