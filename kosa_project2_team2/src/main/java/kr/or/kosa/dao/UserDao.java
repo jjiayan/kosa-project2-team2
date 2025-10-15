@@ -4,8 +4,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
 
+import kr.or.kosa.dto.RoomBoardDto;
 import kr.or.kosa.dto.UserDto;
+import kr.or.kosa.dto.user.MyBoardItemDto;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
 public class UserDao {
@@ -247,6 +251,115 @@ public class UserDao {
             ps.setString(1, encPw);
             ps.setInt(2, userId);
             return ps.executeUpdate();
+        }
+    }
+    
+ // 목록 + 페이지네이션
+    public List<MyBoardItemDto> findMyBoards(
+            int userId, String q, String sort, int size, int page) throws Exception {
+
+        // 기본값 방어
+        if (size <= 0) size = 10;
+        if (page <= 0) page = 1;
+        int offset = (page - 1) * size;
+
+        // 정렬
+        String orderBy = "rb.created_at DESC";
+        if ("old".equalsIgnoreCase(sort)) {
+            orderBy = "rb.created_at ASC";
+        }
+
+        // 검색 조건
+        boolean hasQ = (q != null && !q.trim().isEmpty());
+        q = hasQ ? q.trim() : null;
+
+        String sql =
+            "SELECT * FROM ( " +
+            "  SELECT inner_q.*, ROWNUM rnum FROM ( " +
+            "    SELECT " +
+            "      rb.room_board_id, " +
+            "      rb.room_board_title        AS title, " +
+            "      rb.created_at, " +
+            "      rb.room_board_view_cnt     AS view_count, " +
+            "      rb.room_board_type         AS board_type, " +
+            "      rb.room_id, " +
+            "      r.room_title, " +
+            "      (SELECT COUNT(*) " +
+            "         FROM \"REPLY\" rp " +
+            "        WHERE rp.room_board_id = rb.room_board_id " +
+            "          AND NVL(rp.status,'ACTIVE')='ACTIVE') AS reply_count " +
+            "    FROM room_board rb " +
+            "    JOIN \"ROOM\" r ON r.room_id = rb.room_id " +
+            "   WHERE rb.user_id = ? " +
+            "     AND NVL(rb.is_deleted,'N')='N' " +
+            (hasQ ? "     AND (LOWER(rb.room_board_title) LIKE LOWER(?) OR LOWER(r.room_title) LIKE LOWER(?)) " : "") +
+            "   ORDER BY " + orderBy +
+            "  ) inner_q " +
+            "  WHERE ROWNUM <= ? " +       // offset+size 까지
+            ") " +
+            "WHERE rnum > ?";              // offset 초과부터
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            int idx = 1;
+            ps.setInt(idx++, userId);
+            if (hasQ) {
+                String like = "%" + q + "%";
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+            }
+            ps.setInt(idx++, offset + size);
+            ps.setInt(idx++, offset);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                List<MyBoardItemDto> list = new ArrayList<>();
+                while (rs.next()) {
+                    MyBoardItemDto dto = MyBoardItemDto.builder()
+                        .roomBoardId(rs.getInt("room_board_id"))
+                        .boardTitle(rs.getString("title"))
+                        .createdAt(rs.getTimestamp("created_at"))
+                        .viewCount(rs.getInt("view_count"))
+                        .boardType(rs.getString("board_type"))
+                        .roomId(rs.getInt("room_id"))
+                        .roomTitle(rs.getString("room_title"))
+                        .replyCount(rs.getInt("reply_count"))
+                        .build();
+                    list.add(dto);
+                }
+                return list;
+            }
+        }
+    }
+
+    // 총 건수 (페이지네이션용)
+    public int countMyBoards(int userId, String q) throws Exception {
+        boolean hasQ = (q != null && !q.trim().isEmpty());
+        q = hasQ ? q.trim() : null;
+
+        String sql =
+            "SELECT COUNT(*) " +
+            "  FROM room_board rb " +
+            "  JOIN \"ROOM\" r ON r.room_id = rb.room_id " +
+            " WHERE rb.user_id = ? " +
+            "   AND NVL(rb.is_deleted,'N')='N' " +
+            (hasQ ? "   AND (LOWER(rb.room_board_title) LIKE LOWER(?) OR LOWER(r.room_title) LIKE LOWER(?)) " : "");
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            int idx = 1;
+            ps.setInt(idx++, userId);
+            if (hasQ) {
+                String like = "%" + q + "%";
+                ps.setString(idx++, like);
+                ps.setString(idx++, like);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+                return 0;
+            }
         }
     }
 

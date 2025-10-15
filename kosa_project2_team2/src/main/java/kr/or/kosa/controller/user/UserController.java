@@ -109,6 +109,15 @@ public class UserController extends HttpServlet {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "mypageRooms.jsp");
+        }else if (command.equals("/mypage/mycomments.user")) {
+            // 내가 작성한 댓글 목록 화면 (부모글 제목 & 모임명 나오는 화면)
+        	forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath(USER_VIEW_PATH + "mypageReplies.jsp");
+        }else if (command.equals("/mypage/myPosts.user")) {
+        	forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath(USER_VIEW_PATH + "mypagePosts.jsp");
         }
         
         
