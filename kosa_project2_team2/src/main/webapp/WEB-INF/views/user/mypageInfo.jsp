@@ -180,7 +180,7 @@
             <div class="divider"></div>
             <div id="roomsArea"><div class="empty">로딩 중...</div></div>
             <div class="more-wrap">
-              <a class="more-link" href="${ctx}/rooms/mine">더보기 »</a>
+              <a class="more-link" href="${ctx}/mypage/myroomspage.user">더보기 »</a>
             </div>
           </section>
         </div>
