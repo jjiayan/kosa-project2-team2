@@ -319,6 +319,24 @@
     color: #333;
 }
 
+/* 내댓글 표시 스타일 */
+.my-comment-badge {
+    background: #ff5a5f;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+/* 답글 대상 닉네임 스타일 */
+.reply-target {
+    color: #ff5a5f;
+    font-weight: 700;
+    margin-right: 4px;
+}
+
 .reply-content { 
     margin: 0px 0 0px; 
     line-height: 1.5; 
@@ -523,6 +541,19 @@
     font-size: 14px;
     color: #333;
     margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 나 표시 스타일 */
+.me-badge {
+    background: #4CAF50;
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
 }
 
 .like-user-date {
@@ -620,16 +651,16 @@
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px;
-    border-radius: 50%;
+    color: #ccc;
+    padding: 0;
     transition: all 0.2s;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 }
 
 .post-like-btn:hover {
-    background: rgba(255, 90, 95, 0.1);
+    color: #ff5a5f;
 }
 
 .post-like-btn svg {
@@ -644,6 +675,9 @@
 .like-text-btn {
     cursor: pointer;
     transition: all 0.2s;
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+    text-align: right;
 }
 
 .like-text-btn:hover {
@@ -654,6 +688,74 @@
 .reply-sort.hidden {
     display: none;
 }
+
+/* 더보기 버튼 스타일 */
+.load-more-container {
+    text-align: center;
+    padding: 20px 24px;
+    background: white;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.btn-load-more {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: #6c757d;
+    padding: 12px 24px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.btn-load-more:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-load-more:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.load-more-text {
+    font-weight: 600;
+}
+
+.load-more-count {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.stat-item .like-text-btn strong#likeTotalCount {
+  display: inline-block;
+  width: 0.8ch;              /* 최대 자릿수에 맞춰 조절: 0~9999 -> 4ch */
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===== 댓글 탭 숫자 칸 폭 고정 ===== */
+/* 0~9999까지 가정 → 4ch. (0~999면 3ch로 줄여도 OK) */
+.stat-item.tab-button[data-tab="reply"] strong#replyTotalCount {
+  display: inline-block;
+  width: 0.8ch;               /* 필요시 3ch/5ch로 조정 */
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 숫자+라벨 줄바꿈 방지(선택) */
+.stat-item.tab-button[data-tab="reply"] > span {
+  white-space: nowrap;
+}
+
 </style>
 
 <!-- 댓글 영역 -->
@@ -661,19 +763,20 @@
     <!-- 댓글 통계 -->
     <div class="reply-header">
         <div class="reply-stats">
-        	<div class="stat-item">
-        	    <!-- 좋아요 SVG 버튼 (게시글 좋아요 토글) -->
-        	    <button class="post-like-btn" id="postLikeBtn" onclick="togglePostLike()" title="좋아요">
+	        <!-- 컨테이너 자체를 탭 버튼으로 인식시키기 위해 tab-button과 data-tab="like" 부여 -->
+			<div class="stat-item tab-button" data-tab="like" style="padding-left: 10px;">
+			    <!-- 좋아요 SVG 버튼 (게시글 좋아요 토글) -->
+			    <button class="post-like-btn" id="postLikeBtn" onclick="togglePostLike()" title="좋아요">
     	            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     	                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
     	            </svg>
     	        </button>
-    	        <!-- 좋아요 텍스트 (탭 전환용) -->
-    	        <span class="like-text-btn tab-button" data-tab="like" onclick="switchTab('like')" 
-    	              style="margin-left: 0px; padding: 4px 0px; border-radius: 4px;">
-    	            좋아요 <strong id="likeTotalCount">0</strong>
-    	        </span>
-	        </div>
+			    <!-- 좋아요 텍스트(탭 전환용): span에서는 tab-button 제거 (컨테이너가 탭 역할을 함) -->
+			    <span class="like-text-btn" onclick="switchTab('like')" 
+			          style="margin-left: 0px; padding: 4px 0px; border-radius: 4px;">
+			        좋아요 <strong id="likeTotalCount">0</strong>
+			    </span>
+			</div>
 	        <div class="stat-item tab-button active" data-tab="reply" onclick="switchTab('reply')">
 	            <span class="stat-icon">💬</span>
 	            <span>댓글 <strong id="replyTotalCount">0</strong></span>
@@ -734,20 +837,34 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-//게시글 ID (JSP에서 전달받음)
+// 게시글 ID (JSP에서 전달받음)
 var ROOM_BOARD_ID = ${param.roomBoardId};
 var currentOrder = 'ASC';
 var currentTab = 'reply';
 
+// 현재 로그인한 사용자 ID (JSP에서 전달받음)
+var CURRENT_USER_ID = ${not empty sessionScope.LOGIN_USER ? sessionScope.LOGIN_USER.user_id : 'null'};
+
 // 게시글 좋아요 상태 전역 변수
 var isPostLiked = false;
 
-// 좋아요 페이지네이션 변수들 (댓글 페이지네이션 변수 제거)
+// 좋아요 페이지네이션 변수들
 var likeCurrentPage = 1;
 var likeTotalPages = 1;
 
+// 댓글 더보기 기능용 변수들
+var allReplies = []; // 서버에서 받은 원본 트리 구조 댓글
+var flatReplies = []; // 평면화된 댓글 배열 (표시용)
+var displayedCount = 0; // 현재 표시된 댓글 수
+var initialLoadCount = 30; // 처음 로드할 댓글 수
+var loadMoreCount = 10; // 더보기 시 추가할 댓글 수
+
+// 댓글 정보를 ID로 빠르게 찾기 위한 맵
+var replyMap = {};
+
 jQuery(document).ready(function() {
     console.log('댓글 시스템 로드, ROOM_BOARD_ID:', ROOM_BOARD_ID);
+    console.log('현재 사용자 ID:', CURRENT_USER_ID);
     loadReplyList();
     loadInitialLikeCount();
     loadPostLikeStatus();
@@ -762,12 +879,24 @@ jQuery(document).ready(function() {
         jQuery('.sort-btn').removeClass('active');
         jQuery(this).addClass('active');
         currentOrder = jQuery(this).data('order');
+        // 정렬 변경 시 표시 카운트 초기화
+        resetDisplayState();
         loadReplyList();
     });
 });
 
 /**
- * 댓글 목록 불러오기 (페이지네이션 제거)
+ * 표시 상태 초기화 함수
+ */
+function resetDisplayState() {
+    displayedCount = 0;
+    allReplies = [];
+    flatReplies = [];
+    replyMap = {};
+}
+
+/**
+ * 댓글 목록 불러오기 (서버에서 전체 댓글 가져오기)
  */
 function loadReplyList() {
     jQuery.ajax({
@@ -781,7 +910,22 @@ function loadReplyList() {
         success: function(response) {
             console.log('댓글 목록 응답:', response);
             if (response.success) {
-                displayReplyList(response.replies);
+                // 서버에서 받은 트리 구조 댓글 저장
+                allReplies = response.replies || [];
+                
+                // 댓글 맵 생성 (ID로 빠른 검색용)
+                buildReplyMap(allReplies);
+                
+                // 트리 구조를 평면화하여 순서대로 배열 생성
+                flatReplies = flattenReplyTree(allReplies);
+                
+                console.log('전체 댓글 수:', flatReplies.length);
+                console.log('평면화된 댓글:', flatReplies);
+                
+                // 댓글 표시 (처음 30개부터)
+                displayReplies();
+                
+                // 총 댓글 수 업데이트
                 jQuery('#replyTotalCount').text(response.totalCount);
             } else {
                 alert(response.message);
@@ -795,31 +939,143 @@ function loadReplyList() {
 }
 
 /**
- * 댓글 목록 표시
+ * 댓글 맵 생성 (ID로 빠른 검색을 위해)
  */
-function displayReplyList(replies) {
-    var replyList = jQuery('#replyList');
-    replyList.empty();
-    
-    if (replies.length === 0) {
-        replyList.html('<div class="empty-state">첫 댓글을 작성해보세요!</div>');
-        return;
-    }
-    
-    // 재귀 함수로 모든 깊이의 답글 처리
-    function renderReply(reply, isChild) {
-        replyList.append(createReplyHtml(reply, isChild));
-        
+function buildReplyMap(replies) {
+    function addToMap(reply) {
+        replyMap[reply.replyId] = reply;
         if (reply.replies && reply.replies.length > 0) {
-            for (var j = 0; j < reply.replies.length; j++) {
-                renderReply(reply.replies[j], true);
+            for (var i = 0; i < reply.replies.length; i++) {
+                addToMap(reply.replies[i]);
             }
         }
     }
     
     for (var i = 0; i < replies.length; i++) {
-        renderReply(replies[i], false);
+        addToMap(replies[i]);
     }
+}
+
+/**
+ * 트리 구조의 댓글을 표시 순서대로 평면화
+ * 삭제된 답글은 제외하고, 삭제된 원댓글은 포함
+ */
+function flattenReplyTree(replies) {
+    var flattened = [];
+    
+    function processReply(reply, isChild, parentReply) {
+        // 삭제된 답글은 평면화에서 제외 (표시하지 않으므로)
+        if (isChild && reply.status === 'DELETED') {
+            console.log('삭제된 답글 제외:', reply.replyId);
+            return;
+        }
+        
+        // 현재 댓글 추가 (isChild 정보와 부모 댓글 정보 포함)
+        var flatReply = Object.assign({}, reply);
+        flatReply.isChild = isChild || false;
+        flatReply.parentReplyInfo = parentReply || null;
+        flattened.push(flatReply);
+        
+        console.log('평면화 추가:', flatReply.replyId, '(삭제여부:', flatReply.status, ', 답글여부:', flatReply.isChild, ')');
+        
+        // 자식 댓글들이 있으면 재귀적으로 처리
+        if (reply.replies && reply.replies.length > 0) {
+            for (var i = 0; i < reply.replies.length; i++) {
+                processReply(reply.replies[i], true, reply);
+            }
+        }
+    }
+    
+    // 모든 최상위 댓글들을 처리
+    for (var i = 0; i < replies.length; i++) {
+        processReply(replies[i], false, null);
+    }
+    
+    console.log('평면화 완료. 총 댓글 수:', flattened.length);
+    return flattened;
+}
+
+/**
+ * 댓글 표시 함수 (30개씩 초기 로드, 10개씩 추가 로드)
+ */
+function displayReplies() {
+    var replyList = jQuery('#replyList');
+    
+    // 처음 호출인 경우에만 리스트 초기화
+    if (displayedCount === 0) {
+        replyList.empty();
+        
+        // 댓글이 없는 경우
+        if (flatReplies.length === 0) {
+            replyList.html('<div class="empty-state">첫 댓글을 작성해보세요!</div>');
+            return;
+        }
+        
+        console.log('첫 댓글 로드 시작. 전체 댓글 수:', flatReplies.length);
+    }
+    
+    // 이번에 표시할 댓글 범위 계산
+    var startIndex = displayedCount;
+    var endIndex;
+    
+    if (displayedCount === 0) {
+        // 처음 로드: 30개까지 표시 (전체 댓글이 30개 미만이면 전체 표시)
+        endIndex = Math.min(initialLoadCount, flatReplies.length);
+        console.log('첫 로드: 0부터', endIndex, '개 표시');
+    } else {
+        // 더보기: 현재 + 10개까지 추가 (남은 댓글이 10개 미만이면 나머지 전체)
+        endIndex = Math.min(displayedCount + loadMoreCount, flatReplies.length);
+        console.log('더보기: ', startIndex, '부터', endIndex, '까지 추가 표시');
+    }
+    
+    // 새로 추가할 댓글들만 렌더링
+    var addedCount = 0;
+    for (var i = startIndex; i < endIndex; i++) {
+        var reply = flatReplies[i];
+        var replyHtml = createReplyHtml(reply, reply.isChild);
+        
+        // HTML이 비어있지 않으면 추가 (삭제된 답글은 빈 문자열 반환)
+        if (replyHtml.trim() !== '') {
+            replyList.append(replyHtml);
+            addedCount++;
+        }
+    }
+    
+    // 표시된 댓글 수 업데이트
+    displayedCount = endIndex;
+    
+    console.log('실제 추가된 댓글 수:', addedCount, '/ 처리된 인덱스:', startIndex, '~', endIndex-1);
+    console.log('누적 표시된 댓글 수:', displayedCount, '/ 전체:', flatReplies.length);
+    
+    // 기존 더보기 버튼 제거
+    jQuery('#loadMoreBtn').remove();
+    
+    // 더 표시할 댓글이 있으면 더보기 버튼 추가
+    if (displayedCount < flatReplies.length) {
+        var remainingCount = flatReplies.length - displayedCount;
+        var nextLoadCount = Math.min(loadMoreCount, remainingCount);
+        
+        var loadMoreBtn = '<div id="loadMoreBtn" class="load-more-container">' +
+            '<button class="btn-load-more" onclick="loadMoreReplies()">' +
+            '<span class="load-more-text">댓글 ' + nextLoadCount + '개 더보기</span>' +
+            '<span class="load-more-count">(' + remainingCount + '개 남음)</span>' +
+            '</button>' +
+            '</div>';
+        
+        replyList.append(loadMoreBtn);
+        
+        console.log('더보기 버튼 추가 - 다음 로드:', nextLoadCount, '개, 남은 총 댓글:', remainingCount, '개');
+    } else {
+        console.log('모든 댓글 표시 완료');
+    }
+}
+
+/**
+ * 더보기 버튼 클릭 시 추가 댓글 로드
+ */
+function loadMoreReplies() {
+    console.log('더보기 클릭 - 현재 표시된 댓글:', displayedCount, '/', flatReplies.length);
+    displayReplies();
 }
 
 /**
@@ -836,17 +1092,17 @@ function createReplyHtml(reply, isChild) {
     var profileImg = '<img src="' + profileImgSrc + '" alt="프로필" class="profile-img" ' +
         'onerror="this.onerror=null; this.src=\'' + defaultImgSrc + '\';">';
     
-    // 삭제된 댓글 처리
-    if (reply.status === 'DELETED' && reply.parentReplyId == null) {
+    // 삭제된 원댓글만 "삭제된 댓글입니다" 표시
+    if (reply.status === 'DELETED' && !isChild) {
         return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
             '<div class="reply-item-header">' +
             '<div class="reply-author">' +
             '<div class="reply-main-content">' +
             '<div class="reply-content" style="color: #999; font-style: italic;">삭제된 댓글입니다.</div>' +
             '</div></div></div></div>';
-    } else if (reply.status === 'DELETED' && reply.parentReplyId != null){
-        return '';
-    } 
+    }
+    
+    // 삭제된 답글은 이미 평면화에서 제외되므로 여기서는 처리하지 않음
     
     // 더보기 메뉴 버튼
     var actionButtons = '';
@@ -895,15 +1151,30 @@ function createReplyHtml(reply, isChild) {
     } else {
         timeText = formatDateTime(reply.replyCreatedAt);
     }
+    
+    // 내댓글 표시
+    var myCommentBadge = '';
+    if (CURRENT_USER_ID && reply.userId === CURRENT_USER_ID) {
+        myCommentBadge = '<span class="my-comment-badge">내댓글</span>';
+    }
+    
+    // 답글 대상 닉네임 표시 (답글이면서 부모가 원댓글이 아닌 경우만)
+    var replyTargetNickname = '';
+    if (isChild && reply.parentReplyInfo && reply.parentReplyInfo.parentReplyId != null) {
+        replyTargetNickname = '<span class="reply-target">@' + escapeHtml(reply.parentReplyInfo.userNickname) + '</span>';
+    }
         
     return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
         '<div class="reply-item-header">' +
         '<div class="reply-author">' +
         profileImg +
         '<div class="reply-main-content">' +
-        '<div class="author-info"><span class="author-name">' + escapeHtml(reply.userNickname) + '</span></div>' +
+        '<div class="author-info">' +
+        '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
+        myCommentBadge +
+        '</div>' +
         '<div class="reply-content" data-original="' + escapeHtml(reply.replyContent) + '">' +
-        escapeHtml(reply.replyContent) + '</div>' +
+        replyTargetNickname + escapeHtml(reply.replyContent) + '</div>' +
         '<span class="reply-time">' + timeText + '</span>' + replyButton + likeButton +
 	    '</div></div>' +
 	    actionButtons +
@@ -1017,7 +1288,7 @@ function toggleReplyLike(replyId) {
                     likeCountSpan.remove();
                 }
                 
-                console.log('좋아요 ' + response.action + '! 이 ' + response.likeCount + '개');
+                console.log('좋아요 ' + response.action + '! 총 ' + response.likeCount + '개');
             } else {
                 alert(response.message || '좋아요 처리에 실패했습니다.');
             }
@@ -1057,6 +1328,8 @@ function writeReply() {
                 jQuery('#currentLength').text('0');
                 selectedImages = [];
                 displayAttachedImages();
+                // 댓글 작성 후 목록 새로고침 (표시 카운트 초기화)
+                resetDisplayState();
                 loadReplyList();
                 alert(response.message);
             } else {
@@ -1103,6 +1376,8 @@ function writeChildReply(parentReplyId) {
             if (response.success) {
                 jQuery('#childContent' + parentReplyId).val('');
                 toggleChildReplyForm(parentReplyId);
+                // 답글 작성 후 목록 새로고침 (표시 카운트 초기화)
+                resetDisplayState();
                 loadReplyList();
                 alert(response.message);
             } else {
@@ -1129,12 +1404,34 @@ function editReply(replyId) {
         '<div class="reply-write-actions" style="margin-top:12px;">' +
         '<div class="write-tools"></div>' +
         '<span class="char-count"><span id="editLength' + replyId + '">' + originalContent.length + '</span>/3000</span>' +
-        '<button class="btn-cancel" onclick="loadReplyList()">취소</button>' +
+        '<button class="btn-cancel" onclick="cancelEditReply()">취소</button>' +
         '<button class="btn-submit" onclick="updateReply(' + replyId + ')">수정</button></div>'
     );
     jQuery('#editContent' + replyId).on('input', function() {
         jQuery('#editLength' + replyId).text(jQuery(this).val().length);
     });
+}
+
+/**
+ * 댓글 수정 취소
+ */
+function cancelEditReply() {
+    // 현재 표시 상태 저장
+    var currentDisplayed = displayedCount;
+    
+    // 목록 새로고침
+    resetDisplayState();
+    loadReplyList();
+    
+    // 로드 완료 후 이전 표시 상태 복원
+    setTimeout(function() {
+        if (currentDisplayed > initialLoadCount) {
+            displayedCount = initialLoadCount;
+            for (var i = 0; i < Math.ceil((currentDisplayed - initialLoadCount) / loadMoreCount); i++) {
+                displayReplies();
+            }
+        }
+    }, 100);
 }
 
 /**
@@ -1157,7 +1454,21 @@ function updateReply(replyId) {
             },
             success: function(response) {
                 if (response.success) {
+                    // 수정 후에는 현재 표시된 댓글 수 유지
+                    var currentDisplayed = displayedCount;
+                    resetDisplayState();
                     loadReplyList();
+                    
+                    // 로드 완료 후 이전 표시 상태 복원
+                    setTimeout(function() {
+                        if (currentDisplayed > initialLoadCount) {
+                            displayedCount = initialLoadCount;
+                            for (var i = 0; i < Math.ceil((currentDisplayed - initialLoadCount) / loadMoreCount); i++) {
+                                displayReplies();
+                            }
+                        }
+                    }, 100);
+                    
                     alert(response.message);
                 } else {
                     alert(response.message);
@@ -1186,6 +1497,8 @@ function deleteReply(replyId) {
             },
             success: function(response) {
                 if (response.success) {
+                    // 삭제 후 목록 새로고침 (표시 카운트 초기화)
+                    resetDisplayState();
                     loadReplyList();
                     alert(response.message);
                 } else {
@@ -1239,6 +1552,8 @@ function switchTab(tabName) {
         jQuery('#likePagination').hide();
         jQuery('#replySortButtons').removeClass('hidden');
         jQuery('.reply-write-form').show();
+        // 댓글 탭 전환 시 표시 카운트 초기화
+        resetDisplayState();
         loadReplyList();
     } else {
     	// 좋아요 탭
@@ -1313,11 +1628,17 @@ function displayLikeList(likeUsers) {
         
         var likeDate = formatDateTime(user.likeCreatedAt);
         
+        // 본인인지 확인하여 "나" 표시 추가
+        var meBadge = '';
+        if (CURRENT_USER_ID && user.userId === CURRENT_USER_ID) {
+            meBadge = '<span class="me-badge">나</span>';
+        }
+        
         var userHtml = '<div class="like-user-item">' +
             '<img src="' + profileImgSrc + '" alt="프로필" class="like-user-avatar" ' +
             'onerror="this.src=\'' + contextPath + '/images/default-avatar.png\';">' +
             '<div class="like-user-info">' +
-            '<div class="like-user-name">' + escapeHtml(user.userNickname) + '</div>' +
+            '<div class="like-user-name">' + escapeHtml(user.userNickname) + meBadge + '</div>' +
             '<div class="like-user-date">' + likeDate + '</div>' +
             '</div></div>';
         
@@ -1454,7 +1775,7 @@ function togglePostLike() {
                     loadLikeList();
                 }
                 
-                console.log('게시글 좋아요 ' + response.action + '! 이 ' + response.likeCount + '개');
+                console.log('게시글 좋아요 ' + response.action + '! 총 ' + response.likeCount + '개');
             } else {
                 alert(response.message || '좋아요 처리에 실패했습니다.');
             }
@@ -1527,13 +1848,17 @@ function updatePostLikeUI() {
  */
 function updateTabActiveState(tabName) {
     // 탭 버튼 스타일 초기화
-    jQuery('.tab-button').removeClass('active');
+    /* jQuery('.tab-button').removeClass('active');
     jQuery('.like-text-btn').removeClass('active');
     
     if (tabName === 'like') {
         jQuery('.like-text-btn').addClass('active');
     } else {
         jQuery('.tab-button[data-tab="' + tabName + '"]').addClass('active');
-    }
+    } */
+	 // 컨테이너(.stat-item.tab-button)를 기준으로 활성화 표시
+    jQuery('.stat-item.tab-button').removeClass('active');
+    jQuery('.stat-item.tab-button[data-tab="' + tabName + '"]').addClass('active');
 }
+
 </script>

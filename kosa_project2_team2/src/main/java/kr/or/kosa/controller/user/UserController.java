@@ -63,7 +63,7 @@ public class UserController extends HttpServlet {
         else if (command.equals("/index.user")) {
             forward = new ActionForward();
             forward.setRedirect(true);
-            forward.setPath("/index.jsp");
+            forward.setPath("/main.jsp");
         } else if (command.equals("/findId.user")) {
             forward = new ActionForward();
             forward.setRedirect(false);
