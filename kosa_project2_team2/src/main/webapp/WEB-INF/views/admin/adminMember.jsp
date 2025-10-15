@@ -23,7 +23,8 @@
 		  margin: 0;
 		}
 		.member-container {
-			max-width: 1100px; 
+			max-width: 1100px;
+			margin: 60px auto;
 		}
 		.page-header{
 	      display:flex;
