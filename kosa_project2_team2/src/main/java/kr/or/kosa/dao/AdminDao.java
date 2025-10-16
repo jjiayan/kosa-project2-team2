@@ -346,24 +346,36 @@ public class AdminDao {
 	}
 
 	// 인기 자격증 TOP 5
+	// 인기 자격증 TOP 5
 	public List<Map<String, Object>> getTopCertifications() {
-		List<Map<String, Object>> topList = new ArrayList<>();
-		String sql = "SELECT cm.jmName AS certName, COUNT(r.room_id) AS roomCount " + "FROM ROOM r "
-				+ "JOIN CERTIFICATION_MASTER cm ON r.jmcd = cm.jmcd " + "WHERE r.is_deleted = 'N' "
-				+ "GROUP BY cm.jmName " + "ORDER BY roomCount DESC " + "FETCH FIRST 5 ROWS ONLY";
-		try (Connection conn = ConnectionPoolHelper.getConnection();
-				PreparedStatement pstmt = conn.prepareStatement(sql);
-				ResultSet rs = pstmt.executeQuery()) {
-			while (rs.next()) {
-				Map<String, Object> row = new HashMap<>();
-				row.put("name", rs.getString("certName"));
-				row.put("count", rs.getInt("roomCount"));
-				topList.add(row);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return topList;
+	    List<Map<String, Object>> topList = new ArrayList<>();
+	    String sql = 
+	        "SELECT cm.jmName AS certName, COUNT(DISTINCT r.room_id) AS roomCount " +
+	        "FROM ROOM r " +
+	        "JOIN ( " +
+	        "    SELECT DISTINCT jmcd, jmName " +
+	        "    FROM CERTIFICATION_MASTER " +
+	        ") cm ON r.jmcd = cm.jmcd " +
+	        "WHERE r.is_deleted = 'N' " +
+	        "GROUP BY cm.jmName " +
+	        "ORDER BY roomCount DESC " +
+	        "FETCH FIRST 5 ROWS ONLY";
+
+	    try (Connection conn = ConnectionPoolHelper.getConnection();
+	         PreparedStatement pstmt = conn.prepareStatement(sql);
+	         ResultSet rs = pstmt.executeQuery()) {
+
+	        while (rs.next()) {
+	            Map<String, Object> row = new HashMap<>();
+	            row.put("name", rs.getString("certName"));
+	            row.put("count", rs.getInt("roomCount"));
+	            topList.add(row);
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	    return topList;
 	}
+
 
 }

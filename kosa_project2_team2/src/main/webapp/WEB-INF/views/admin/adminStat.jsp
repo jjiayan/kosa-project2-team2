@@ -343,7 +343,6 @@ $(document).ready(function() {
 					const listContainer = $(".stat-container .top-list");
 					let html = '<h5>인기 자격증 카테고리 TOP 5</h5>';
 					const max = Math.max(...topCerts.map(c => c.count));
-					console.log("🎯 max:", max);
 
 					topCerts.forEach((cert, i) => {
 						const width = Math.max(10, (cert.count / max) * 100);
@@ -359,7 +358,6 @@ $(document).ready(function() {
 						    '</div>' +
 						  '</div>';
 					});
-					console.log("🎯 최종 HTML:", html);
 					listContainer.html(html);
 				}
 			},
