@@ -151,7 +151,7 @@
       </a>
     </li>
 
-	<c:if test="${not empty sessionScope.currentRoomId}">
+	<c:if test="${not empty sessionScope.currentRoomId and not empty sessionScope.LOGIN_USER.user_id}">
 	    <li class="snav-item ${current eq 'posts' ? 'is-active' : ''}">
 	        <a href="<c:url value='/roomboardlist.room'>
 	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
@@ -182,7 +182,7 @@
 	    </li>
 	</c:if>
 
-   <%-- <c:if test="${sessionScope.leaderCheck}"> --%>
+   <c:if test="${sessionScope.leaderCheck}">
 		<li class="snav-item ${current eq 'admin' ? 'is-active' : ''} has-submenu">
 		     <a href="<c:url value='/roomboardadmin.room'>
 	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
@@ -218,6 +218,6 @@
 		        <span class="label">방 삭제</span>
 		    </a>
 		</li>
-	<%-- </c:if> --%>
+	</c:if>
   </ul>
 </nav>
