@@ -97,8 +97,9 @@
 
     <button type="submit" class="submit-btn">로그인</button>
 
-    <!-- ✅ 카카오 로그인 버튼 -->
-    <button type="button" class="kakao-btn" onclick="kakaoLogin()">
+    <!-- ✅ 카카오 로그인: 서버 라우트로 이동 -->
+    <button type="button" class="kakao-btn"
+            onclick="location.href='${pageContext.request.contextPath}/kakao/login.user'">
       <i class="fa-solid fa-comment"></i> 카카오로 로그인
     </button>
 
@@ -106,7 +107,6 @@
   </form>
 </div>
 
-<!-- 비밀번호 토글 -->
 <script>
   function togglePw(){
     const input = document.getElementById('userPw');
@@ -114,32 +114,6 @@
     const isText = input.type === 'text';
     input.type = isText ? 'password' : 'text';
     eye.className = isText ? 'fa-regular fa-eye' : 'fa-regular fa-eye-slash';
-  }
-</script>
-
-<!-- ✅ 카카오 SDK + authorize 호출 -->
-<script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script>
-<script>
-  // ★ 카카오 JavaScript 키 (개발자 콘솔에서 발급) — 노출 가능 키
-  Kakao.init('20609a1c20b6eae30d985db4a0dd3fbb'); // ex) Kakao.init('ab12cd34ef56gh78ij90kl12mn34op56');
-
-  // 안전한 리다이렉트 URI 구성 (콘솔 등록값과 "정확히" 일치해야 함)
-  const REDIRECT_URI = window.location.origin + '${pageContext.request.contextPath}/callback';
-
-  function setCookie(name, value) {
-    document.cookie = name + '=' + encodeURIComponent(value) + '; path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
-  }
-  function getRandomState() {
-    return (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).slice(0, 32);
-  }
-
-  function kakaoLogin(){
-    const state = getRandomState();        // CSRF 방어용
-    setCookie('oauth_state', state);       // 콜백에서 검증
-    Kakao.Auth.authorize({
-      redirectUri: REDIRECT_URI,
-      state: state
-    });
   }
 </script>
 </body>

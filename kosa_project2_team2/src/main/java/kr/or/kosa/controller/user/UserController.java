@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.user.KakaoCallbackService;
+import kr.or.kosa.service.user.KakaoLoginService;
 import kr.or.kosa.service.user.UserEditOkService;
 import kr.or.kosa.service.user.UserFindIdService;
 import kr.or.kosa.service.user.UserFindPwdService;
@@ -115,7 +117,15 @@ public class UserController extends HttpServlet {
         	forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "mypagePosts.jsp");
-        }
+        } /* ✅ 카카오 OAuth: 서버 주도 플로우 */
+     else if (command.equals("/kakao/login.user")) {
+        action = new KakaoLoginService();       // state 생성 후 카카오로 리다이렉트
+        forward = action.execute(request, response);
+    } else if (command.equals("/kakao/callback.user")) {
+        action = new KakaoCallbackService();    // code 처리 → 존재여부 체크
+        forward = action.execute(request, response);
+
+    }
         
         
         else {
