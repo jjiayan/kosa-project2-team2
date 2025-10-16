@@ -2,11 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <c:set var="ctx" value="${pageContext.request.contextPath}"/>
-<!-- ★ 서버 매핑('/mypage/mycomments.sync') 과 일치시킴 -->
 <c:url var="repliesApi" value="/mypage/mycomments.sync"/>
-
-<%-- 세션/파라미터에서 userId 확보 (우선순위: 세션 → 요청 파라미터)
-     프로젝트에서 세션 키가 LOGIN_USER(UserDto) 이므로 이에 맞춤 --%>
 <c:set var="uid" value="${sessionScope.LOGIN_USER != null ? sessionScope.LOGIN_USER.user_id : param.userId}" />
 
 <!DOCTYPE html>
@@ -24,15 +20,52 @@ html,body{ margin:0; background:#fafafa; color:var(--ink); font-family:"Noto San
 main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padding:28px; }
 .page{ max-width:1160px; margin:0 auto; }
 
+/* ===== 상단 툴바 ===== */
 .toolbar{ display:flex; gap:12px; align-items:center; justify-content:flex-end; margin-bottom:14px; }
 .search{ position:relative; margin-right:auto; width:360px; max-width:60vw; }
 .search input{ width:100%; height:42px; padding:0 42px 0 14px; border:1px solid var(--ring); border-radius:999px; }
 .search button{ position:absolute; right:8px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:#9ca3af; }
-.select select{ height:42px; padding:0 36px 0 14px; border:1px solid var(--ring); border-radius:999px; background:#fff; }
 
+/* ✅ 커스텀 select 스타일 (내정보 수정 페이지와 동일) */
+.select {
+  position: relative;
+  display: inline-block;
+}
+
+.select .select-input {
+  appearance: none; /* 기본 화살표 제거 */
+  width: 140px;
+  height: 42px;
+  padding: 0 36px 0 14px;
+  border: 1px solid var(--ring);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 14px;
+  transition: all 0.25s ease-in-out;
+  outline: none;
+  color: var(--ink);
+}
+
+.select .select-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.18);
+  background: #fffafa;
+}
+
+/* 화살표 표시 */
+.select::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  font-size: 13px;
+  pointer-events: none;
+}
+
+/* ===== 표 ===== */
 .sheet{ background:#fff; border:1px solid var(--ring); border-radius:18px; box-shadow:0 10px 30px rgba(0,0,0,.06); overflow:hidden; }
-
-/* 고정 레이아웃 + 말줄임 */
 .table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; }
 .table thead th{ text-align:left; font-weight:800; font-size:15px; color:#374151; padding:18px 22px; background:#fafafa; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .table tbody td{
@@ -41,7 +74,6 @@ main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padd
 }
 .table tbody td.meta{ color:var(--muted); }
 
-/* 링크(제목/모임명) */
 .table a.link{
   display:block; max-width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
   color:#111; text-decoration:none;
@@ -55,6 +87,7 @@ main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padd
 .page-btn.arrow{ font-size:18px; }
 </style>
 </head>
+
 <body>
   <jsp:include page="/include/nav.jsp"/>
   <div class="wrap">
@@ -69,8 +102,10 @@ main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padd
             <input id="q" type="text" placeholder="제목·모임명·내용 검색"/>
             <button id="btnSearch" aria-label="search"><i class="fa-solid fa-magnifying-glass"></i></button>
           </div>
+
+          <!-- ✅ 커스텀 select 스타일 적용 -->
           <div class="select">
-            <select id="sort">
+            <select id="sort" class="select-input">
               <option value="recent" selected>최신순</option>
               <option value="old">오래된순</option>
             </select>
@@ -108,7 +143,6 @@ main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padd
   var REPLIES_API='${repliesApi}';
   var state = { q:'', sort:'recent', size:10, page:1 };
 
-  // JSP(EL) fallback userId (세션/파라미터) → 인코딩
   var GLOBAL_UID_RAW = '<c:out value="${uid}"/>';
   var GLOBAL_UID = GLOBAL_UID_RAW ? encodeURIComponent(GLOBAL_UID_RAW) : '';
 
@@ -183,7 +217,6 @@ main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padd
     });
   }
 
-  // events
   $('#btnSearch').on('click', function(){ state.q=$('#q').val().trim(); state.page=1; load(); });
   $('#q').on('keyup', function(e){ if(e.key==='Enter') $('#btnSearch').click(); });
   $('#sort').on('change', function(){ state.sort=$(this).val(); state.page=1; load(); });

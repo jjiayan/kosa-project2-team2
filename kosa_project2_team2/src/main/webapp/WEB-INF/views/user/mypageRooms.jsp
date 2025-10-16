@@ -39,19 +39,50 @@
   .search input{
     width:100%; height:42px; padding:0 42px 0 14px; border:1px solid var(--ring); border-radius:999px; outline:none; font-size:14px; background:#fff;
   }
-  .search input:focus{ border-color:var(--primary); }
+  .search input:focus{ border-color:var(--primary); box-shadow:0 0 0 3px rgba(255,107,107,.18); }
   .search button{
     position:absolute; right:8px; top:50%; transform:translateY(-50%); width:28px; height:28px;
     border:0; background:transparent; color:#9ca3af; cursor:pointer;
   }
+
   .tabs{ display:flex; gap:8px; flex-wrap:wrap; }
   .tab{ border:0; height:38px; padding:0 14px; border-radius:999px; cursor:pointer; background:#f3f4f6; color:#374151; font-size:14px; }
   .tab.active{ background:var(--primary); color:#fff; box-shadow:0 4px 14px rgba(255,107,107,.25); }
 
   .toolbar-right{ display:flex; align-items:center; gap:10px; }
-  .select{ position:relative; }
-  .select select{ appearance:none; height:42px; padding:0 36px 0 14px; border:1px solid var(--ring); border-radius:999px; background:#fff; font-size:14px; }
-  .select:after{ content:"▾"; position:absolute; right:12px; top:50%; transform:translateY(-50%); color:#888; font-size:12px; pointer-events:none; }
+
+  /* ✅ 커스텀 드롭다운 (하이라이트 효과 포함) */
+  .select {
+    position: relative;
+    display: inline-block;
+  }
+  .select .select-input {
+    appearance: none;
+    height: 42px;
+    padding: 0 36px 0 14px;
+    border: 1px solid var(--ring);
+    border-radius: 999px;
+    background: #fff;
+    font-size: 14px;
+    color: var(--ink);
+    transition: all .2s ease;
+    outline: none;
+  }
+  .select .select-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255,107,107,.18);
+    background: #fffafa;
+  }
+  .select::after {
+    content: "▾";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 13px;
+    pointer-events: none;
+  }
 
   .page-title{ font-size:22px; font-weight:800; margin:24px 6px 12px; color:#111; }
 
@@ -83,7 +114,6 @@
 
   @media (max-width:1280px){ .grid{ grid-template-columns: repeat(3, 1fr); } }
   @media (max-width:900px){
-    .wrap{ grid-template-columns: 1fr; }
     main{ border-left:none; border-top:1px solid var(--ring); padding:20px; }
     .grid{ grid-template-columns: repeat(2, 1fr); }
     .search{ width:100%; max-width:none; }
@@ -95,7 +125,6 @@
   <jsp:include page="/include/nav.jsp" />
 
   <div class="wrap">
-    <!-- 사이드바 -->
     <jsp:include page="/include/mypageSidebar.jsp">
       <jsp:param name="current" value="group"/>
     </jsp:include>
@@ -115,9 +144,9 @@
             </div>
           </div>
           <div class="toolbar-right">
-            <!-- 개수 선택 제거; 정렬만 유지 -->
+            <!-- ✅ 하이라이트 효과 적용된 드롭다운 -->
             <div class="select">
-              <select id="sort">
+              <select id="sort" class="select-input">
                 <option value="recent" ${empty param.sort or param.sort eq 'recent' ? 'selected':''}>최신순</option>
                 <option value="popular" ${param.sort eq 'popular' ? 'selected':''}>인기순</option>
                 <option value="old" ${param.sort eq 'old' ? 'selected':''}>오래된순</option>
@@ -130,7 +159,6 @@
           <c:out value="${empty param.tab or param.tab eq 'joined' ? '참여한 모임' : '내가 개설한 모임'}"/>
         </div>
 
-        <!-- 카드 그리드 / 페이지네이션 -->
         <section id="grid" class="grid" aria-live="polite"></section>
         <nav id="pagination" class="pagination" aria-label="페이지 이동"></nav>
       </div>
@@ -140,230 +168,68 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
 (function($){
-  // JSP에서 주입된 값
-  var CTX         = '${ctx}';
-  var ROOMS_API   = '${roomsApi}';
-  var LIKE_API    = '${likeApi}';
-  var PLACEHOLDER = '${placeholderImg}';
+  var CTX='${ctx}', ROOMS_API='${roomsApi}', LIKE_API='${likeApi}', PLACEHOLDER='${placeholderImg}';
+  var PAGE_SIZE=12;
+  var state={tab:('${empty param.tab ? "joined" : param.tab}'), q:$('#q').val().trim(), sort:$('#sort').val(), size:PAGE_SIZE, page:parseInt(('<c:out value="${empty param.page ? 1 : param.page}"/>'),10)||1};
+  var $grid=$('#grid'), $pagination=$('#pagination'), $title=$('#pageTitle');
 
-  // 고정 페이지 크기(그리드 맞춤)
-  var PAGE_SIZE = 12;
+  function escapeHtml(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+  function renderSkeleton(){ $grid.empty(); for(var i=0;i<state.size;i++) $grid.append('<div class="skeleton"></div>'); $pagination.empty(); }
 
-  // 상태
-  var state = {
-    tab  : ('${empty param.tab ? "joined" : param.tab}'),
-    q    : $('#q').val().trim(),
-    sort : $('#sort').val(),
-    size : PAGE_SIZE,
-    page : parseInt(('<c:out value="${empty param.page ? 1 : param.page}"/>'), 10) || 1
-  };
-
-  var $grid       = $('#grid');
-  var $pagination = $('#pagination');
-  var $title      = $('#pageTitle');
-
-  // XSS 방지
-  function escapeHtml(s){
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function(m){
-      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m];
-    });
-  }
-
-  // 로딩 스켈레톤
-  function renderSkeleton(){
-    $grid.empty();
-    for (var i=0;i<state.size;i++){
-      $grid.append('<div class="skeleton"></div>');
-    }
-    $pagination.empty();
-  }
-
-  // ========= AJAX =========
   function fetchRooms(){
-    return $.ajax({
-      url: ROOMS_API,
-      method: 'GET',
-      dataType: 'json',
-      data: {
-        tab : state.tab,
-        q   : state.q,
-        sort: state.sort,
-        size: state.size,
-        page: state.page
-      }
-    });
+    return $.ajax({url:ROOMS_API,method:'GET',dataType:'json',data:{tab:state.tab,q:state.q,sort:state.sort,size:state.size,page:state.page}});
+  }
+  function postLike(roomId,isLiked){
+    return $.ajax({url:LIKE_API,method:'POST',contentType:'application/json; charset=UTF-8',data:JSON.stringify({roomId:roomId,isLiked:isLiked})});
   }
 
-  function postLike(roomId, isLiked){
-    return $.ajax({
-      url: LIKE_API,
-      method: 'POST',
-      contentType: 'application/json; charset=UTF-8',
-      data: JSON.stringify({ roomId: roomId, isLiked: isLiked })
-    });
-  }
-
-  // ========= 렌더 =========
   function renderGrid(items){
     $grid.empty();
-
-    if(!items || !items.length){
-      $grid.html('<div class="empty">표시할 모임이 없습니다.</div>');
-      return;
-    }
-
+    if(!items||!items.length){$grid.html('<div class="empty">표시할 모임이 없습니다.</div>');return;}
     items.forEach(function(r){
-      var thumb = r.thumbnailUrl
-        ? (r.thumbnailUrl.charAt(0)==='/' ? (CTX + r.thumbnailUrl) : r.thumbnailUrl)
-        : PLACEHOLDER;
-
-      var href = CTX + '/roomdetail.room?roomId=' + r.roomId;
-
-      var cardHtml = ''
-        + '<div class="card">'
-        +   '<a href="' + href + '" style="text-decoration:none;color:inherit">'
-        +     '<div class="thumb">'
-        +       '<img src="' + thumb + '" alt="">'
-        +       '<div class="badge-top">' + escapeHtml(r.status || '진행중') + '</div>'
-        +     '</div>'
-        +     '<div class="body">'
-        +       '<div class="title-one"></div>'
-        +       '<div class="meta"></div>'
-        +     '</div>'
-        +   '</a>'
-        +   '<div class="foot">'
-        +     '<div>member: ' + (r.participantCount||0) + ' / ' + (r.maxParticipant||0) + '</div>'
-        +     '<div class="like ' + (r.liked ? 'liked' : '') + '" data-id="' + r.roomId + '">'
-        +       '<svg width="18" height="18" viewBox="0 0 24 24" fill="' + (r.liked ? '#ff6b6b' : 'none') + '" stroke="currentColor" stroke-width="2">'
-        +         '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>'
-        +       '</svg>'
-        +       '<span>' + (r.likeCount||0) + '</span>'
-        +     '</div>'
-        +   '</div>'
-        + '</div>';
-
-      var $card = $(cardHtml);
-
-      $card.find('.title-one').text(r.title || '');
-      $card.find('.meta').html(
-        escapeHtml(r.parentRegion || '') + '&nbsp;' +
-        escapeHtml(r.childRegion  || '') + '<br>' +
-        escapeHtml(r.certName     || '') + '<br>' +
-        escapeHtml(r.updatedAt    || '')
-      );
-
+      var thumb=r.thumbnailUrl?(r.thumbnailUrl.charAt(0)==='/'?(CTX+r.thumbnailUrl):r.thumbnailUrl):PLACEHOLDER;
+      var sessionUserId = '<c:out value="${sessionScope.LOGIN_USER.user_id}" />';
+      var href = CTX + '/roomdetail.room?roomId=' + r.roomId + '&userId=' + sessionUserId;
+      var cardHtml='<div class="card"><a href="'+href+'" style="text-decoration:none;color:inherit">'
+        +'<div class="thumb"><img src="'+thumb+'" alt=""><div class="badge-top">'+escapeHtml(r.status||'진행중')+'</div></div>'
+        +'<div class="body"><div class="title-one"></div><div class="meta"></div></div></a>'
+        +'<div class="foot"><div>member: '+(r.participantCount||0)+' / '+(r.maxParticipant||0)+'</div>'
+        +'<div class="like '+(r.liked?'liked':'')+'" data-id="'+r.roomId+'">'
+        +'<svg width="18" height="18" viewBox="0 0 24 24" fill="'+(r.liked?'#ff6b6b':'none')+'" stroke="currentColor" stroke-width="2">'
+        +'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>'
+        +'</svg><span>'+(r.likeCount||0)+'</span></div></div></div>';
+      var $card=$(cardHtml);
+      $card.find('.title-one').text(r.title||'');
+      $card.find('.meta').html(escapeHtml(r.parentRegion||'')+'&nbsp;'+escapeHtml(r.childRegion||'')+'<br>'+escapeHtml(r.certName||'')+'<br>'+escapeHtml(r.updatedAt||''));
       $grid.append($card);
     });
-
-    // 좋아요
-    $grid.find('.like').off('click').on('click', function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      var $el = $(this);
-      var roomId = parseInt($el.data('id'), 10);
-      var willLike = !$el.hasClass('liked');
-
-      $el.toggleClass('liked', willLike);
-      $el.find('svg').attr('fill', willLike ? '#ff6b6b' : 'none');
-      var $cnt = $el.find('span');
-      $cnt.text((parseInt($cnt.text()||'0',10) + (willLike?1:-1)));
-
-      postLike(roomId, willLike).fail(function(xhr){
-        // 롤백
-        $el.toggleClass('liked', !willLike);
-        $el.find('svg').attr('fill', !willLike ? '#ff6b6b' : 'none');
-        var $cnt2 = $el.find('span');
-        $cnt2.text((parseInt($cnt2.text()||'0',10) + (willLike?-1:1)));
-        if (xhr && xhr.status === 401) { alert('로그인이 필요합니다.'); }
+    $grid.find('.like').off('click').on('click',function(e){
+      e.preventDefault(); e.stopPropagation();
+      var $el=$(this),roomId=parseInt($el.data('id'),10),willLike=!$el.hasClass('liked');
+      $el.toggleClass('liked',willLike);$el.find('svg').attr('fill',willLike?'#ff6b6b':'none');
+      var $cnt=$el.find('span');$cnt.text((parseInt($cnt.text()||'0',10)+(willLike?1:-1)));
+      postLike(roomId,willLike).fail(function(xhr){
+        $el.toggleClass('liked',!willLike);$el.find('svg').attr('fill',!willLike?'#ff6b6b':'none');
+        var $cnt2=$el.find('span');$cnt2.text((parseInt($cnt2.text()||'0',10)+(willLike?-1:1)));
+        if(xhr&&xhr.status===401)alert('로그인이 필요합니다.');
       });
     });
   }
 
   function renderPagination(total){
     $pagination.empty();
-    var totalPages = Math.max(1, Math.ceil(total / state.size));
-    var cur = state.page;
-
-    function add(label, page, cls){
-      var disabled = (page < 1 || page > totalPages || page === cur);
-      var klass = (cls || 'page-btn') + (page === cur ? ' active' : '');
-      var $b = $('<button type="button"/>').addClass(klass).text(label);
-      if (disabled) $b.prop('disabled', page === cur);
-      $b.on('click', function(){ state.page = page; load(); });
-      $pagination.append($b);
-    }
-
-    add('‹', cur-1, 'page-btn arrow');
-
-    var windowSize = 5;
-    var start = Math.max(1, cur - Math.floor(windowSize/2));
-    var end   = Math.min(totalPages, start + windowSize - 1);
-    start     = Math.max(1, end - windowSize + 1);
-
-    for (var p = start; p <= end; p++) add(String(p), p, 'page-btn');
-
-    add('›', cur+1, 'page-btn arrow');
+    var totalPages=Math.max(1,Math.ceil(total/state.size)),cur=state.page;
+    function add(label,page,cls){var dis=(page<1||page>totalPages||page===cur);var $b=$('<button type="button"/>').addClass((cls||'page-btn')+(page===cur?' active':'' )).text(label);if(dis)$b.prop('disabled',page===cur);$b.on('click',function(){state.page=page;load();});$pagination.append($b);}
+    add('‹',cur-1,'page-btn arrow');var w=5,s=Math.max(1,cur-Math.floor(w/2)),e=Math.min(totalPages,s+w-1);s=Math.max(1,e-w+1);for(var i=s;i<=e;i++)add(String(i),i,'page-btn');add('›',cur+1,'page-btn arrow');
   }
 
-  // ========= 이벤트 =========
-  $('#btnSearch').on('click', function(){
-    state.q = $('#q').val().trim();
-    state.page = 1;
-    load();
-  });
-  $('#q').on('keyup', function(e){
-    if(e.key === 'Enter'){ $('#btnSearch').click(); }
-  });
-  $('#sort').on('change', function(){
-    state.sort = $(this).val();
-    state.page = 1;
-    load();
-  });
+  $('#btnSearch').on('click',function(){state.q=$('#q').val().trim();state.page=1;load();});
+  $('#q').on('keyup',function(e){if(e.key==='Enter')$('#btnSearch').click();});
+  $('#sort').on('change',function(){state.sort=$(this).val();state.page=1;load();});
+  $('#tab-joined').on('click',function(){if(state.tab==='joined')return;state.tab='joined';state.page=1;$title.text('참여한 모임');$('.tab').removeClass('active');$(this).addClass('active');load();});
+  $('#tab-hosted').on('click',function(){if(state.tab==='hosted')return;state.tab='hosted';state.page=1;$title.text('내가 개설한 모임');$('.tab').removeClass('active');$(this).addClass('active');load();});
 
-  $('#tab-joined').on('click', function(){
-    if (state.tab === 'joined') return;
-    state.tab  = 'joined';
-    state.page = 1;
-    $title.text('참여한 모임');
-    $('.tab').removeClass('active');
-    $(this).addClass('active');
-    load();
-  });
-
-  $('#tab-hosted').on('click', function(){
-    if (state.tab === 'hosted') return;
-    state.tab  = 'hosted';
-    state.page = 1;
-    $title.text('내가 개설한 모임');
-    $('.tab').removeClass('active');
-    $(this).addClass('active');
-    load();
-  });
-
-  // ========= 로드 =========
-  function load(){
-    renderSkeleton();
-    fetchRooms()
-      .done(function(res){
-        var total = (res && res.total) ? res.total : 0;
-        var items = (res && res.items) ? res.items : [];
-        renderGrid(items);
-        renderPagination(total);
-
-        var sp = new URLSearchParams({
-          tab : state.tab,
-          q   : state.q,
-          sort: state.sort,
-          page: String(state.page)
-        });
-        history.replaceState(null, '', '?' + sp.toString());
-      })
-      .fail(function(){
-        $grid.html('<div class="empty">목록을 불러오지 못했습니다.</div>');
-        $pagination.empty();
-      });
-  }
-
+  function load(){renderSkeleton();fetchRooms().done(function(res){var total=(res&&res.total)?res.total:0;var items=(res&&res.items)?res.items:[];renderGrid(items);renderPagination(total);var sp=new URLSearchParams({tab:state.tab,q:state.q,sort:state.sort,page:String(state.page)});history.replaceState(null,'','?'+sp.toString());}).fail(function(){$grid.html('<div class="empty">목록을 불러오지 못했습니다.</div>');$pagination.empty();});}
   load();
 })(jQuery);
 </script>
