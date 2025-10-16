@@ -20,6 +20,13 @@ public class RoomListService implements Action{
 		String siGun = request.getParameter("region2");
 		String keyword = request.getParameter("keyword");
 		String page = request.getParameter("page");
+		String strUserId = request.getParameter("userId");
+		
+		int userId = 0;
+		if(strUserId == null) userId = 0;
+		else if(!strUserId.isEmpty() || !strUserId.equals("")) {
+			userId = Integer.parseInt(request.getParameter("userId"));
+		}
 		
 		SearchCondition searchCondition = new SearchCondition();
 		searchCondition.setSi(si);
@@ -28,12 +35,13 @@ public class RoomListService implements Action{
 		if(page != null)
 			searchCondition.setPage(Integer.parseInt(page));
 		
-		
+		System.out.println("들어오는 페이지 => " + searchCondition.getPage());
 		ActionForward forward = new ActionForward();
 		// 검색조건 1. 시, 2. 시군, 3. 시군 제목검색 4. 제목검색		
 		RoomDao roomDao = new RoomDao();
 		
-		PageResult<RoomDto> pageResult =  roomDao.getRoomsBySearch(searchCondition);
+		PageResult<RoomDto> pageResult =  roomDao.getRoomsBySearch(searchCondition, userId);
+	
 		forward.setRedirect(false);
 		forward.setPath("/WEB-INF/views/room/listRoom.jsp");
 		request.setAttribute("pageResult", pageResult);

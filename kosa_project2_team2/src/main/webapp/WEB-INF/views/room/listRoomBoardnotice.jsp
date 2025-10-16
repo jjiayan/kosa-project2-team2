@@ -290,9 +290,11 @@ main {
                         <input type="text" class="search-input" placeholder="제목으로 검색..." id="searchInput">
                         <button class="search-btn" onclick="searchPosts()">🔍</button>
                     </div>
-                    <button class="write-btn" onclick="location.href='${pageContext.request.contextPath}/roomboardinsertform.room?roomId=${roomId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=NOTICE'">
-                        공지 쓰기
-                    </button>
+                    <c:if test="${sessionScope.leaderCheck}">
+	                    <button class="write-btn" onclick="location.href='${pageContext.request.contextPath}/roomboardinsertform.room?roomId=${roomId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=NOTICE'">
+	                        공지 쓰기
+	                    </button>
+                    </c:if>
                 </div>
                 
                 <!-- 페이지네이션 -->

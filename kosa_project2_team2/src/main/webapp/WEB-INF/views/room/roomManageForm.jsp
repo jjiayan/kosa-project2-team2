@@ -241,8 +241,9 @@ main {
 
 <!-- 좌측 사이드바 -->
 <jsp:include page="/include/sidebar.jsp">
-    <jsp:param name="current" value="admin"/>
+    <jsp:param name="current" value="members"/>
 </jsp:include>
+
 
 <!-- 우측 본문 -->
 <main>
