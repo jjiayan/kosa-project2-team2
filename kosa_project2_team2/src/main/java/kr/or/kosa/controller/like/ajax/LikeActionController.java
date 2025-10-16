@@ -19,6 +19,11 @@ import kr.or.kosa.dto.UserDto;
 @WebServlet("/like/action.ajax")
 public class LikeActionController extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	// 세션 기반 중복 방지 상수
+    private static final String SESSION_LIKE_PREFIX = "LIKE_PROCESSING_";
+    private static final long LIKE_COOLDOWN_MS = 1000; // 1초 쿨다운
+    private static final int MAX_LIKE_PER_MINUTE = 30; // 분당 최대 좋아요 수
+    
     private LikeDao likeDao;
     private Gson gson;
     
@@ -68,9 +73,49 @@ public class LikeActionController extends HttpServlet {
             }
             
             Long targetId = Long.parseLong(targetIdStr);
-            
-            // LikeDto 설정
-            LikeDto like = new LikeDto();
+
+         // 세션 기반 중복 요청 및 쿨다운 체크
+         String sessionKey = SESSION_LIKE_PREFIX + targetType + "_" + targetId;
+         HttpSession session = request.getSession();
+
+         // 마지막 요청 시간 체크
+         Long lastRequestTime = (Long) session.getAttribute(sessionKey);
+         long currentTime = System.currentTimeMillis();
+
+         if (lastRequestTime != null && 
+             (currentTime - lastRequestTime) < LIKE_COOLDOWN_MS) {
+             result.put("success", false);
+             result.put("message", "잠시 후 다시 시도해주세요 (1초 대기)");
+             response.getWriter().write(gson.toJson(result));
+             return;
+         }
+
+         // 분당 요청 수 체크 (abuse 방지)
+         String countKey = SESSION_LIKE_PREFIX + "COUNT_" + userId;
+         Integer requestCount = (Integer) session.getAttribute(countKey);
+         Long countResetTime = (Long) session.getAttribute(countKey + "_RESET");
+
+         if (countResetTime == null || (currentTime - countResetTime) >= 60000) {
+             // 1분 경과 또는 첫 요청 - 카운트 리셋
+             session.setAttribute(countKey, 1);
+             session.setAttribute(countKey + "_RESET", currentTime);
+         } else {
+             // 1분 내 요청 - 카운트 증가 및 체크
+             requestCount = (requestCount == null) ? 1 : requestCount + 1;
+             if (requestCount > MAX_LIKE_PER_MINUTE) {
+                 result.put("success", false);
+                 result.put("message", "너무 많은 요청입니다. 잠시 후 다시 시도해주세요");
+                 response.getWriter().write(gson.toJson(result));
+                 return;
+             }
+             session.setAttribute(countKey, requestCount);
+         }
+
+         // 현재 시간을 세션에 저장
+         session.setAttribute(sessionKey, currentTime);
+
+         // LikeDto 설정
+         LikeDto like = new LikeDto();
             like.setTargetType(targetType.toUpperCase());
             like.setTargetId(targetId);
             like.setUserId(userId);
@@ -79,14 +124,44 @@ public class LikeActionController extends HttpServlet {
             boolean isLiked = likeDao.checkIsLiked(like);
             
             String action;
-            if (isLiked) {
-                // 좋아요 삭제
-                likeDao.deleteLike(like);
-                action = "unliked";
-            } else {
-                // 좋아요 추가
-                likeDao.insertLike(like);
-                action = "liked";
+            int operationResult = 0;
+
+            try {
+                if (isLiked) {
+                    // 좋아요 삭제
+                    operationResult = likeDao.deleteLike(like);
+                    if (operationResult > 0) {
+                        action = "unliked";
+                    } else {
+                        result.put("success", false);
+                        result.put("message", "좋아요 취소에 실패했습니다");
+                        response.getWriter().write(gson.toJson(result));
+                        return;
+                    }
+                } else {
+                    // 좋아요 추가
+                    operationResult = likeDao.insertLike(like);
+                    if (operationResult > 0) {
+                        action = "liked";
+                    } else if (operationResult == -1) {
+                        // 중복 좋아요 시도
+                        result.put("success", false);
+                        result.put("message", "이미 좋아요를 누르셨습니다");
+                        response.getWriter().write(gson.toJson(result));
+                        return;
+                    } else {
+                        result.put("success", false);
+                        result.put("message", "좋아요 추가에 실패했습니다");
+                        response.getWriter().write(gson.toJson(result));
+                        return;
+                    }
+                }
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                result.put("success", false);
+                result.put("message", "데이터베이스 처리 중 오류가 발생했습니다");
+                response.getWriter().write(gson.toJson(result));
+                return;
             }
             
             // 업데이트된 좋아요 개수 조회

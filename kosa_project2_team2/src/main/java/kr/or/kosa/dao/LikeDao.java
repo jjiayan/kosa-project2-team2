@@ -43,29 +43,41 @@ public class LikeDao {
 	
 	// 2. 좋아요 추가
 	public int insertLike(LikeDto like) {
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		int row = 0;
-		
-		try {
-			conn = ConnectionPoolHelper.getConnection();
-			String sql = "INSERT INTO " + like.getTableName() +
-						 " (" + like.getTargetColumnName() + ", user_id) VALUES (?, ?)";
-			
-			pstmt = conn.prepareStatement(sql);
-			pstmt.setLong(1, like.getTargetId());
-			pstmt.setLong(2, like.getUserId());
-			
-			row = pstmt.executeUpdate();
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			ConnectionPoolHelper.close(pstmt);
-			ConnectionPoolHelper.close(conn);
-		}
-		
-		return row;
+	    Connection conn = null;
+	    PreparedStatement pstmt = null;
+	    int row = 0;
+	    
+	    try {
+	        conn = ConnectionPoolHelper.getConnection();
+	        
+	        // 먼저 중복 체크 (race condition 방지)
+	        if (checkIsLiked(like)) {
+	            System.out.println("이미 좋아요한 항목입니다: " + like.getTargetType() + ":" + like.getTargetId());
+	            return -1; // 중복을 나타내는 특별한 값
+	        }
+	        
+	        String sql = "INSERT INTO " + like.getTableName() +
+	                     " (" + like.getTargetColumnName() + ", user_id) VALUES (?, ?)";
+	        
+	        pstmt = conn.prepareStatement(sql);
+	        pstmt.setLong(1, like.getTargetId());
+	        pstmt.setLong(2, like.getUserId());
+	        
+	        row = pstmt.executeUpdate();
+	        
+	    } catch (java.sql.SQLIntegrityConstraintViolationException e) {
+	        // 중복 좋아요 시도 (DB 제약조건 위반)
+	        System.out.println("중복 좋아요 시도 감지 (DB 제약조건): " + e.getMessage());
+	        return -1; // 중복을 나타내는 값
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        throw new RuntimeException("좋아요 처리 중 데이터베이스 오류 발생", e);
+	    } finally {
+	        ConnectionPoolHelper.close(pstmt);
+	        ConnectionPoolHelper.close(conn);
+	    }
+	    
+	    return row;
 	}
 	
 	// 3. 좋아요 삭제
@@ -87,7 +99,8 @@ public class LikeDao {
 			row = pstmt.executeUpdate();
 			
 		} catch (Exception e) {
-			e.printStackTrace();
+		    e.printStackTrace();
+		    throw new RuntimeException("좋아요 삭제 중 데이터베이스 오류 발생", e);
 		} finally {
 			ConnectionPoolHelper.close(pstmt);
 			ConnectionPoolHelper.close(conn);
