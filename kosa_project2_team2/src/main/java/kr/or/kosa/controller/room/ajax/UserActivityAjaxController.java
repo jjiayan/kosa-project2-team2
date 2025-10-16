@@ -13,25 +13,30 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * 사용자 활동 데이터 AJAX 전용 컨트롤러
- * JSON 응답만 처리
- */
-@WebServlet("/room/ajax/useractivity.ajax")
+@WebServlet("*.useractivityajax")
 public class UserActivityAjaxController extends HttpServlet {
-    private UserActivityDao userActivityDao;
-    private Gson gson;
+    private static final long serialVersionUID = 1L;
     
     public UserActivityAjaxController() {
-        this.userActivityDao = new UserActivityDao();
-        this.gson = new GsonBuilder()
-            .setDateFormat("yyyy-MM-dd HH:mm:ss")
-            .create();
+        super();
     }
     
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+    private void doProcess(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
+        
+        String requestURI = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        String urlCommand = requestURI.substring(contextPath.length());
+
+        System.out.println("요청: " + urlCommand);
+        
+        if (urlCommand.equals("/room/ajax/useractivity.useractivityajax")) {
+            handleUserActivityData(request, response);
+        }
+    }
+    
+    private void handleUserActivityData(HttpServletRequest request, HttpServletResponse response) 
+            throws IOException {
         
         response.setContentType("application/json; charset=UTF-8");
         response.setHeader("Cache-Control", "no-cache");
@@ -61,7 +66,8 @@ public class UserActivityAjaxController extends HttpServlet {
             if (page < 1) page = 1;
             if (size < 1 || size > 100) size = 10;
             
-            Map<String, Object> result = processTabRequest(userId, roomId, tabParam.trim(), page, size);
+            UserActivityDao userActivityDao = new UserActivityDao();
+            Map<String, Object> result = processTabRequest(userActivityDao, userId, roomId, tabParam.trim(), page, size);
             
             if (result == null) {
                 writeErrorResponse(response, "잘못된 탭 파라미터입니다.");
@@ -77,6 +83,10 @@ public class UserActivityAjaxController extends HttpServlet {
             responseData.put("pageSize", size);
             responseData.put("tab", tabParam.trim());
             
+            Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd HH:mm:ss")
+                .create();
+            
             response.getWriter().write(gson.toJson(responseData));
             
         } catch (NumberFormatException e) {
@@ -90,16 +100,16 @@ public class UserActivityAjaxController extends HttpServlet {
     /**
      * 탭별 요청 처리
      */
-    private Map<String, Object> processTabRequest(Long userId, Long roomId, String tab, int page, int size) {
+    private Map<String, Object> processTabRequest(UserActivityDao dao, Long userId, Long roomId, String tab, int page, int size) {
         switch (tab) {
             case "posts":
-                return userActivityDao.getUserPosts(userId, roomId, page, size);
+                return dao.getUserPosts(userId, roomId, page, size);
             case "comments":
-                return userActivityDao.getUserComments(userId, roomId, page, size);
+                return dao.getUserComments(userId, roomId, page, size);
             case "commented":
-                return userActivityDao.getUserCommentedPosts(userId, roomId, page, size);
+                return dao.getUserCommentedPosts(userId, roomId, page, size);
             case "likes":
-                return userActivityDao.getUserLikedPosts(userId, roomId, page, size);
+                return dao.getUserLikedPosts(userId, roomId, page, size);
             default:
                 return null;
         }
@@ -126,6 +136,20 @@ public class UserActivityAjaxController extends HttpServlet {
         Map<String, Object> error = new HashMap<>();
         error.put("success", false);
         error.put("message", message);
+        
+        Gson gson = new Gson();
         response.getWriter().write(gson.toJson(error));
+    }
+    
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        doProcess(request, response);
+    }
+    
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        doProcess(request, response);
     }
 }

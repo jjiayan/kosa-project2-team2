@@ -7,7 +7,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title><c:out value="${userInfo.user_nickname}"/>님의 활동</title>
+  <title>[<c:out value="${roomTitle}"/>]내 <c:out value="${userInfo.user_nickname}"/>님의 활동</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   <style>
@@ -42,9 +42,9 @@
     }
     
     .heading {
-      font-size: 42px;
+      font-size: 28px;
       font-weight: 900;
-      color: #777;
+      color: #333;
       margin: 24px 0 18px;
     }
     
@@ -82,24 +82,21 @@
     }
     
     .profile-body {
-      position: relative;
-      padding: 20px 22px 18px 34px;
+      padding: 24px;
       background: #fff;
     }
     
     .profile-main {
       display: flex;
-      gap: 22px;
-      align-items: center;
-      justify-content: center;
-      margin: 16px 0;
+      gap: 20px;
+      align-items: flex-start;
     }
     
     .user-avatar-box {
       flex: 0 0 auto;
-      width: 140px;
-      height: 140px;
-      border: 4px solid #f1f1f1;
+      width: 100px;
+      height: 100px;
+      border: 3px solid #f1f1f1;
       border-radius: 50%;
       overflow: hidden;
       background: #f7f7f7;
@@ -112,12 +109,50 @@
       display: block;
     }
     
+    .user-info {
+      flex: 1;
+      padding-top: 8px;
+    }
+    
     .user-name {
-      font-size: 36px;
+      font-size: 24px;
       font-weight: 900;
       line-height: 1.2;
-      margin: 0;
-      text-align: center;
+      margin: 0 0 8px 0;
+      color: #333;
+    }
+    
+    .user-details {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      color: #666;
+      font-size: 14px;
+    }
+    
+    .age-group {
+      background: #f0f0f0;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+    
+    .user-role {
+      background: #ff6b6b;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    
+    .user-role.member {
+      background: #4CAF50;
+    }
+    
+    .user-role.member { background: #4CAF50;}
+    .user-role.pending {
+      background: #FF9800;
     }
     
     /* 탭 스타일 */
@@ -268,7 +303,7 @@
     
     /* 댓글 내용 표시 */
     .comment-content {
-      max-width: 200px;
+      max-width: 300px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -276,6 +311,21 @@
     
     /* 반응형 */
     @media (max-width: 768px) {
+      .profile-main {
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+      }
+      
+      .user-avatar-box {
+        width: 80px;
+        height: 80px;
+      }
+      
+      .user-name {
+        font-size: 20px;
+      }
+      
       .tab-header {
         flex-wrap: wrap;
       }
@@ -299,20 +349,6 @@
         padding: 12px 16px;
         font-size: 13px;
       }
-      
-      .profile-main {
-        flex-direction: column;
-        text-align: center;
-      }
-      
-      .user-avatar-box {
-        width: 120px;
-        height: 120px;
-      }
-      
-      .user-name {
-        font-size: 28px;
-      }
     }
   </style>
 </head>
@@ -324,7 +360,7 @@
   
   <div class="page">
     <div class="heading-wrap">
-      <h1 class="heading"><c:out value="${userInfo.user_nickname}"/>님의 활동</h1>
+      <h1 class="heading">[<c:out value="${roomTitle}"/>] 내 <c:out value="${userInfo.user_nickname}"/>님의 활동</h1>
     </div>
     
     <div class="container">
@@ -335,17 +371,34 @@
           <div class="profile-body">
             <div class="profile-main">
               <div class="user-avatar-box">
-                <c:choose>
-                  <c:when test="${not empty userInfo.user_photo}">
-                    <img class="user-avatar" src="${ctx}${userInfo.user_photo}" alt="프로필">
-                  </c:when>
-                  <c:otherwise>
-                    <img class="user-avatar" src="${ctx}/images/default-avatar.png" alt="프로필">
-                  </c:otherwise>
-                </c:choose>
-              </div>
-              <div>
+  <c:choose>
+    <c:when test="${not empty userInfo.user_photo}">
+      <img class="user-avatar" 
+           src="${ctx}${userInfo.user_photo}" 
+           alt="프로필"
+           onerror="this.onerror=null; this.src='${ctx}/images/default-avatar.png';">
+    </c:when>
+    <c:otherwise>
+      <img class="user-avatar" src="${ctx}/images/default-avatar.png" alt="프로필">
+    </c:otherwise>
+  </c:choose>
+</div>
+              <div class="user-info">
                 <h2 class="user-name"><c:out value="${userInfo.user_nickname}"/></h2>
+                <div class="user-details">
+				  <span class="age-group"><c:out value="${ageGroup}"/></span>
+				  <c:choose>
+				    <c:when test="${userRole eq 'LEADER'}">
+				      <span class="user-role">방장</span>
+				    </c:when>
+				    <c:when test="${userRole eq 'MEMBER'}">
+				      <span class="user-role member"><c:out value="${userTier}"/></span>
+				    </c:when>
+				    <c:otherwise>
+				      <span class="user-role visitor">방문자</span>
+				    </c:otherwise>
+				  </c:choose>
+				</div>
               </div>
             </div>
           </div>
@@ -362,15 +415,8 @@
           
           <div class="table-container">
             <table class="table" id="activityTable">
-              <colgroup id="tableColgroup">
-                <col style="width: 10%">
-                <col style="width: 50%">
-                <col style="width: 20%">
-                <col style="width: 20%">
-              </colgroup>
               <thead>
                 <tr id="tableHeader">
-                  <th>번호</th>
                   <th>제목</th>
                   <th>작성일</th>
                   <th>조회수</th>
@@ -378,7 +424,7 @@
               </thead>
               <tbody id="activityTableBody">
                 <tr>
-                  <td colspan="4" class="loading">로딩 중...</td>
+                  <td colspan="3" class="loading">로딩 중...</td>
                 </tr>
               </tbody>
             </table>
@@ -403,10 +449,10 @@
       
       // 탭별 테이블 헤더 설정
       var tableHeaders = {
-        posts: ['번호', '제목', '작성일', '조회수'],
-        comments: ['번호', '게시글 제목', '댓글 내용', '작성일'],
-        commented: ['번호', '제목', '내 댓글 수', '작성일'],
-        likes: ['번호', '제목', '좋아요 일시', '조회수']
+        posts: ['제목', '작성일', '조회수'],
+        comments: ['댓글 내용', '작성일'],
+        commented: ['제목', '작성자', '내 댓글 수', '조회수'],
+        likes: ['제목', '작성자', '작성일']
       };
       
       // HTML 이스케이프 함수
@@ -423,10 +469,11 @@
       // 활동 데이터 로드
       function loadActivityData() {
         var $tbody = $('#activityTableBody');
-        $tbody.html('<tr><td colspan="4" class="loading">로딩 중...</td></tr>');
+        var colspan = tableHeaders[currentTab].length;
+        $tbody.html('<tr><td colspan="' + colspan + '" class="loading">로딩 중...</td></tr>');
         
         $.ajax({
-          url: ctx + '/room/ajax/useractivity.ajax',
+          url: ctx + '/room/ajax/useractivity.useractivityajax', // URL 변경
           data: {
             userId: targetUserId,
             roomId: roomId,
@@ -440,14 +487,16 @@
               renderActivityTable(response.data);
               renderPagination(response.totalPages, response.currentPage);
             } else {
-              $tbody.html('<tr><td colspan="4" class="empty-state">' + (response.message || '데이터를 불러올 수 없습니다.') + '</td></tr>');
+              var colspan = tableHeaders[currentTab].length;
+              $tbody.html('<tr><td colspan="' + colspan + '" class="empty-state">' + (response.message || '데이터를 불러올 수 없습니다.') + '</td></tr>');
             }
           },
           error: function() {
-            $tbody.html('<tr><td colspan="4" class="empty-state">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>');
+            var colspan = tableHeaders[currentTab].length;
+            $tbody.html('<tr><td colspan="' + colspan + '" class="empty-state">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>');
           }
         });
-      }
+    }
       
       // 테이블 헤더 업데이트
       function updateTableHeader() {
@@ -466,19 +515,19 @@
         $tbody.empty();
         
         if (!items || items.length === 0) {
-          $tbody.html('<tr><td colspan="4" class="empty-state">표시할 데이터가 없습니다.</td></tr>');
+          var colspan = tableHeaders[currentTab].length;
+          $tbody.html('<tr><td colspan="' + colspan + '" class="empty-state">표시할 데이터가 없습니다.</td></tr>');
           return;
         }
         
-        items.forEach(function(item, index) {
-          var rowNumber = (currentPage - 1) * pageSize + index + 1;
-          var row = createTableRow(item, rowNumber);
+        items.forEach(function(item) {
+          var row = createTableRow(item);
           $tbody.append(row);
         });
       }
       
       // 테이블 행 생성
-      function createTableRow(item, rowNumber) {
+      function createTableRow(item) {
         var createdAt = item.createdAt ? new Date(item.createdAt).toLocaleDateString('ko-KR') : '';
         var rowHtml = '';
         
@@ -486,7 +535,6 @@
           case 'posts':
             var postUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
             rowHtml = '<tr>' +
-              '<td class="meta">' + rowNumber + '</td>' +
               '<td><a class="link" href="' + postUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
               '<td class="meta">' + createdAt + '</td>' +
               '<td class="meta">' + (item.viewCount || 0) + '</td>' +
@@ -496,9 +544,7 @@
           case 'comments':
             var commentPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId + '#reply-' + item.replyId;
             rowHtml = '<tr>' +
-              '<td class="meta">' + rowNumber + '</td>' +
-              '<td><a class="link" href="' + commentPostUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
-              '<td class="meta comment-content" title="' + escapeHtml(item.content) + '">' + escapeHtml(item.content) + '</td>' +
+              '<td class="comment-content"><a class="link" href="' + commentPostUrl + '" title="' + escapeHtml(item.content) + '">' + escapeHtml(item.content) + '</a></td>' +
               '<td class="meta">' + createdAt + '</td>' +
               '</tr>';
             break;
@@ -506,20 +552,19 @@
           case 'commented':
             var commentedPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
             rowHtml = '<tr>' +
-              '<td class="meta">' + rowNumber + '</td>' +
               '<td><a class="link" href="' + commentedPostUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
+              '<td class="meta">' + escapeHtml(item.authorNickname || '') + '</td>' +
               '<td class="meta">' + (item.replyCount || 0) + '개</td>' +
-              '<td class="meta">' + createdAt + '</td>' +
+              '<td class="meta">' + (item.viewCount || 0) + '</td>' +
               '</tr>';
             break;
             
           case 'likes':
             var likedPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
             rowHtml = '<tr>' +
-              '<td class="meta">' + rowNumber + '</td>' +
               '<td><a class="link" href="' + likedPostUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
+              '<td class="meta">' + escapeHtml(item.authorNickname || '') + '</td>' +
               '<td class="meta">' + createdAt + '</td>' +
-              '<td class="meta">' + (item.viewCount || 0) + '</td>' +
               '</tr>';
             break;
             

@@ -232,7 +232,34 @@ var currentTab = 'reply';
 // 현재 로그인한 사용자 ID (JSP에서 전달받음)
 var CURRENT_USER_ID = ${not empty sessionScope.LOGIN_USER ? sessionScope.LOGIN_USER.user_id : 'null'};
 // 현재 방 ID (JSP에서 전달받음)  
-var CURRENT_ROOM_ID = ${param.roomId != null ? param.roomId : (sessionScope.currentRoomId != null ? sessionScope.currentRoomId : 'null')};
+/* var CURRENT_ROOM_ID = ${param.roomId != null ? param.roomId : (sessionScope.currentRoomId != null ? sessionScope.currentRoomId : 'null')}; */
+// 현재 방 ID 설정 - 더 안전하게 처리
+var CURRENT_ROOM_ID = null;
+
+// JSP에서 전달받은 roomId 파라미터 사용
+<c:if test="${not empty param.roomId}">
+    CURRENT_ROOM_ID = ${param.roomId};
+    console.log('param.roomId에서 CURRENT_ROOM_ID 설정:', CURRENT_ROOM_ID);
+</c:if>
+
+// 세션의 currentRoomId 사용 (파라미터가 없을 때)
+<c:if test="${empty param.roomId and not empty sessionScope.currentRoomId}">
+    CURRENT_ROOM_ID = ${sessionScope.currentRoomId};
+    console.log('sessionScope.currentRoomId에서 CURRENT_ROOM_ID 설정:', CURRENT_ROOM_ID);
+</c:if>
+
+// 여전히 null이면 URL에서 추출 시도
+if (CURRENT_ROOM_ID === null) {
+    var urlParams = new URLSearchParams(window.location.search);
+    var roomIdFromUrl = urlParams.get('roomId');
+    if (roomIdFromUrl) {
+        CURRENT_ROOM_ID = parseInt(roomIdFromUrl);
+        console.log('URL에서 CURRENT_ROOM_ID 설정:', CURRENT_ROOM_ID);
+    }
+}
+
+console.log('최종 CURRENT_ROOM_ID:', CURRENT_ROOM_ID);
+
 // 게시글 좋아요 상태 전역 변수
 var isPostLiked = false;
 // 좋아요 페이지네이션 변수들
@@ -521,12 +548,19 @@ function createReplyHtml(reply, isChild) {
 	    '</div>';  
 }
 
-// ★ 사용자 활동 페이지로 이동하는 함수
+//사용자 활동 페이지로 이동하는 함수 수정
 function goToUserActivity(userId) {
-    if (userId && CURRENT_ROOM_ID) {
-        var url = '${pageContext.request.contextPath}/room/useractivity.room?userId=' + userId + '&roomId=' + CURRENT_ROOM_ID;
-        window.location.href = url;
+    console.log('goToUserActivity 호출 - userId:', userId, 'roomId:', CURRENT_ROOM_ID);
+    
+    if (!userId || !CURRENT_ROOM_ID || userId <= 0 || CURRENT_ROOM_ID <= 0) {
+        console.error('유효하지 않은 파라미터 - userId:', userId, 'roomId:', CURRENT_ROOM_ID);
+        alert('사용자 정보를 불러올 수 없습니다.');
+        return;
     }
+    
+    var url = '${pageContext.request.contextPath}/room/useractivity.room?userId=' + userId + '&roomId=' + CURRENT_ROOM_ID;
+    console.log('이동할 URL:', url);
+    window.location.href = url;
 }
 
 /* ==== 공통 포맷 ==== */
