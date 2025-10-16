@@ -20,7 +20,6 @@ public class RooBoardNoticeService implements Action{
 		
 		int roomId = Integer.parseInt(request.getParameter("roomId"));
 		String roomBoardType = "NOTICE";
-		System.out.println("??????2");
 		SearchCondition searchCondition = new SearchCondition();
 		searchCondition.setKeyword(keyword);
 		if (page != null && !page.trim().isEmpty()) {
@@ -33,7 +32,6 @@ public class RooBoardNoticeService implements Action{
 		
 		
 		forward.setRedirect(false);
-		System.out.println("??????3");
 		
 		
 		forward.setPath("/WEB-INF/views/room/listRoomBoardnotice.jsp");

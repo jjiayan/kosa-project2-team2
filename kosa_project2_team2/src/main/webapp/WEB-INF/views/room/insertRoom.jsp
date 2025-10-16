@@ -31,6 +31,14 @@
     .btn-submit{ padding:14px 40px; background:#ff6b6b; color:#fff; border:none; border-radius:8px; font-size:16px; font-weight:500; cursor:pointer }
     .btn-cancel:hover{ background:#dee2e6 }
     .btn-submit:hover{ background:#ff5252 }
+    
+    /* 자격증 검색 관련 스타일 */
+    .search-container { position: relative; }
+    .search-container .form-control:focus { border-color: #ff6b6b; box-shadow: 0 0 0 3px rgba(255,107,107,.1); }
+    .certificate-item:hover { background-color: #f8f9fa !important; }
+    .certificate-item:last-child { border-bottom: none !important; }
+    #certificateDropdown { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+    .search-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #999; }
   </style>
 </head>
 <body>
@@ -63,21 +71,38 @@
         </div>
 
         <div class="select-row">
-          <div>
-            <select class="form-select" name="certificate1">
-              <option value="">자격증</option>
-              <option value="기사">기사</option>
-              <option value="산업기사">산업기사</option>
-            </select>
-          </div>
-          <div>
-            <select class="form-select" name="certificate2">
-              <option value="">자격증 상세</option>
-              <option value="정보처리기사">정보처리기사</option>
-              <option value="전기기사">전기기사</option>
-            </select>
-          </div>
-        </div>
+  <div>
+    <select class="form-select" name="examType" id="examType">
+      <option value="">구분</option>
+      <option value="필기">필기</option>
+      <option value="실기">실기</option>
+    </select>
+  </div>
+  <div>
+    <div class="search-container">
+      <input type="text" 
+             class="form-control" 
+             id="certificateSearch" 
+             placeholder="자격증을 검색하세요" 
+             autocomplete="off"
+             style="padding-right: 40px;">
+      <span class="search-icon">🔍</span>
+      
+      <!-- 검색 결과 드롭다운 -->
+      <div id="certificateDropdown" 
+           style="position: absolute; top: 100%; left: 0; right: 0; 
+                  background: white; border: 1px solid #ddd; border-top: none; 
+                  border-radius: 0 0 8px 8px; max-height: 200px; overflow-y: auto; 
+                  z-index: 1000; display: none;">
+      </div>
+      
+      <!-- 선택된 값을 저장할 hidden input -->
+      <input type="hidden" name="jmcd" id="certificateCode">
+      <input type="hidden" name="year" id="certificateYear">
+      <input type="hidden" name="implseq" id="certificateImplseq">
+    </div>
+  </div>
+</div>
 
         <div class="select-row">
           <div>
@@ -177,6 +202,55 @@
         }
       });
     });
+
+ // 자격증 검색 기능
+    let certificateTimeout;
+    
+    $('#certificateSearch').on('input', function() {
+      const keyword = $(this).val().trim();
+      const examType = $('#examType').val();
+      
+      clearTimeout(certificateTimeout);
+      
+      if (keyword.length < 2) {
+        $('#certificateDropdown').hide();
+        return;
+      }
+      
+      certificateTimeout = setTimeout(() => {
+        searchCertificates(keyword, examType);
+      }, 300); // 300ms 딜레이
+    });
+    
+    // 엔터키로 검색
+    $('#certificateSearch').on('keypress', function(e) {
+      if (e.which === 13) { // 엔터키
+        e.preventDefault();
+        const keyword = $(this).val().trim();
+        const examType = $('#examType').val();
+        
+        if (keyword.length >= 2) {
+          clearTimeout(certificateTimeout);
+          searchCertificates(keyword, examType);
+        }
+      }
+    });
+    
+    // 필기/실기 변경 시 검색어 초기화
+    $('#examType').on('change', function() {
+      $('#certificateSearch').val('');
+      $('#certificateDropdown').hide();
+      $('#certificateCode').val('');
+      $('#certificateYear').val('');
+      $('#certificateImplseq').val('');
+    });
+    
+    // 검색창 외부 클릭 시 드롭다운 숨기기
+    $(document).on('click', function(e) {
+      if (!$(e.target).closest('.search-container').length) {
+        $('#certificateDropdown').hide();
+      }
+    });
   });
 
   function handleThumbnail(file){
@@ -225,6 +299,60 @@
         fr.readAsDataURL(file);
       }
     });
+  }
+
+  function searchCertificates(keyword, examType) {
+    $.ajax({
+      url: ctx + '/searchcertificate.roomajax',
+      method: 'GET',
+      data: { 
+    	  keyword: keyword,
+    	  examType: examType
+    	  
+    	  },
+      success: function(response) {
+    	  console.log(response);
+        displayCertificateResults(response);
+      },
+      error: function() {
+        $('#certificateDropdown').html('<div style="padding: 10px; color: #999;">검색 중 오류가 발생했습니다.</div>').show();
+      }
+    });
+  }
+
+  function displayCertificateResults(certificates) {
+	  const $dropdown = $('#certificateDropdown');
+	  
+	  if (!certificates || certificates.length === 0) {
+	    $dropdown.html('<div style="padding: 10px; color: #999;">검색 결과가 없습니다.</div>').show();
+	    return;
+	  }
+	  
+	  let html = '';
+	  certificates.forEach(cert => {
+	    html += '<div class="certificate-item" ' +
+	            'style="padding: 10px; cursor: pointer; border-bottom: 1px solid #f0f0f0;" ' +
+	            'data-code="' + cert.jmcd + '" ' +
+	            'data-name="' + cert.totalJmName + '" ' +
+	            'data-year="' + cert.year + '" ' +
+	            'data-implseq="' + cert.implseq + '" ' +
+	            'onmouseover="this.style.backgroundColor=\'#f8f9fa\'" ' +
+	            'onmouseout="this.style.backgroundColor=\'white\'" ' +
+	            'onclick="selectCertificate(\'' + cert.jmcd + '\', \'' + cert.totalJmName + '\', \'' + cert.year + '\', \'' + cert.implseq + '\')">' +
+	            '<div style="font-weight: 500;">' + cert.totalJmName + '</div>' +
+	            '<div style="font-size: 12px; color: #666;">' + cert.year + '년 ' + cert.implseq + '회</div>' +
+	            '</div>';
+	  });
+	  
+	  $dropdown.html(html).show();
+	}
+
+  function selectCertificate(code, name, year, implseq) {
+    $('#certificateSearch').val(name);
+    $('#certificateCode').val(code);
+    $('#certificateYear').val(year);
+    $('#certificateImplseq').val(implseq);
+    $('#certificateDropdown').hide();
   }
 </script>
 </body>

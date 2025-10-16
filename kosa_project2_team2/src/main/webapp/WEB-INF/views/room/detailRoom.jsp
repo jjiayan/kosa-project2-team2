@@ -92,6 +92,9 @@
           </div>
 
           <c:choose>
+          	<c:when test="${empty sessionScope.LOGIN_USER or empty sessionScope.LOGIN_USER.user_id}">
+              <button class="join-status-btn joined-btn" disabled>로그인을 해주세요.</button>
+            </c:when>
             <c:when test="${roomDetail.joinUserStatus == 'LEADER' || roomDetail.joinUserStatus == 'MEMBER'}">
               <button class="join-status-btn joined-btn" disabled>참여중</button>
             </c:when>
@@ -155,6 +158,27 @@
         }
     	
     })
+  }
+
+  function deleteRoom(roomId, userId){
+	  if(!confirm('이 모임에 삭제하시겠습니까?')) return;
+	  $.ajax({
+	    	url: "/roomdelete.roomajax",
+	    	data: {
+	    		userId: userId,
+	    		roomId: roomId
+	    	},
+	    	success: function(res){
+	            console.log(res);
+	            alert('모입방 삭제가 완료되었습니다.');
+	            window.location.href = "/roomlist.room";
+	        },
+	        error: function(e){
+	        	console.log(e)
+	            alert('모임방 삭제 중 오류가 발생했습니다.');
+	        }
+	    	
+	    })
   }
   
   //===== 스터디 좋아요 =====
