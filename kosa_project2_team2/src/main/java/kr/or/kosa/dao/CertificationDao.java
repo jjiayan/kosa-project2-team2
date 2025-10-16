@@ -4,7 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import kr.or.kosa.dto.certification.CertificationChartRowDto;
 import kr.or.kosa.dto.certification.CertificationDetailDto;
@@ -16,80 +18,90 @@ import kr.or.kosa.utils.ConnectionPoolHelper;
 
 public class CertificationDao {
 
-	public List<CertificationSummaryDto> getCurrentYearLatestCertifications() {
-	    List<CertificationSummaryDto> list = new ArrayList<>();
+    // 현재 연도 최신 회차 + 통계 + 일정 + 카테고리 JOIN 조회
+    public List<CertificationSummaryDto> getCurrentYearLatestCertifications() {
+        List<CertificationSummaryDto> list = new ArrayList<>();
 
-	    String sql =
-	        "WITH latest AS ( " +
-	        "   SELECT " +
-	        "       m.JMCD, " +
-	        "       m.JMNAME, " +
-	        "       m.YEAR, " +
-	        "       m.IMPLSEQ, " +
-	        "       m.ORGANNAME, " +
-	        "       ROW_NUMBER() OVER ( " +
-	        "           PARTITION BY m.JMCD " +
-	        "           ORDER BY m.YEAR DESC, m.IMPLSEQ DESC " +
-	        "       ) AS rn " +
-	        "   FROM CERTIFICATION_MASTER m " +
-	        ") " +
-	        "SELECT " +
-	        "   l.JMCD, " +
-	        "   l.JMNAME, " +
-	        "   c.GRADE, " +
-	        "   c.FIELD, " +
-	        "   l.YEAR, " +
-	        "   l.IMPLSEQ, " +
-	        "   s_doc.PASSRATE AS docPassRate, " +
-	        "   s_doc.APPLICANTS AS docApplicants, " +
-	        "   s_prac.PASSRATE AS pracPassRate, " +
-	        "   s_prac.APPLICANTS AS pracApplicants, " +
-	        "   sch.EXAMFEE, " +
-	        "   l.ORGANNAME " +
-	        "FROM latest l " +
-	        "JOIN CERTIFICATION_CATEGORY c ON l.JMCD = c.JMCD " +
-	        "LEFT JOIN CERTIFICATION_SCHEDULE sch " +
-	        "   ON l.JMCD = sch.JMCD AND l.YEAR = sch.YEAR AND l.IMPLSEQ = sch.IMPLSEQ " +
-	        "LEFT JOIN CERTIFICATION_STATS s_doc " +
-	        "   ON l.JMCD = s_doc.JMCD AND l.YEAR = s_doc.YEAR AND l.IMPLSEQ = s_doc.IMPLSEQ AND s_doc.EXAMGB = '필기' " +
-	        "LEFT JOIN CERTIFICATION_STATS s_prac " +
-	        "   ON l.JMCD = s_prac.JMCD AND l.YEAR = s_prac.YEAR AND l.IMPLSEQ = s_prac.IMPLSEQ AND s_prac.EXAMGB = '실기' " +
-	        "WHERE l.rn = 1 " +    // ✅ 자격증당 최신 1개만!
-	        "ORDER BY l.JMNAME";
+        String sql =
+            "SELECT " +
+            "    m.JMCD, " +
+            "    m.JMNAME, " +
+            "    c.GRADE, " +
+            "    c.FIELD, " +
+            "    m.YEAR, " +
+            "    m.IMPLSEQ, " +
+            "    s_doc.PASSRATE AS docPassRate, " +
+            "    s_doc.APPLICANTS AS docApplicants, " +
+            "    s_prac.PASSRATE AS pracPassRate, " +
+            "    s_prac.APPLICANTS AS pracApplicants, " +
+            "    sch.EXAMFEE, " +
+            "    m.ORGANNAME " +
+            "FROM CERTIFICATION_MASTER m " +
+            "JOIN CERTIFICATION_CATEGORY c " +
+            "    ON m.JMCD = c.JMCD " +
+            "LEFT JOIN CERTIFICATION_SCHEDULE sch " +
+            "    ON m.JMCD = sch.JMCD " +
+            "   AND m.YEAR = sch.YEAR " +
+            "   AND m.IMPLSEQ = sch.IMPLSEQ " +
+            "LEFT JOIN CERTIFICATION_STATS s_doc " +
+            "    ON m.JMCD = s_doc.JMCD " +
+            "   AND m.YEAR = s_doc.YEAR " +
+            "   AND m.IMPLSEQ = s_doc.IMPLSEQ " +
+            "   AND s_doc.EXAMGB = '필기' " +
+            "LEFT JOIN CERTIFICATION_STATS s_prac " +
+            "    ON m.JMCD = s_prac.JMCD " +
+            "   AND m.YEAR = s_prac.YEAR " +
+            "   AND m.IMPLSEQ = s_prac.IMPLSEQ " +
+            "   AND s_prac.EXAMGB = '실기' " +
+            "WHERE " +
+            "    m.YEAR = EXTRACT(YEAR FROM SYSDATE) " +
+            "AND (m.JMCD, m.IMPLSEQ) IN ( " +
+            "    SELECT JMCD, MAX(IMPLSEQ) " +
+            "    FROM CERTIFICATION_MASTER " +
+            "    WHERE YEAR = EXTRACT(YEAR FROM SYSDATE) " +
+            "    GROUP BY JMCD " +
+            ") " +
+            "ORDER BY m.JMNAME";
 
-	    try (
-	        Connection conn = ConnectionPoolHelper.getConnection();
-	        PreparedStatement pstmt = conn.prepareStatement(sql);
-	        ResultSet rs = pstmt.executeQuery();
-	    ) {
+        try (
+            Connection conn = ConnectionPoolHelper.getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            ResultSet rs = pstmt.executeQuery();
+        ) {
 
-	        while (rs.next()) {
-	            CertificationSummaryDto dto = new CertificationSummaryDto();
+            while (rs.next()) {
+                CertificationSummaryDto dto = new CertificationSummaryDto();
 
-	            dto.setJmcd(rs.getInt("JMCD"));
-	            dto.setJmName(rs.getString("JMNAME"));
-	            dto.setGrade(rs.getString("GRADE"));
-	            dto.setField(rs.getString("FIELD"));
-	            dto.setYear(rs.getInt("YEAR"));
-	            dto.setImplSeq(rs.getInt("IMPLSEQ"));
-	            dto.setDocPassRate(rs.getDouble("docPassRate"));
-	            dto.setDocApplicants(rs.getInt("docApplicants"));
-	            dto.setPracPassRate(rs.getDouble("pracPassRate"));
-	            dto.setPracApplicants(rs.getInt("pracApplicants"));
-	            dto.setExamFee(rs.getInt("EXAMFEE"));
-	            dto.setOrganName(rs.getString("ORGANNAME"));
+                dto.setJmcd(rs.getInt("JMCD"));
+                dto.setJmName(rs.getString("JMNAME"));
+                dto.setGrade(rs.getString("GRADE"));
+                dto.setField(rs.getString("FIELD"));
+                dto.setYear(rs.getInt("YEAR"));
+                dto.setImplSeq(rs.getInt("IMPLSEQ"));
 
-	            list.add(dto);
-	        }
+                // 필기 통계
+                dto.setDocPassRate(rs.getDouble("docPassRate"));    // null 가능
+                dto.setDocApplicants(rs.getInt("docApplicants"));       // 0 처리 자동
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
+                // 실기 통계
+                dto.setPracPassRate(rs.getDouble("pracPassRate"));
+                dto.setPracApplicants(rs.getInt("pracApplicants"));
 
-	    return list;
-	}
+                // 응시료
+                dto.setExamFee(rs.getInt("EXAMFEE"));            // null 가능
 
+                // 시행기관
+                dto.setOrganName(rs.getString("ORGANNAME"));
 
+                list.add(dto);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
     
     
     // 여기서부터는 API 읽어서 저장하는 메소드 3개
@@ -217,94 +229,92 @@ public class CertificationDao {
         }
         return total;
     }
-   
     
     
-    // AJAX 필터 전용 메서드
-    public List<CertificationSummaryDto> getFilteredCertifications(String grade, String field, String keyword) {
+    // AJAX 필터 전용 메서드 (+ 페이징)
+ // CertificationDao.java
+
+ // 1-1) 목록 조회 (필터 + 페이징)
+ // ✅ 클라이언트 페이지네이션(slice)용 전체 필터 조회 메서드
+    public List<CertificationSummaryDto> getFilteredCertifications(
+            String grade, String field, String keyword) {
+
         List<CertificationSummaryDto> list = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
         sql.append(
-            "SELECT * FROM ( " +
-            "    SELECT " +
-            "        m.JMCD, " +
-            "        m.JMNAME, " +
-            "        c.GRADE, " +
-            "        c.FIELD, " +
-            "        m.YEAR, " +
-            "        m.IMPLSEQ, " +
-            "        s_doc.PASSRATE AS docPassRate, " +
-            "        s_doc.APPLICANTS AS docApplicants, " +
-            "        s_prac.PASSRATE AS pracPassRate, " +
-            "        s_prac.APPLICANTS AS pracApplicants, " +
-            "        sch.EXAMFEE, " +
-            "        m.ORGANNAME, " +
-            "        ROW_NUMBER() OVER ( " +
-            "            PARTITION BY m.JMCD " +
-            "            ORDER BY m.YEAR DESC, m.IMPLSEQ DESC " +
-            "        ) AS rn " +
-            "    FROM CERTIFICATION_MASTER m " +
-            "    JOIN CERTIFICATION_CATEGORY c ON m.JMCD = c.JMCD " +
-            "    LEFT JOIN CERTIFICATION_SCHEDULE sch " +
-            "        ON m.JMCD = sch.JMCD AND m.YEAR = sch.YEAR AND m.IMPLSEQ = sch.IMPLSEQ " +
-            "    LEFT JOIN CERTIFICATION_STATS s_doc " +
-            "        ON m.JMCD = s_doc.JMCD AND m.YEAR = s_doc.YEAR AND m.IMPLSEQ = s_doc.IMPLSEQ " +
-            "       AND s_doc.EXAMGB = '필기' " +
-            "    LEFT JOIN CERTIFICATION_STATS s_prac " +
-            "        ON m.JMCD = s_prac.JMCD AND m.YEAR = s_prac.YEAR AND m.IMPLSEQ = s_prac.IMPLSEQ " +
-            "       AND s_prac.EXAMGB = '실기' " +
-            "    WHERE 1=1 "
+            "WITH latest AS ( " +
+            "  SELECT jmcd, MAX(implSeq) AS implSeq " +
+            "  FROM CERTIFICATION_MASTER " +
+            "  WHERE year = EXTRACT(YEAR FROM SYSDATE) " +
+            "  GROUP BY jmcd " +
+            ") " +
+            "SELECT " +
+            "  m.JMCD, m.JMNAME, c.GRADE, c.FIELD, m.YEAR, m.IMPLSEQ, " +
+            "  s_doc.PASSRATE AS docPassRate, s_doc.APPLICANTS AS docApplicants, " +
+            "  s_prac.PASSRATE AS pracPassRate, s_prac.APPLICANTS AS pracApplicants, " +
+            "  sch.EXAMFEE, m.ORGANNAME " +
+            "FROM CERTIFICATION_MASTER m " +
+            "JOIN latest l ON l.jmcd = m.jmcd AND l.implSeq = m.implSeq " +
+            "             AND m.year = EXTRACT(YEAR FROM SYSDATE) " +
+            "JOIN CERTIFICATION_CATEGORY c ON m.JMCD = c.JMCD " +
+            "LEFT JOIN CERTIFICATION_SCHEDULE sch " +
+            "  ON m.JMCD = sch.JMCD AND m.YEAR = sch.YEAR AND m.IMPLSEQ = sch.IMPLSEQ " +
+            "LEFT JOIN CERTIFICATION_STATS s_doc " +
+            "  ON m.JMCD = s_doc.JMCD AND m.YEAR = s_doc.YEAR AND m.IMPLSEQ = s_doc.IMPLSEQ " +
+            " AND s_doc.EXAMGB = '필기' " +
+            "LEFT JOIN CERTIFICATION_STATS s_prac " +
+            "  ON m.JMCD = s_prac.JMCD AND m.YEAR = s_prac.YEAR AND m.IMPLSEQ = s_prac.IMPLSEQ " +
+            " AND s_prac.EXAMGB = '실기' " +
+            "WHERE 1=1 "
         );
 
-        // 필터 조건 동적으로 붙이기
+        List<Object> params = new ArrayList<>();
         if (grade != null && !grade.isEmpty()) {
             sql.append(" AND c.GRADE = ? ");
+            params.add(grade);
         }
         if (field != null && !field.isEmpty()) {
             sql.append(" AND c.FIELD = ? ");
+            params.add(field);
         }
         if (keyword != null && !keyword.isEmpty()) {
             sql.append(" AND m.JMNAME LIKE '%' || ? || '%' ");
+            params.add(keyword);
         }
 
-        sql.append(
-            ") t " +        // 서브쿼리 닫기
-            "WHERE rn = 1 " +
-            "ORDER BY t.JMNAME"
-        );
+        sql.append(" ORDER BY m.JMNAME ");
 
         try (
             Connection conn = ConnectionPoolHelper.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql.toString())
+            PreparedStatement ps = conn.prepareStatement(sql.toString())
         ) {
             int idx = 1;
-            if (grade != null && !grade.isEmpty()) pstmt.setString(idx++, grade);
-            if (field != null && !field.isEmpty()) pstmt.setString(idx++, field);
-            if (keyword != null && !keyword.isEmpty()) pstmt.setString(idx++, keyword);
-
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                CertificationSummaryDto dto = new CertificationSummaryDto();
-                dto.setJmcd(rs.getInt("JMCD"));
-                dto.setJmName(rs.getString("JMNAME"));
-                dto.setGrade(rs.getString("GRADE"));
-                dto.setField(rs.getString("FIELD"));
-                dto.setYear(rs.getInt("YEAR"));
-                dto.setImplSeq(rs.getInt("IMPLSEQ"));
-                dto.setDocPassRate(rs.getDouble("docPassRate"));
-                dto.setDocApplicants(rs.getInt("docApplicants"));
-                dto.setPracPassRate(rs.getDouble("pracPassRate"));
-                dto.setPracApplicants(rs.getInt("pracApplicants"));
-                dto.setExamFee(rs.getInt("EXAMFEE"));
-                dto.setOrganName(rs.getString("ORGANNAME"));
-                list.add(dto);
+            for (Object p : params) {
+                ps.setObject(idx++, p);
             }
 
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    CertificationSummaryDto dto = new CertificationSummaryDto();
+                    dto.setJmcd(rs.getInt("JMCD"));
+                    dto.setJmName(rs.getString("JMNAME"));
+                    dto.setGrade(rs.getString("GRADE"));
+                    dto.setField(rs.getString("FIELD"));
+                    dto.setYear(rs.getInt("YEAR"));
+                    dto.setImplSeq(rs.getInt("IMPLSEQ"));
+                    dto.setDocPassRate(rs.getDouble("docPassRate"));
+                    dto.setDocApplicants(rs.getInt("docApplicants"));
+                    dto.setPracPassRate(rs.getDouble("pracPassRate"));
+                    dto.setPracApplicants(rs.getInt("pracApplicants"));
+                    dto.setExamFee(rs.getInt("EXAMFEE"));
+                    dto.setOrganName(rs.getString("ORGANNAME"));
+                    list.add(dto);
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return list;
     }
 
@@ -495,6 +505,49 @@ public class CertificationDao {
         }
 
         return list;
+    }
+
+    
+ // CertificationDao.java 내부
+
+    public Map<String, Object> getCategories() {
+        Map<String, Object> map = new HashMap<>();
+
+        List<String> grades = new ArrayList<>();
+        String sql1 = "SELECT DISTINCT grade FROM CERTIFICATION_CATEGORY WHERE grade IS NOT NULL ORDER BY grade";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql1);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                grades.add(rs.getString("grade"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        List<String> fields = new ArrayList<>();
+        String sql2 = "SELECT DISTINCT field FROM CERTIFICATION_CATEGORY WHERE field IS NOT NULL ORDER BY field";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql2);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                fields.add(rs.getString("field"));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Map에 넣어서 반환
+        map.put("grades", grades);
+        map.put("fields", fields);
+
+        return map;
     }
 
 
