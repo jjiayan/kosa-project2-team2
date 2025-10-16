@@ -1369,6 +1369,91 @@ public class RoomDao {
 	  }
 	  
 	  
+	  public int countMyReplies(long userId, String q) {
+	        StringBuilder sql = new StringBuilder();
+	        sql.append("SELECT COUNT(*) ")
+	           .append("  FROM REPLY r ")
+	           .append("  JOIN ROOM_BOARD rb ON rb.ROOM_BOARD_ID = r.ROOM_BOARD_ID ")
+	           .append("  JOIN ROOM ro       ON ro.ROOM_ID       = rb.ROOM_ID ")
+	           .append(" WHERE r.USER_ID=? AND r.STATUS='ACTIVE' ")
+	           .append("   AND rb.IS_DELETED='N' AND ro.IS_DELETED='N' ");
+	        if (q != null && !q.isBlank()) {
+	            sql.append(" AND (LOWER(rb.ROOM_BOARD_TITLE) LIKE LOWER(?) ")
+	               .append("   OR LOWER(ro.ROOM_TITLE)      LIKE LOWER(?) ")
+	               .append("   OR LOWER(r.REPLY_CONTENT)    LIKE LOWER(?)) ");
+	        }
+	        try (Connection conn = ConnectionPoolHelper.getConnection();
+	             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+	            int i=1;
+	            ps.setLong(i++, userId);
+	            if (q != null && !q.isBlank()) {
+	                String like = "%"+q+"%";
+	                ps.setString(i++, like);
+	                ps.setString(i++, like);
+	                ps.setString(i++, like);
+	            }
+	            try(ResultSet rs = ps.executeQuery()){
+	                if(rs.next()) return rs.getInt(1);
+	            }
+	        } catch(Exception e){ e.printStackTrace(); }
+	        return 0;
+	    }
+	  
+	  public List<kr.or.kosa.dto.user.MyReplyItem> findMyReplies(long userId, String q, String sort, int size, int page) {
+	        List<kr.or.kosa.dto.user.MyReplyItem> list = new ArrayList<>();
+	        String order = " r.REPLY_CREATED_AT DESC, r.REPLY_ID DESC ";
+	        if ("old".equalsIgnoreCase(sort)) order = " r.REPLY_CREATED_AT ASC, r.REPLY_ID ASC ";
+
+	        StringBuilder sql = new StringBuilder();
+	        sql.append("SELECT * FROM ( ")
+	           .append("  SELECT r.REPLY_ID, r.REPLY_CONTENT, ")
+	           .append("         TO_CHAR(r.REPLY_CREATED_AT,'YYYY.MM.DD') AS created_fmt, ")
+	           .append("         rb.ROOM_BOARD_ID, rb.ROOM_BOARD_TITLE, ")
+	           .append("         ro.ROOM_ID, ro.ROOM_TITLE ")
+	           .append("    FROM REPLY r ")
+	           .append("    JOIN ROOM_BOARD rb ON rb.ROOM_BOARD_ID = r.ROOM_BOARD_ID ")
+	           .append("    JOIN ROOM ro       ON ro.ROOM_ID       = rb.ROOM_ID ")
+	           .append("   WHERE r.USER_ID=? AND r.STATUS='ACTIVE' ")
+	           .append("     AND rb.IS_DELETED='N' AND ro.IS_DELETED='N' ");
+	        if (q != null && !q.isBlank()) {
+	            sql.append(" AND (LOWER(rb.ROOM_BOARD_TITLE) LIKE LOWER(?) ")
+	               .append("   OR LOWER(ro.ROOM_TITLE)      LIKE LOWER(?) ")
+	               .append("   OR LOWER(r.REPLY_CONTENT)    LIKE LOWER(?)) ");
+	        }
+	        sql.append("   ORDER BY ").append(order)
+	           .append(") OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+	        try (Connection conn = ConnectionPoolHelper.getConnection();
+	             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+	            int i=1;
+	            ps.setLong(i++, userId);
+	            if (q != null && !q.isBlank()) {
+	                String like = "%"+q+"%";
+	                ps.setString(i++, like);
+	                ps.setString(i++, like);
+	                ps.setString(i++, like);
+	            }
+	            ps.setInt(i++, (page-1)*size);
+	            ps.setInt(i++, size);
+
+	            try(ResultSet rs = ps.executeQuery()){
+	                while(rs.next()){
+	                    list.add(kr.or.kosa.dto.user.MyReplyItem.builder()
+	                        .replyId(rs.getLong("REPLY_ID"))
+	                        .content(rs.getString("REPLY_CONTENT"))
+	                        .createdAt(rs.getString("created_fmt"))
+	                        .boardId(rs.getLong("ROOM_BOARD_ID"))
+	                        .boardTitle(rs.getString("ROOM_BOARD_TITLE"))
+	                        .roomId(rs.getLong("ROOM_ID"))
+	                        .roomTitle(rs.getString("ROOM_TITLE"))
+	                        .build());
+	                }
+	            }
+	        } catch(Exception e){ e.printStackTrace(); }
+	        return list;
+	    }
+	  
+	  
 	  // 1) 총개수
 	    public int countMyPosts(long userId, String q) {
 	        StringBuilder sql = new StringBuilder();
