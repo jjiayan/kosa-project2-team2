@@ -180,7 +180,7 @@
             <div class="divider"></div>
             <div id="roomsArea"><div class="empty">로딩 중...</div></div>
             <div class="more-wrap">
-              <a class="more-link" href="${ctx}/rooms/mine">더보기 »</a>
+              <a class="more-link" href="${ctx}/mypage/myroomspage.user">더보기 »</a>
             </div>
           </section>
         </div>
@@ -189,7 +189,7 @@
         <aside class="card side-card" aria-labelledby="posts-title">
           <div class="head" id="posts-title">내가 쓴 글</div>
           <div id="myPostsArea"><div class="empty">로딩 중...</div></div>
-          <div class="side-more"><a href="${ctx}/boards/mine">내가 쓴 글 보러가기 »</a></div>
+          <div class="side-more"><a href="${ctx}/mypage/myPosts.user">내가 쓴 글 보러가기 »</a></div>
         </aside>
       </div>
     </div>
