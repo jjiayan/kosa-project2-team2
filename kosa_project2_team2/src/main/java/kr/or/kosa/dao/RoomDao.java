@@ -6,6 +6,7 @@ import kr.or.kosa.dto.PageResult;
 import kr.or.kosa.dto.RegionDto;
 import kr.or.kosa.dto.RoomBoardDto;
 import kr.or.kosa.dto.RoomDto;
+import kr.or.kosa.dto.SearchCertificateDto;
 import kr.or.kosa.dto.SearchCondition;
 import kr.or.kosa.dto.user.MyPostItem;
 import kr.or.kosa.dto.user.RoomCardDto;
@@ -49,18 +50,15 @@ public class RoomDao {
 	        pstmt.setString(3, insertRoomDto.getThumbnailUrl());
 	        pstmt.setInt(4, insertRoomDto.getMaxParticipant());
 	        pstmt.setInt(5, insertRoomDto.getRegionId());
-	        pstmt.setInt(6, 1320); // certificate1
-	        pstmt.setInt(7, 2025); // certificate2 (년도)
-	        pstmt.setInt(8, 1); // certificate3 (회차)
-			
+	        pstmt.setInt(6, insertRoomDto.getJmcd());
+	        pstmt.setInt(7, insertRoomDto.getYear()); 
+	        pstmt.setInt(8, insertRoomDto.getImplseq());
 	        
 	        result = pstmt.executeUpdate();
 	        rs = pstmt.getGeneratedKeys();
 	        if (rs.next()) {
 	            generatedRoomId = rs.getInt(1);
 	        }
-	        
-	        
 	        
 			String sql2 = "INSERT INTO JOIN_ROOM (user_id, room_id, room_tier) \n"
 					+ "VALUES (?, ?, 'LEADER')";
@@ -144,7 +142,6 @@ public class RoomDao {
 	        sql.append("ORDER BY ro.ROOM_ID DESC ");
 	        sql.append("OFFSET ? ROWS FETCH NEXT ? ROWS ONLY ");
 			pstmt = conn.prepareStatement(sql.toString());
-			System.out.println("2");
 			
 			int paramIndex = 1;
 			pstmt.setInt(paramIndex++, 1); // 이거는 유저아이디가 들어간다.
@@ -180,7 +177,6 @@ public class RoomDao {
 			while(rs.next()) {
 				String roomStatus = "모집중";
 			
-				
 				if(rs.getString("room_status").equals("RECRUITING"))
 					roomStatus = "모집중";
 				else roomStatus = "마감";
@@ -223,23 +219,145 @@ public class RoomDao {
 		pageResult.setSi(searchCondition.getSi());
 		pageResult.setSiGun(searchCondition.getSiGun());
 		
-		
 		return pageResult;
-		
 	}
 	
+	public RoomDto updateInfoRoom(int roomId) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		RoomDto updateInfo = null;
+		
+		String sql = "SELECT ro.ROOM_ID as ROOM_ID, "
+					+ "ro.ROOM_TITLE as ROOM_TITLE, "
+					+ "ro.ROOM_CONTENT as ROOM_CONTENT, "
+					+ "ro.ROOM_THUMBNAIL as ROOM_THUMBNAIL, "
+		           + "ro.MAXPARTICIPANT as MAXPARTICIPANT, "
+		           + "ro.ROOM_STATUS as ROOM_STATUS, "
+		           + "r1.REGION_ID as SUB_REGION_ID, "
+		           + "r1.REGION_NAME as SUB_REGION_NAME, "
+		           + "r2.REGION_ID as MAIN_REGION_ID, "
+		           + "r2.REGION_NAME as MAIN_REGION_NAME, "
+		           + "cm.JMCD as JMCD,"
+		           + "cm.JMNAME as JMNAME, "
+		           + "cm.IMPLSEQ as IMPLSEQ, "
+		           + "cm.\"YEAR\" as YEAR, "
+		           + "cs.EXAMGB as EXAMGB "
+		           + "FROM ROOM ro "
+		           + "JOIN REGION r1 ON ro.REGION_ID = r1.REGION_ID "
+		           + "JOIN REGION r2 ON r2.REGION_ID = r1.PARENT_ID "
+		           + "JOIN CERTIFICATION_MASTER cm ON cm.JMCD = ro.JMCD AND cm.\"YEAR\" = ro.\"YEAR\" AND cm.IMPLSEQ = ro.IMPLSEQ "
+		           + "JOIN CERTIFICATION_STATS cs ON cs.JMCD = ro.JMCD AND cs.\"YEAR\" = ro.\"YEAR\" AND cs.IMPLSEQ = ro.IMPLSEQ  "
+		           + "WHERE ro.ROOM_ID = ?";
+		try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, roomId);
+			rs = pstmt.executeQuery();
+			while(rs.next()) {
+				updateInfo = RoomDto.builder()
+			        .roomId(rs.getInt("ROOM_ID"))
+			        .title(rs.getString("ROOM_TITLE"))
+			        .content(rs.getString("ROOM_CONTENT"))
+			        .thumbnailUrl(rs.getString("ROOM_THUMBNAIL"))
+			        .maxParticipant(rs.getInt("MAXPARTICIPANT"))
+			        .roomStatus(rs.getString("ROOM_STATUS"))
+			        .subRegionId(rs.getInt("SUB_REGION_ID"))
+			        .childRegion(rs.getString("SUB_REGION_NAME"))
+			        .regionId(rs.getInt("MAIN_REGION_ID"))
+			        .parentRegion(rs.getString("MAIN_REGION_NAME"))
+			        .jmcd(rs.getInt("JMCD"))
+			        .examgb(rs.getString("EXAMGB"))
+			        .totalJmName(rs.getInt("YEAR") +"년 " +rs.getInt("IMPLSEQ")+"회차 " + rs.getString("JMNAME"))
+			        .implseq(rs.getInt("IMPLSEQ"))
+			        .year(rs.getInt("YEAR"))
+			        .build();
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			ConnectionPoolHelper.close(rs);
+			ConnectionPoolHelper.close(pstmt);
+			ConnectionPoolHelper.close(conn);
+		}
+		return updateInfo;
+	}
+	
+	public int updateRoom(RoomDto updateRoom) {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		int result = 0;
+		RoomDto resultRoom = null;
+		System.out.println("?? ==>> " + updateRoom);
+		
+		String sql = "UPDATE ROOM SET " +
+	             "room_title = ?, " +
+	             "room_content = ?, " +
+	             "room_thumbnail = ?, " +
+	             "maxParticipant = ?, " +
+	             "region_id = ?, " +
+	             "jmcd = ?, " +
+	             "year = ?, " +
+	             "implSeq = ?, " +
+	             "updated_at = SYSDATE " +
+	             "WHERE room_id = ?";
+		
+		try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, updateRoom.getTitle());
+			pstmt.setString(2, updateRoom.getContent());
+			pstmt.setString(3, updateRoom.getThumbnailUrl());
+			pstmt.setInt(4, updateRoom.getMaxParticipant());
+			pstmt.setInt(5, updateRoom.getSubRegionId());
+			pstmt.setInt(6, updateRoom.getJmcd());
+			pstmt.setInt(7, updateRoom.getYear());
+			pstmt.setInt(8, updateRoom.getImplseq());
+			pstmt.setInt(9, updateRoom.getRoomId()); // 업데이트할 방의 ID
+			result = pstmt.executeUpdate();
+			
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			ConnectionPoolHelper.close(pstmt);
+			ConnectionPoolHelper.close(conn);
+		}
+		return result;
+	}
 	
 	
 	public RoomDto detialRoom(int roomId, int userId) {
 		Connection conn = null;
+		RoomDto roomDetail = null;
+		
+		StringBuilder sqlBuilder = new StringBuilder();
+		try {
+			conn  = ConnectionPoolHelper.getConnection();
+			if(userId != 0) {
+				roomDetail = detailRoomWithUser(roomId, userId, conn);
+			}else {
+				roomDetail = detailWithoutUser(roomId, conn);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			ConnectionPoolHelper.close(conn);
+		}
+		return roomDetail;
+	}
+	
+	
+	private RoomDto detailRoomWithUser(int roomId, int userId, Connection conn) {
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		RoomDto roomDetail = null;
 		
-		
-		try {
-			conn = ConnectionPoolHelper.getConnection();
-			StringBuilder sqlBuilder = new StringBuilder();
+		StringBuilder sqlBuilder = new StringBuilder();
 			sqlBuilder.append("SELECT ro.room_id, ro.room_title, ro.room_content, ");
 			sqlBuilder.append("ro.updated_at, u.user_nickname, ");
 			sqlBuilder.append("(SELECT COUNT(*) FROM LIKE_ROOM lr WHERE lr.room_id = ro.room_id) AS like_count, ");
@@ -255,14 +373,15 @@ public class RoomDao {
 			sqlBuilder.append("LEFT JOIN JOIN_ROOM jr2 ON jr2.USER_ID = ? AND jr2.ROOM_ID = ? ");
 			sqlBuilder.append("WHERE ro.room_id = ? AND jr.room_tier = 'LEADER'");
 			
+		try {
+			conn = ConnectionPoolHelper.getConnection();
 			String sql = sqlBuilder.toString();
-			
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, userId); // 현재 접속 유저 아이디
 			pstmt.setInt(2, userId); // 현재 접속 유저 아이디
 			pstmt.setInt(3, userId);
 			pstmt.setInt(4, roomId);
-			pstmt.setInt(5, roomId); // 현재 접속 유저 아이디
+			pstmt.setInt(5, roomId);
 			
 			rs = pstmt.executeQuery();
 			while(rs.next()) {
@@ -279,18 +398,121 @@ public class RoomDao {
 				        .leaderCheck(rs.getInt("leader_check") == 1)
 						.build();
 			}
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}finally{
 			ConnectionPoolHelper.close(rs);
 			ConnectionPoolHelper.close(pstmt);
-			ConnectionPoolHelper.close(conn);
 		}
 		return roomDetail;
+	}
+	
+	private RoomDto detailWithoutUser(int roomId, Connection conn) {
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		RoomDto roomDto = null;
+		
+		StringBuilder sqlBuilder = new StringBuilder();
+		
+		sqlBuilder.append("SELECT ");
+		sqlBuilder.append(" ro.room_id, ");
+		sqlBuilder.append(" ro.room_title, ");
+		sqlBuilder.append(" ro.room_content, ");
+		sqlBuilder.append(" ro.updated_at, ");
+		sqlBuilder.append(" u.user_nickname, ");
+		sqlBuilder.append(" (SELECT COUNT(*) ");
+		sqlBuilder.append("  FROM LIKE_ROOM lr ");
+		sqlBuilder.append("  WHERE lr.room_id = ro.room_id) AS like_count, ");
+		sqlBuilder.append(" (SELECT CASE ");
+		sqlBuilder.append("  WHEN ROUND(AVG(score), 1) IS NOT NULL ");
+		sqlBuilder.append("  THEN ROUND(AVG(score), 1) ");
+		sqlBuilder.append("  ELSE 0 ");
+		sqlBuilder.append("  END ");
+		sqlBuilder.append("  FROM ROOM_SCORE rs ");
+		sqlBuilder.append("  WHERE rs.room_id = ro.room_id) AS room_score ");
+		sqlBuilder.append("FROM room ro ");
+		sqlBuilder.append("JOIN JOIN_ROOM jr ");
+		sqlBuilder.append(" ON jr.room_id = ro.room_id ");
+		sqlBuilder.append("JOIN \"USER\" u ");
+		sqlBuilder.append(" ON u.user_id = jr.user_id ");
+		sqlBuilder.append("WHERE ro.room_id = ? ");
+		sqlBuilder.append(" AND jr.room_tier = 'LEADER'");
+
+		try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sqlBuilder.toString());
+			pstmt.setInt(1, roomId);
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				roomDto = RoomDto.builder()
+			        .roomId(rs.getInt("room_id"))
+			        .title(rs.getString("room_title"))
+			        .content(rs.getString("room_content"))
+			        .updatedAt(rs.getDate("updated_at"))  // Date 타입이면 getTimestamp 사용
+			        .userNickName(rs.getString("user_nickname"))
+			        .likeCount(rs.getInt("like_count"))
+			        .roomScore(rs.getDouble("room_score"))
+			        .build();
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			ConnectionPoolHelper.close(rs);
+			ConnectionPoolHelper.close(pstmt);
+		}
+		return roomDto;
+		
 		
 	}
 	
+	// 모임방 삭제
+	public int deleteRoom(int roomId, int userId) {
+		Connection conn = null;
+		PreparedStatement pstmt1 = null;
+		PreparedStatement pstmt2 = null;
+		ResultSet rs = null;
+		int result = 0;
+		
+		String checkSql = "SELECT ROOM_TIER  FROM JOIN_ROOM "
+				+ "WHERE USER_ID = ? AND ROOM_ID = ?";
+		
+		String deleteSql = "UPDATE ROOM "
+				+ "SET IS_DELETED = 'Y' "
+				+ "WHERE ROOM_ID = ?";
+		
+		try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt1 = conn.prepareStatement(checkSql);
+			pstmt1.setInt(1, userId);
+			pstmt1.setInt(2, roomId);
+			
+			rs = pstmt1.executeQuery();
+			String tierCheck = "";
+			while(rs.next()) {
+				tierCheck = rs.getString("ROOM_TIER");
+			}
+			if(!tierCheck.isEmpty() && tierCheck.equals("LEADER")) {
+				pstmt2 = conn.prepareStatement(deleteSql);
+				pstmt2.setInt(1, roomId);
+				result = pstmt2.executeUpdate();
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally{
+			ConnectionPoolHelper.close(rs);
+			ConnectionPoolHelper.close(pstmt2);
+			ConnectionPoolHelper.close(pstmt1);
+			ConnectionPoolHelper.close(conn);
+		}
+		return result;
+	}
 	
 	public int joinRoom(int userId, int roomId) {
 		Connection conn = null;
@@ -318,10 +540,7 @@ public class RoomDao {
 			ConnectionPoolHelper.close(conn);
 		}
 		return (result == 1) ? roomId : result; 
-		
 	}
-	
-	
 	
 	// 룸보드 게시판 검색
 	public List<RoomBoardDto> getRoomBoardBySearch(SearchCondition searchCondition, int roomId, String roomBoardType) {
@@ -850,8 +1069,11 @@ public class RoomDao {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+            ConnectionPoolHelper.close(rs);
+            ConnectionPoolHelper.close(pstmt);
+            ConnectionPoolHelper.close(conn);
 		}
-		
 		
 		return type;
 	}
@@ -1146,4 +1368,135 @@ public class RoomDao {
 	  }
 
 	  private static String nvl(String s, String d){ return (s==null)? d : s; }
+	  
+	  public List<SearchCertificateDto> searchcertificate(String keyword, String examType) {
+		  Connection conn = null;
+		  PreparedStatement pstmt = null;
+		  ResultSet rs = null;
+		  List<SearchCertificateDto> searchcertificateList = new ArrayList<>();
+		  
+		  StringBuilder sql = new StringBuilder();
+		  sql.append("SELECT cm.JMCD as JMCD, cm.\"YEAR\" as YEAR, cm.IMPLSEQ as IMPLSEQ, cm.JMNAME as JMNAME FROM CERTIFICATION_MASTER cm ");
+		  sql.append("JOIN CERTIFICATION_SCHEDULE cs ON cs.JMCD = cm.JMCD AND cs.\"YEAR\" = cm.\"YEAR\" AND cs.IMPLSEQ = cm.IMPLSEQ ");
+		  sql.append("JOIN CERTIFICATION_STATS cs2 ON cs2.JMCD = cm.JMCD AND cs2.\"YEAR\" = cm.\"YEAR\" AND cs2.IMPLSEQ = cm.IMPLSEQ ");
+		  sql.append("WHERE 1=1 ");
+
+		  // 필기/실기 조건
+		  if (examType != null && !examType.isEmpty()) {
+		      sql.append("AND cs2.EXAMGB = ? ");
+		      
+		      if ("필기".equals(examType)) {
+		          sql.append("AND cs.docRegStartDt >= SYSDATE ");
+		      } else if ("실기".equals(examType)) {
+		          sql.append("AND cs.pracRegStartDt >= SYSDATE ");
+		      }
+		  }
+
+		  // 자격증명 검색
+		  if (keyword != null && !keyword.isEmpty()) {
+		      sql.append("AND cm.JMNAME LIKE ? ");
+		  }
+
+		  // 정렬
+		  if ("필기".equals(examType)) {
+		      sql.append("ORDER BY cs.docRegStartDt ASC");
+		  } else if ("실기".equals(examType)) {
+		      sql.append("ORDER BY cs.pracRegStartDt ASC");
+		  }
+		
+		try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sql.toString());
+			pstmt.setString(1, examType);
+			pstmt.setString(2, "%" + keyword + "%");
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				SearchCertificateDto searchCertificate = SearchCertificateDto.builder()
+				        .jmcd(rs.getInt("JMCD"))
+				        .year(rs.getInt("YEAR"))
+				        .implseq(rs.getInt("IMPLSEQ"))
+				        .jmName("JMNAME")
+				        .totalJmName(rs.getInt("YEAR") +"년 " +rs.getInt("IMPLSEQ")+"회차 " + rs.getString("JMNAME"))
+				        .build();
+				
+				searchcertificateList.add(searchCertificate);
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+            ConnectionPoolHelper.close(rs);
+            ConnectionPoolHelper.close(pstmt);
+            ConnectionPoolHelper.close(conn);
+        }
+		return searchcertificateList;
+	  }
+	  
+	  public void getRoomCertificate(int roomId) {
+		  Connection conn = null;
+		  PreparedStatement pstmt = null;
+		  ResultSet rs = null;
+//		  SearchCertificateDto searchC
+		  
+		  
+		  String sql = "SELECT cm.JMNAME, " +
+		             "       cm.\"YEAR\", " +
+		             "       cm.IMPLSEQ, " +
+		             "       cs.DOCREGSTARTDT, " +
+		             "       cs.DOCREGENDDT, " +
+		             "       cs.DOCEXAMSTARTDT, " +
+		             "       cs.DOCEXAMENDDT, " +
+		             "       cs.DOCEXAMDT, " +
+		             "       cs.DOCPASSDT, " +
+		             "       cs.PRACREGSTARTDT, " +
+		             "       cs.PRACREGENDDT, " +
+		             "       cs.PRACEXAMSTARTDT, " +
+		             "       cs.PRACEXAMENDDT, " +
+		             "       cs.PRACPASSDT " +
+		             "FROM ROOM ro " +
+		             "JOIN CERTIFICATION_SCHEDULE cs ON cs.JMCD = ro.JMCD " +
+		             "    AND cs.\"YEAR\" = ro.\"YEAR\" " +
+		             "    AND cs.IMPLSEQ = ro.IMPLSEQ " +
+		             "JOIN CERTIFICATION_MASTER cm ON cm.JMCD = ro.JMCD " +
+		             "    AND cm.\"YEAR\" = ro.\"YEAR\" " +
+		             "    AND cm.IMPLSEQ = ro.IMPLSEQ " +
+		             "WHERE ro.ROOM_ID = ?";
+		  
+		 try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, roomId);
+			rs = pstmt.executeQuery();
+			
+			
+			while(rs.next()) {
+				SearchCertificateDto.builder()
+	            .jmcd(rs.getInt("JMCD"))
+	            .implseq(rs.getInt("IMPLSEQ"))
+	            .year(rs.getInt("YEAR"))
+	            .jmName(rs.getString("JMNAME"))
+	            .totalJmName(rs.getString("TOTALJMNAME")) // 만약 이 컬럼이 없으면 제거
+	            .docRegStartDt(rs.getDate("DOCREGSTARTDT"))
+	            .docRegEndDt(rs.getDate("DOCREGENDDT"))
+	            .docExamStartDt(rs.getDate("DOCEXAMSTARTDT"))
+	            .docExamEndDt(rs.getDate("DOCEXAMENDDT"))
+	            .docExamDt(rs.getDate("DOCEXAMDT"))
+	            .docPassDt(rs.getDate("DOCPASSDT"))
+	            .pracRegStartDt(rs.getDate("PRACREGSTARTDT"))
+	            .pracRegEndDt(rs.getDate("PRACREGENDDT"))
+	            .pracExamStartDt(rs.getDate("PRACEXAMSTARTDT"))
+	            .pracExamEndDt(rs.getDate("PRACEXAMENDDT"))
+	            .pracPassDt(rs.getDate("PRACPASSDT"))
+	            .build();
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  
+	  }
+	  
 }

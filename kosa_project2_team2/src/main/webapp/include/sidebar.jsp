@@ -163,7 +163,9 @@
 	</c:if>
 
     <li class="snav-item ${current eq 'calendar' ? 'is-active' : ''}">
-      <a href="<c:url value='/roomboard.room'/>" class="snav-link" aria-label="캘린더">
+      <a href="<c:url value='/roomcalender.room'>
+	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+	        </c:url>" class="snav-link" aria-label="캘린">
         <i class="fa-regular fa-calendar-days"></i>
         <span class="label">캘린더</span>
       </a>
@@ -211,7 +213,7 @@
 		</li>
 		
 		<li class="submenu-item ${current eq 'admin' ? 'show' : ''}" data-parent="admin">
-		    <a href="#" class="snav-link submenu-link" onclick="deleteRoom(${sessionScope.currentRoomId})">
+		    <a href="#" class="snav-link submenu-link" onclick="deleteRoom(${sessionScope.currentRoomId}, ${sessionScope.LOGIN_USER.user_id})">
 		        <i class="fa-solid fa-trash"></i>
 		        <span class="label">방 삭제</span>
 		    </a>
