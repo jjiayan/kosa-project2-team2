@@ -70,9 +70,6 @@ public class RoomDao {
 			pstmt2.execute();
 			
 			conn.commit();
-			
-			
-			
 		} catch (SQLException e) {
 			if (conn != null) {
 	            try {
@@ -374,7 +371,6 @@ public class RoomDao {
 			sqlBuilder.append("WHERE ro.room_id = ? AND jr.room_tier = 'LEADER'");
 			
 		try {
-			conn = ConnectionPoolHelper.getConnection();
 			String sql = sqlBuilder.toString();
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, userId); // 현재 접속 유저 아이디
@@ -1096,7 +1092,6 @@ public class RoomDao {
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		int totalCount = 0;
-		System.out.println("??" + roomId);
 		String sql = "SELECT count(*) as count FROM JOIN_ROOM jr "
 				+ "JOIN \"USER\" u ON u.USER_ID = jr.USER_ID "
 				+ "	WHERE jr.ROOM_ID = ? AND u.USER_STATUS = ?";
@@ -1495,7 +1490,11 @@ public class RoomDao {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}finally {
+            ConnectionPoolHelper.close(rs);
+            ConnectionPoolHelper.close(pstmt);
+            ConnectionPoolHelper.close(conn);
+        }
 		  
 	  }
 	  
