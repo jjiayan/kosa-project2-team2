@@ -76,6 +76,20 @@
     .signup-avatar{width:120px; height:120px}
   }
   .badge.ok{ background:#16a34a; }
+  .age-select {
+  width: 100%;
+  border: 1.5px solid #111;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+  background: #fff;
+  cursor: pointer;
+}
+.age-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+  
 </style>
 </head>
 <body>
@@ -151,6 +165,24 @@
           <button type="button" class="btn-mini" onclick="checkNickname()">확인</button>
         </div>
       </div>
+      
+      <!-- 나이 -->
+	<!-- 나이 -->
+<div class="field">
+  <div class="label">나이</div>
+  <div class="input-row" style="border-bottom:none;">
+    <select name="ageGroup" id="ageGroup" class="age-select" required>
+      <option value="" disabled selected>나이대 선택</option>
+      <option value="10">10대</option>
+      <option value="20">20대</option>
+      <option value="30">30대</option>
+      <option value="40">40대</option>
+      <option value="50">50대</option>
+    </select>
+  </div>
+</div>
+
+      
 
       <!-- 자기소개 -->
       <div class="field">

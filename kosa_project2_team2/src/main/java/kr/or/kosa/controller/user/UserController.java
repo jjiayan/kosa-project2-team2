@@ -63,7 +63,7 @@ public class UserController extends HttpServlet {
         else if (command.equals("/index.user")) {
             forward = new ActionForward();
             forward.setRedirect(true);
-            forward.setPath("/index.jsp");
+            forward.setPath("/main.jsp");
         } else if (command.equals("/findId.user")) {
             forward = new ActionForward();
             forward.setRedirect(false);
@@ -91,10 +91,7 @@ public class UserController extends HttpServlet {
             action = new UserSignupService();
             forward = action.execute(request, response);
         }
-        else if (command.equals("/photoTest.user")) {
-            action = new kr.or.kosa.service.user.UserPhotoTestService();
-            forward = action.execute(request, response);
-        }else if (command.equals("/mypage/edit.user")) {              
+       else if (command.equals("/mypage/edit.user")) {              
         	forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "mypageEdit.jsp");
@@ -109,6 +106,15 @@ public class UserController extends HttpServlet {
             forward = new ActionForward();
             forward.setRedirect(false);
             forward.setPath(USER_VIEW_PATH + "mypageRooms.jsp");
+        }else if (command.equals("/mypage/mycomments.user")) {
+            // 내가 작성한 댓글 목록 화면 (부모글 제목 & 모임명 나오는 화면)
+        	forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath(USER_VIEW_PATH + "mypageReplies.jsp");
+        }else if (command.equals("/mypage/myPosts.user")) {
+        	forward = new ActionForward();
+            forward.setRedirect(false);
+            forward.setPath(USER_VIEW_PATH + "mypagePosts.jsp");
         }
         
         

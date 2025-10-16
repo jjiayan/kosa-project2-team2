@@ -114,15 +114,14 @@ public class AdminDao {
     // 회원탈퇴
     public int deleteUser(int userId) {
         String sqlUser = "UPDATE \"USER\" SET user_status = 'DELETED' WHERE user_id = ?";
-        String sqlRoom = """
-            UPDATE ROOM r
-            SET r.is_deleted = 'Y'
-            WHERE r.room_id IN (
-                SELECT jr.room_id
-                FROM JOIN_ROOM jr
-                WHERE jr.user_id = ?
-            )
-            """;
+        String sqlRoom =
+        	    "UPDATE ROOM r " +
+        	    "SET r.is_deleted = 'Y' " +
+        	    "WHERE r.room_id IN ( " +
+        	    "    SELECT jr.room_id " +
+        	    "    FROM JOIN_ROOM jr " +
+        	    "    WHERE jr.user_id = ? " +
+        	    ")";
 
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmtUser = conn.prepareStatement(sqlUser);
