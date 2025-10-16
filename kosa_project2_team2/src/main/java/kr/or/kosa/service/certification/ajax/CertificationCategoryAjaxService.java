@@ -19,7 +19,7 @@ public class CertificationCategoryAjaxService implements Action {
     public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
         response.setContentType("application/json;charset=UTF-8");
         try {
-            // ✅ DAO에서 grades, fields 맵으로 조회
+            // DAO에서 grades, fields 맵으로 조회
             Map<String, Object> categories = dao.getCategories(); 
             response.getWriter().write(gson.toJson(categories));
         } catch (Exception e){

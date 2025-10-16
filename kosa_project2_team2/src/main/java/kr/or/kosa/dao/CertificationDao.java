@@ -507,43 +507,50 @@ public class CertificationDao {
         return list;
     }
 
-    
- // CertificationDao.java 내부
 
     public Map<String, Object> getCategories() {
+    	System.out.println(">>> [DAO] getCategories() 호출됨"); 
         Map<String, Object> map = new HashMap<>();
 
         List<String> grades = new ArrayList<>();
-        String sql1 = "SELECT DISTINCT grade FROM CERTIFICATION_CATEGORY WHERE grade IS NOT NULL ORDER BY grade";
-
-        try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql1);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) {
-                grades.add(rs.getString("grade"));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         List<String> fields = new ArrayList<>();
-        String sql2 = "SELECT DISTINCT field FROM CERTIFICATION_CATEGORY WHERE field IS NOT NULL ORDER BY field";
 
-        try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql2);
-             ResultSet rs = ps.executeQuery()) {
+        String sql1 =
+        	    "SELECT DISTINCT GRADE " +
+        	    "FROM CERTIFICATION_CATEGORY " +
+        	    "WHERE GRADE IS NOT NULL " +
+        	    "  AND TRIM(GRADE) <> '' " +
+        	    "ORDER BY GRADE";
 
-            while (rs.next()) {
-                fields.add(rs.getString("field"));
+        	String sql2 =
+        	    "SELECT DISTINCT FIELD " +
+        	    "FROM CERTIFICATION_CATEGORY " +
+        	    "WHERE FIELD IS NOT NULL " +
+        	    "  AND TRIM(FIELD) <> '' " +
+        	    "ORDER BY FIELD";
+
+        try (Connection conn = ConnectionPoolHelper.getConnection()) {
+
+            // === 1) GRADE 조회
+            try (PreparedStatement ps = conn.prepareStatement(sql1);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    grades.add(rs.getString("GRADE"));
+                }
+            }
+
+            // === 2) FIELD 조회
+            try (PreparedStatement ps = conn.prepareStatement(sql2);
+                 ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    fields.add(rs.getString("FIELD"));
+                }
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // Map에 넣어서 반환
         map.put("grades", grades);
         map.put("fields", fields);
 

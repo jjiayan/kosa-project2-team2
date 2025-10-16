@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
+import kr.or.kosa.service.certification.ajax.CertificationCategoryAjaxService;
 import kr.or.kosa.service.certification.ajax.CertificationFilterAjaxService;
 import kr.or.kosa.service.certification.ajax.CertificationMasterAjaxService;
 import kr.or.kosa.service.certification.ajax.CertificationScheduleAjaxService;
@@ -54,6 +55,11 @@ public class CertificationAjaxController extends HttpServlet {
         // AJAX 필터 요청 (JSON 응답)
         } else if (urlCommand.equals("/certificationFilter.sync")) {
             action = new CertificationFilterAjaxService();
+            forward = action.execute(request, response);
+        
+        // AJAX 카테고리
+        } else if (urlCommand.equals("/certificationCategories.sync")) {
+            action = new CertificationCategoryAjaxService();
             forward = action.execute(request, response);
         }
 
