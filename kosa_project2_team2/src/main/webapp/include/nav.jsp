@@ -124,9 +124,9 @@
   </div>
 
   <nav id="mobileMenu" class="mobile-menu" aria-hidden="true">
-    <a href="${ctx}/study.do"><i class="fa-regular fa-comments"></i>스터디</a>
-    <a href="${ctx}/license.do"><i class="fa-regular fa-calendar"></i>자격증</a>
-    <a href="${ctx}/notice.do"><i class="fa-solid fa-bullhorn"></i>공지</a>
+    <a href="${ctx}/roomlist.room"><i class="fa-regular fa-comments"></i>스터디</a>
+    <a href="${ctx}/certificationList.cert"><i class="fa-regular fa-calendar"></i>자격증</a>
+    <a href="${ctx}/adminNotice.admin"><i class="fa-solid fa-bullhorn"></i>공지</a>
 
     <c:choose>
       <c:when test="${not empty sessionScope.LOGIN_USER}">
