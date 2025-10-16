@@ -73,7 +73,7 @@ public class UserLoginService implements Action {
 
             // 메인으로 이동
             f.setRedirect(true);
-            f.setPath("/index.user");
+            f.setPath("/roomlist.room");
             return f;
 
         } catch (Exception e) {

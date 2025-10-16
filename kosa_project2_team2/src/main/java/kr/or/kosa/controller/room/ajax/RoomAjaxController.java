@@ -11,6 +11,7 @@ import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.RoomDao;
 import kr.or.kosa.dto.RegionDto;
+import kr.or.kosa.dto.SearchCertificateDto;
 import kr.or.kosa.service.room.RoomBoardDeleteService;
 import kr.or.kosa.service.room.RoomSearchListService;
 import kr.or.kosa.utils.ConnectionPoolHelper;
@@ -50,7 +51,7 @@ public class RoomAjaxController extends HttpServlet {
         	
         	System.out.println("구/군 개수: " + subRegionList.size());
             
-            // JSON으로 변환
+        	// JSON으로 변환
             Gson gson = new Gson();
             String json = gson.toJson(subRegionList);
             
@@ -93,9 +94,38 @@ public class RoomAjaxController extends HttpServlet {
     		RoomDao roomDao = new RoomDao();
     		String result = roomDao.manageRoomMember(roomId, userId, type);
     		
-        }
+    		response.setContentType("application/json; charset=UTF-8");
+    		response.getWriter().print("{\"success\": true, \"type\": \"" + result + "\"}");
+
+        }else if(urlCommand.equals("/searchcertificate.roomajax")) {
+        	String keyword = request.getParameter("keyword");
+        	String examType = request.getParameter("examType");
+        	
+        	RoomDao roomDao = new RoomDao();
+        	List<SearchCertificateDto> searchCertificateList = roomDao.searchcertificate(keyword, examType);
+        	
         
-       
+    		
+        	// JSON으로 변환
+            Gson gson = new Gson();
+            String json = gson.toJson(searchCertificateList);
+            
+            // 응답 설정
+            response.setContentType("application/json; charset=UTF-8");
+            response.getWriter().print(json);
+        }else if(urlCommand.equals("/roomdelete.roomajax")) {
+        	int roomId = Integer.parseInt(request.getParameter("roomId"));
+        	int userId = Integer.parseInt(request.getParameter("userId"));
+        	
+        	RoomDao roomDao = new RoomDao();
+        	int result = roomDao.deleteRoom(roomId, userId);
+        	if(result > 0) {
+        		response.setContentType("application/json; charset=UTF-8");
+        		response.getWriter().print("{\"success\": true}");
+        	}
+        	
+        		
+        }
         
 
 	}

@@ -114,9 +114,11 @@ main {
     cursor: pointer;
     min-width: 60px;
 }
+
 .btn-leader {
     background: #6b7280;
     color: white;
+    cursor: not-allowed;
 }
 
 .btn-pending {
@@ -267,7 +269,7 @@ main {
     <!-- 회원 목록 -->
     <div class="member-grid">
         <c:forEach var="member" items="${pageResult.data}" varStatus="status">
-            <div class="member-card">
+            <div class="member-card" data-user-id="${member.userId}">
                 <img src="${pageContext.request.contextPath}/upload/user/${member.userPhoto}" 
                      alt="${member.userNickname}" 
                      class="member-avatar"
@@ -277,71 +279,69 @@ main {
                     <div class="member-name">${member.userNickname}</div>
                 </div>
                 
-				 <c:choose>
-				    <c:when test="${member.roomTier eq 'LEADER'}">
-				        <button class="action-btn btn-leader">방장</button>
-				    </c:when>
-				    <c:when test="${member.roomTier eq 'PENDING'}">
-				        <div class="btn-group">
-				            <button class="action-btn btn-approve" onclick="approveMember(${member.userId}, ${member.roomId})">승인</button>
-				            <button class="action-btn btn-reject" onclick="rejectMember(${member.userId}, ${member.roomId})">거절</button>
-				        </div>
-				    </c:when>
-				    <c:when test="${member.roomTier eq 'MEMBER'}">
-				        <button class="action-btn btn-kick" onclick="kickMember(${member.userId}, ${member.roomId})">추방</button>
-				    </c:when>
-				    <c:otherwise>
-				        <button class="action-btn btn-promote">추방</button>
-				    </c:otherwise>
-				</c:choose>            
-			</div>
+                <div class="button-area">
+				    <c:choose>
+				        <c:when test="${member.roomTier eq 'LEADER'}">
+				            <button class="action-btn btn-leader" disabled style="cursor: not-allowed;">방장</button>
+				        </c:when>
+				        <c:when test="${member.roomTier eq 'PENDING'}">
+				            <div class="btn-group">
+				                <button class="action-btn btn-approve" onclick="approveMember(${member.userId}, ${member.roomId})">승인</button>
+				                <button class="action-btn btn-reject" onclick="rejectMember(${member.userId}, ${member.roomId})">거절</button>
+				            </div>
+				        </c:when>
+				        <c:when test="${member.roomTier eq 'MEMBER'}">
+				            <button class="action-btn btn-kick" onclick="kickMember(${member.userId}, ${member.roomId})">추방</button>
+				        </c:when>
+				    </c:choose>
+				</div>
+            </div>
         </c:forEach>
     </div>
 
-    <!-- 페이지네이션 (조건 수정) -->
-	<c:if test="${pageResult.totalPages >= 1}">
-	    <div class="pagination">
-	        <!-- 이전 페이지 -->
-	        <c:choose>
-	            <c:when test="${pageResult.currentPage > 1}">
-	                <a href="?roomId=${param.roomId}&page=${pageResult.currentPage - 1}&keyword=${param.keyword}" class="prev">‹</a>
-	            </c:when>
-	            <c:otherwise>
-	                <span class="prev disabled">‹</span>
-	            </c:otherwise>
-	        </c:choose>
-	
-	        <!-- 페이지 번호 -->
-	        <c:set var="startPage" value="${pageResult.currentPage - 2 > 0 ? pageResult.currentPage - 2 : 1}" />
-	        <c:set var="endPage" value="${startPage + 4 > pageResult.totalPages ? pageResult.totalPages : startPage + 4}" />
-	        
-	        <!-- 시작 페이지 조정 (끝에서 5개가 안 되는 경우) -->
-	        <c:if test="${endPage - startPage < 4}">
-	            <c:set var="startPage" value="${endPage - 4 > 0 ? endPage - 4 : 1}" />
-	        </c:if>
-	
-	        <c:forEach begin="${startPage}" end="${endPage}" var="pageNum">
-	            <c:choose>
-	                <c:when test="${pageNum eq pageResult.currentPage}">
-	                    <span class="active">${pageNum}</span>
-	                </c:when>
-	                <c:otherwise>
-	                    <a href="?roomId=${param.roomId}&page=${pageNum}&keyword=${param.keyword}">${pageNum}</a>
-	                </c:otherwise>
-	            </c:choose>
-	        </c:forEach>
-	
-	        <!-- 다음 페이지 -->
-	        <c:choose>
-	            <c:when test="${pageResult.currentPage < pageResult.totalPages}">
-	                <a href="?roomId=${param.roomId}&page=${pageResult.currentPage + 1}&keyword=${param.keyword}" class="next">›</a>
-	            </c:when>
-	            <c:otherwise>
-	                <span class="next disabled">›</span>
-	            </c:otherwise>
-	        </c:choose>
-	    </div>
-	</c:if>
+    <!-- 페이지네이션 -->
+    <c:if test="${pageResult.totalPages >= 1}">
+        <div class="pagination">
+            <!-- 이전 페이지 -->
+            <c:choose>
+                <c:when test="${pageResult.currentPage > 1}">
+                    <a href="?roomId=${param.roomId}&page=${pageResult.currentPage - 1}&keyword=${param.keyword}" class="prev">‹</a>
+                </c:when>
+                <c:otherwise>
+                    <span class="prev disabled">‹</span>
+                </c:otherwise>
+            </c:choose>
+
+            <!-- 페이지 번호 -->
+            <c:set var="startPage" value="${pageResult.currentPage - 2 > 0 ? pageResult.currentPage - 2 : 1}" />
+            <c:set var="endPage" value="${startPage + 4 > pageResult.totalPages ? pageResult.totalPages : startPage + 4}" />
+            
+            <c:if test="${endPage - startPage < 4}">
+                <c:set var="startPage" value="${endPage - 4 > 0 ? endPage - 4 : 1}" />
+            </c:if>
+
+            <c:forEach begin="${startPage}" end="${endPage}" var="pageNum">
+                <c:choose>
+                    <c:when test="${pageNum eq pageResult.currentPage}">
+                        <span class="active">${pageNum}</span>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="?roomId=${param.roomId}&page=${pageNum}&keyword=${param.keyword}">${pageNum}</a>
+                    </c:otherwise>
+                </c:choose>
+            </c:forEach>
+
+            <!-- 다음 페이지 -->
+            <c:choose>
+                <c:when test="${pageResult.currentPage < pageResult.totalPages}">
+                    <a href="?roomId=${param.roomId}&page=${pageResult.currentPage + 1}&keyword=${param.keyword}" class="next">›</a>
+                </c:when>
+                <c:otherwise>
+                    <span class="next disabled">›</span>
+                </c:otherwise>
+            </c:choose>
+        </div>
+    </c:if>
 
     <!-- 검색 결과 정보 -->
     <c:if test="${not empty param.keyword}">
@@ -351,45 +351,97 @@ main {
     </c:if>
 </main>
 </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
-// 엔터키 검색
 document.getElementById('searchInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         this.closest('form').submit();
     }
 });
 
-function approveMember(userId, roomId){ // 승인
+function approveMember(userId, roomId) {
     if(confirm('이 회원을 승인하시겠습니까?')) {
-        joinMemberManage(userId, roomId, "approve");
+        joinMemberManage(userId, roomId, "approve", function() {
+            updateMemberCard(userId, roomId);
+        });
     }
 }
 
-function kickMember(userId, roomId){ // 추방
+function rejectMember(userId, roomId) {
+    if(confirm('이 회원의 가입을 거절하시겠습니까?')) {
+        joinMemberManage(userId, roomId, "kick", function() {
+            removeMemberCard(userId);
+        });
+    }
+}
+
+function kickMember(userId, roomId) {
+    // 방장 버튼인지 확인
+    var clickedButton = event.target;
+    if(clickedButton.disabled || clickedButton.textContent === '방장') {
+        console.log('방장은 추방할 수 없습니다.');
+        return;
+    }
+    
     if(confirm('이 회원을 추방하시겠습니까?')) {
-        joinMemberManage(userId, roomId, "kick");
+        joinMemberManage(userId, roomId, "kick", function() {
+            removeMemberCard(userId);
+        });
     }
 }
 
-function joinMemberManage(userId, roomId, type){
+function joinMemberManage(userId, roomId, type, successCallback) {
     $.ajax({
         url: "/joinroomusermanage.roomajax",
-        data:{
+        type: "POST",
+        data: {
             userId: userId,
             roomId: roomId,
             type: type
         },
         success: function(response) {
             alert('처리가 완료되었습니다.');
+            console.log('서버 응답:', response);
             
+            if(typeof successCallback === 'function') {
+                successCallback();
+            }
         },
-        error: function() {
-            alert('오류가 발생했습니다. 다시 시도해주세요.');
+        error: function(xhr, status, error) {
+            console.log("AJAX 에러:", xhr.responseText);
+            alert('오류가 발생했습니다.');
         }
     });
 }
 
+function updateMemberCard(userId, roomId) {
+    console.log('updateMemberCard 호출:', userId, roomId);
+    var memberCard = $('.member-card[data-user-id="' + userId + '"]');
+    
+    if(memberCard.length > 0) {
+        var buttonArea = memberCard.find('.button-area');
+        buttonArea.html('<button class="action-btn btn-kick" onclick="kickMember(' + userId + ', ' + roomId + ')">추방</button>');
+        console.log('버튼 업데이트 완료');
+    }
+}
+
+function removeMemberCard(userId) {
+    console.log('removeMemberCard 호출, userId:', userId);
+    var memberCard = $('.member-card[data-user-id="' + userId + '"]');
+    console.log('찾은 카드 개수:', memberCard.length);
+    
+    if(memberCard.length > 0) {
+        memberCard.fadeOut(300, function() {
+            $(this).remove();
+            console.log('실제 DOM에서 카드 제거 완료');
+            
+            if($('.member-card').length === 0) {
+                $('.member-grid').html('<div style="grid-column: 1/-1; text-align: center; color: #666; padding: 40px;">회원이 없습니다.</div>');
+            }
+        });
+    }
+}
 
 </script>
 </body>
