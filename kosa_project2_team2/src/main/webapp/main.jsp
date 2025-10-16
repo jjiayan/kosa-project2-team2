@@ -124,57 +124,50 @@
     margin-top: 40px;
   }
 
-  .btn {
-    display: inline-block;
-    position: relative;
-    font-size: 18px;
-    font-weight: 600;
-    color: #666;
-    text-decoration: none;
-    padding: 16px 70px;
-    background: transparent;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 40px;
-  }
+.btn-2 {
+  position: relative;
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #666;
+  text-decoration: none;
+  background: transparent;
+  padding: 12px 40px;
+  border-top: 3px double #666;
+  border-bottom: 3px double #666;
+  letter-spacing: 2px;
+  overflow: hidden;
+  margin-top: 30px;
+  transition: color 0.3s ease, border-color 0.3s ease, letter-spacing 0.4s ease;
+}
 
-  .btn:hover {
-    color: #FF7272;
-    letter-spacing: 1px;
-    transform: translateY(-3px);
-  }
+.btn-2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0%;
+  height: 100%;
+  background: rgba(255, 114, 114, 0.1);
+  transition: width 0.4s ease;
+  z-index: 0;
+}
 
-  .btn:active {
-    color: #ff4c4c;
-    letter-spacing: 3px;
-    transform: translateY(1px);
-  }
+.btn-2 span {
+  position: relative;
+  z-index: 1;
+}
 
-  .btn-2::before,
-  .btn-2::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background-color: rgba(255, 114, 114, 0.4);
-    transition: all 0.35s ease;
-  }
+.btn-2:hover {
+  color: #FF7272;
+  border-color: #FF7272;
+  letter-spacing: 3px;
+}
 
-  .btn-2::before { top: 0; }
-  .btn-2::after { bottom: 0; }
+.btn-2:hover::before {
+  width: 100%;
+}
 
-  .btn-2:hover::before,
-  .btn-2:hover::after {
-    width: 80%;
-    background-color: #FF7272;
-  }
-
-  .btn-2:active::before,
-  .btn-2:active::after {
-    background-color: #ff4c4c;
-  }
 
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(30px); }
@@ -188,7 +181,7 @@
 
   <main>
     <section class="hero" id="hero">
-      <small>—— 자격증의 바이블 ——</small>
+      <small>═══ 자격증의 바이블 ═══</small>
       <h1>THE CERTIFICATION<br>BIBLE</h1>
 
       <div class="intro">
@@ -206,7 +199,7 @@
     window.addEventListener('load', () => {
       setTimeout(() => {
         document.getElementById('hero').classList.add('shrink');
-      }, 2000);
+      }, 1100);
     });
 
     const bg = document.getElementById('floating-bg');
