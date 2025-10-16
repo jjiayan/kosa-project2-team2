@@ -13,41 +13,200 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
 <style>
-:root{ --ink:#111; --muted:#6b7280; --ring:#e5e7eb; --primary:#ff6b6b; }
-html,body{ margin:0; background:#fafafa; color:var(--ink); font-family:"Noto Sans KR","Pretendard",system-ui,sans-serif; }
-.wrap{ display:grid; grid-template-columns:auto 1fr; }
-main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padding:28px; }
-.page{ max-width:1160px; margin:0 auto; }
-
-.toolbar{ display:flex; gap:12px; align-items:center; justify-content:flex-end; margin-bottom:14px; }
-.search{ position:relative; margin-right:auto; width:360px; max-width:60vw; }
-.search input{ width:100%; height:42px; padding:0 42px 0 14px; border:1px solid var(--ring); border-radius:999px; }
-.search button{ position:absolute; right:8px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:#9ca3af; }
-.select select{ height:42px; padding:0 36px 0 14px; border:1px solid var(--ring); border-radius:999px; background:#fff; }
-
-.sheet{ background:#fff; border:1px solid var(--ring); border-radius:18px; box-shadow:0 10px 30px rgba(0,0,0,.06); overflow:hidden; }
-
-.table{ width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; }
-.table thead th{ text-align:left; font-weight:800; font-size:15px; color:#374151; padding:18px 22px; background:#fafafa; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.table thead th.center{ text-align:center; }              /* 헤더 가운데 정렬 */
-.table tbody td{
-  padding:18px 22px; border-top:1px solid var(--ring); font-size:14px; color:#111;
-  overflow:hidden !important; white-space:nowrap !important; text-overflow:ellipsis !important; word-break:keep-all !important;
+:root{ 
+  --ink:#111; 
+  --muted:#6b7280; 
+  --ring:#e5e7eb; 
+  --primary:#ff6b6b; 
 }
+
+html,body{ 
+  margin:0; 
+  background:#fafafa; 
+  color:var(--ink); 
+  font-family:"Noto Sans KR","Pretendard",system-ui,sans-serif; 
+}
+
+.wrap{ 
+  display:grid; 
+  grid-template-columns:auto 1fr; 
+}
+
+main{ 
+  min-height:100vh; 
+  background:#fff; 
+  border-left:1px solid var(--ring); 
+  padding:28px; 
+}
+
+.page{ 
+  max-width:1160px; 
+  margin:0 auto; 
+}
+
+/* ===== 상단 툴바 ===== */
+.toolbar{ 
+  display:flex; 
+  gap:12px; 
+  align-items:center; 
+  justify-content:flex-end; 
+  margin-bottom:14px; 
+}
+
+.search{ 
+  position:relative; 
+  margin-right:auto; 
+  width:360px; 
+  max-width:60vw; 
+}
+
+.search input{ 
+  width:100%; 
+  height:42px; 
+  padding:0 42px 0 14px; 
+  border:1px solid var(--ring); 
+  border-radius:999px; 
+}
+
+.search button{ 
+  position:absolute; 
+  right:8px; 
+  top:50%; 
+  transform:translateY(-50%); 
+  border:0; 
+  background:transparent; 
+  color:#9ca3af; 
+  cursor:pointer; 
+}
+
+/* ✅ 커스텀 select (내정보 수정 페이지 동일 스타일) */
+.select {
+  position: relative;
+  display: inline-block;
+}
+
+.select .select-input {
+  appearance: none; /* 기본 화살표 제거 */
+  width: 140px; /* 필요시 조정 */
+  height: 42px;
+  padding: 0 36px 0 14px;
+  border: 1px solid var(--ring);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 14px;
+  transition: all 0.25s ease-in-out;
+  outline: none;
+  color: var(--ink);
+}
+
+.select .select-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.18);
+  background: #fffafa;
+}
+
+/* 커스텀 화살표 */
+.select::after {
+  content: "▾";
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  font-size: 13px;
+  pointer-events: none;
+}
+
+/* ===== 표 스타일 ===== */
+.sheet{ 
+  background:#fff; 
+  border:1px solid var(--ring); 
+  border-radius:18px; 
+  box-shadow:0 10px 30px rgba(0,0,0,.06); 
+  overflow:hidden; 
+}
+
+.table{ 
+  width:100%; 
+  border-collapse:separate; 
+  border-spacing:0; 
+  table-layout:fixed; 
+}
+
+.table thead th{ 
+  text-align:left; 
+  font-weight:800; 
+  font-size:15px; 
+  color:#374151; 
+  padding:18px 22px; 
+  background:#fafafa; 
+  overflow:hidden; 
+  white-space:nowrap; 
+  text-overflow:ellipsis; 
+}
+
+.table thead th.center{ text-align:center; } 
+.table tbody td{
+  padding:18px 22px; 
+  border-top:1px solid var(--ring); 
+  font-size:14px; 
+  color:#111;
+  overflow:hidden !important; 
+  white-space:nowrap !important; 
+  text-overflow:ellipsis !important; 
+  word-break:keep-all !important;
+}
+
 .table tbody td.meta{ color:var(--muted); }
-.table tbody td.center{ text-align:center; }              /* 바디 가운데 정렬 */
+.table tbody td.center{ text-align:center; }
 
 .table a.link{
-  display:block; max-width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
-  color:#111; text-decoration:none;
+  display:block; 
+  max-width:100%; 
+  overflow:hidden; 
+  white-space:nowrap; 
+  text-overflow:ellipsis;
+  color:#111; 
+  text-decoration:none;
 }
-.table a.link:hover{ color:#ff6b6b; text-decoration:underline; }
 
-.meta-bar{ display:flex; gap:14px; align-items:center; justify-content:space-between; margin:8px 2px 16px; color:var(--muted); font-size:13px; }
+.table a.link:hover{ 
+  color:#ff6b6b; 
+  text-decoration:underline; 
+}
+
+/* ===== 하단 정보 ===== */
+.meta-bar{ 
+  display:flex; 
+  gap:14px; 
+  align-items:center; 
+  justify-content:space-between; 
+  margin:8px 2px 16px; 
+  color:var(--muted); 
+  font-size:13px; 
+}
+
 .meta-bar .count strong{ color:#111; }
 
-.pagination{ display:flex; gap:12px; align-items:center; justify-content:center; margin-top:18px; }
-.page-btn{ width:36px; height:36px; border-radius:50%; border:0; background:#fff; color:#374151; cursor:pointer; }
+/* ===== 페이지네이션 ===== */
+.pagination{ 
+  display:flex; 
+  gap:12px; 
+  align-items:center; 
+  justify-content:center; 
+  margin-top:18px; 
+}
+
+.page-btn{ 
+  width:36px; 
+  height:36px; 
+  border-radius:50%; 
+  border:0; 
+  background:#fff; 
+  color:#374151; 
+  cursor:pointer; 
+}
+
 .page-btn:hover{ background:#f3f4f6; }
 .page-btn.active{ background:#ff6b6b; color:#fff; font-weight:700; }
 .page-btn.arrow{ font-size:18px; }
@@ -69,8 +228,9 @@ main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padd
             <button id="btnSearch" aria-label="search"><i class="fa-solid fa-magnifying-glass"></i></button>
           </div>
 
+          <!-- ✅ 커스텀 select 적용 -->
           <div class="select">
-            <select id="size" title="페이지당 개수">
+            <select id="size" title="페이지당 개수" class="select-input">
               <option value="10" selected>10개</option>
               <option value="20">20개</option>
               <option value="30">30개</option>
@@ -79,7 +239,7 @@ main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padd
           </div>
 
           <div class="select">
-            <select id="sort">
+            <select id="sort" class="select-input">
               <option value="recent" selected>최신순</option>
               <option value="old">오래된순</option>
             </select>
@@ -88,7 +248,6 @@ main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padd
 
         <div class="meta-bar">
           <div class="count">총 <strong id="totalCnt">0</strong>건</div>
-          <!-- 도움말 수정: 제목만 검색 -->
           <div class="help">※ 이 페이지 검색은 <strong>제목</strong>만 대상으로 합니다.</div>
         </div>
 
@@ -125,12 +284,10 @@ main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padd
   var POSTS_API='${postsApi}';
   var state = { q:'', sort:'recent', size:10, page:1 };
 
-  // 세션 user_id를 링크에 사용할 수 있도록 안전하게 주입
   var UID_RAW = "<c:out value='${sessionScope.LOGIN_USER != null ? sessionScope.LOGIN_USER.user_id : ""}'/>";
   var UID = UID_RAW ? encodeURIComponent(UID_RAW) : '';
 
   function fetchPosts(){
-    // (백엔드는 그대로 q를 사용) — 프론트는 제목 검색만 한다는 안내/UI만 제공
     return $.ajax({
       url: POSTS_API, method:'GET', dataType:'json',
       data:{ q:state.q, sort:state.sort, size:state.size, page:state.page }
