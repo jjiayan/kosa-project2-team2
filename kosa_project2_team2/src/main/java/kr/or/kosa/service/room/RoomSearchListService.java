@@ -21,10 +21,19 @@ public class RoomSearchListService implements Action{
     	String keyword = request.getParameter("keyword");
     	String region1 = request.getParameter("region1");
     	String region2 = request.getParameter("region2");
-    	
+    	String page = request.getParameter("page");
+    	String strUserId = request.getParameter("userId");
+		int userId = 0;
+		if(!strUserId.isEmpty() || !strUserId.equals("")) {
+			userId = Integer.parseInt(request.getParameter("userId"));
+		}
+		System.out.println("userId ==>> " + userId);
+    	int pageNum = (page != null && !page.trim().isEmpty()) ? Integer.parseInt(page) : 1;
     	SearchCondition searchCondition = new SearchCondition(region1, region2, keyword);
+    	searchCondition.setPage(pageNum);  
     	RoomDao roomDao = new RoomDao();
-    	PageResult<RoomDto> pageResult  = roomDao.getRoomsBySearch(searchCondition);
+    	PageResult<RoomDto> pageResult  = roomDao.getRoomsBySearch(searchCondition, userId);
+    	
     	
     	// JSON으로 변환
         Gson gson = new Gson();

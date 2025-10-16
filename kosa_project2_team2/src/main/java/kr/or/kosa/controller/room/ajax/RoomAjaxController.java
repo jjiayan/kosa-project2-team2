@@ -6,6 +6,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
@@ -110,9 +111,11 @@ public class RoomAjaxController extends HttpServlet {
             Gson gson = new Gson();
             String json = gson.toJson(searchCertificateList);
             
+            
             // 응답 설정
             response.setContentType("application/json; charset=UTF-8");
             response.getWriter().print(json);
+
         }else if(urlCommand.equals("/roomdelete.roomajax")) {
         	int roomId = Integer.parseInt(request.getParameter("roomId"));
         	int userId = Integer.parseInt(request.getParameter("userId"));
@@ -120,11 +123,13 @@ public class RoomAjaxController extends HttpServlet {
         	RoomDao roomDao = new RoomDao();
         	int result = roomDao.deleteRoom(roomId, userId);
         	if(result > 0) {
+        		HttpSession session = request.getSession();
+                session.removeAttribute("currentRoomId");
+                session.removeAttribute("leaderCheck");
         		response.setContentType("application/json; charset=UTF-8");
         		response.getWriter().print("{\"success\": true}");
         	}
         	
-        		
         }
         
 

@@ -12,8 +12,8 @@ public class RoomDetailService implements Action{
 
 	@Override
 	public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
-		String strUserId = request.getParameter("userId");
 		int roomId = Integer.parseInt(request.getParameter("roomId"));
+		String strUserId = request.getParameter("userId");
 		int userId = 0;
 		if(!strUserId.isEmpty() || !strUserId.equals("")) {
 			userId = Integer.parseInt(request.getParameter("userId"));
@@ -32,7 +32,8 @@ public class RoomDetailService implements Action{
 		HttpSession session = request.getSession();
         session.setAttribute("currentRoomId", roomId);
         session.setAttribute("leaderCheck", roomDetail.isLeaderCheck());
-        System.out.println(roomDetail.isLeaderCheck());
+        session.setAttribute("roomTier", roomDetail.getJoinUserStatus());
+       
 	
 		
 		request.setAttribute("roomDetail", roomDetail);

@@ -80,7 +80,7 @@
 
   <div class="center">
     <nav class="menu">
-      <a href="${ctx}/roomlist.room"><i class="fa-regular fa-comments"></i>스터디</a>
+      <a href="${ctx}/roomlist.room?userId=${sessionScope.LOGIN_USER.user_id}"><i class="fa-regular fa-comments"></i>스터디</a>
       <a href="${ctx}/certificationList.cert"><i class="fa-regular fa-calendar"></i>자격증</a>
       <a href="${ctx}/adminNotice.admin"><i class="fa-solid fa-bullhorn"></i>공지</a>
     </nav>

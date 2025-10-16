@@ -89,7 +89,7 @@ public class RoomDao {
 		
 	}
 	
-	public PageResult<RoomDto> getRoomsBySearch(SearchCondition searchCondition){
+	public PageResult<RoomDto> getRoomsBySearch(SearchCondition searchCondition, int userId){
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -120,10 +120,9 @@ public class RoomDao {
 	        sql.append("JOIN CERTIFICATION_MASTER cm ON cm.JMCD = ro.JMCD ");
 	        sql.append("  AND cm.YEAR = ro.YEAR ");
 	        sql.append("  AND cm.IMPLSEQ = ro.IMPLSEQ ");
-	       //유저가 있다면 없다면 체크하는거 추가 해야한다.
-	        sql.append("LEFT JOIN LIKE_ROOM lr ON lr.ROOM_ID = ro.ROOM_ID AND lr.USER_ID = ?");
+	        sql.append("LEFT JOIN LIKE_ROOM lr ON lr.ROOM_ID = ro.ROOM_ID AND lr.USER_ID = ? ");
 	        sql.append("WHERE 1=1 ");
-	        sql.append("AND is_deleted = 'N' ");
+	        sql.append("AND ro.is_deleted = 'N' ");
 	        // 서울시 이런식으로 있다면
 	        if (searchCondition.getSi() != null && !searchCondition.getSi().isEmpty()) {
 	            sql.append("AND r2.REGION_ID = ? ");
@@ -141,7 +140,7 @@ public class RoomDao {
 			pstmt = conn.prepareStatement(sql.toString());
 			
 			int paramIndex = 1;
-			pstmt.setInt(paramIndex++, 1); // 이거는 유저아이디가 들어간다.
+			pstmt.setInt(paramIndex++, userId); // 이거는 유저아이디가 들어간다.
 			
 			if (searchCondition.getSi() != null && !searchCondition.getSi().isEmpty()) {
 	            pstmt.setInt(paramIndex++, Integer.parseInt(searchCondition.getSi()));
@@ -166,6 +165,10 @@ public class RoomDao {
 	        
 	        pageResult.setTotalCount(totalCount);
 	        int totalPages = (int) Math.ceil((double) totalCount / searchCondition.getSize());
+	        System.out.println("totalPages =>> " + totalPages);
+	        System.out.println("totalCount =>> " + totalCount);
+	        
+	        
 	        pageResult.setTotalPages(totalPages);
 	        
 
@@ -785,15 +788,15 @@ public class RoomDao {
 	    sql.append("JOIN CERTIFICATION_MASTER cm ON cm.JMCD = ro.JMCD ");
 	    sql.append("  AND cm.YEAR = ro.YEAR ");
 	    sql.append("  AND cm.IMPLSEQ = ro.IMPLSEQ ");
-	    sql.append("WHERE 1=1 ");
+	    sql.append("WHERE 1=1 AND ro.is_deleted = 'N' ");
 	    
 	    if (searchCondition.getSi() != null && !searchCondition.getSi().isEmpty()) {
-	        sql.append("AND r2.REGION_NAME = ? ");
-	    }
-	    
-	    if (searchCondition.getSiGun() != null && !searchCondition.getSiGun().isEmpty()) {
-	        sql.append("AND r1.REGION_NAME = ? ");
-	    }
+            sql.append("AND r2.REGION_ID = ? ");
+        }
+        // ~구가 있다면
+        if (searchCondition.getSiGun() != null && !searchCondition.getSiGun().isEmpty()) {
+            sql.append("AND r1.REGION_ID = ? ");
+        }
 	    
 	    if (searchCondition.getKeyword() != null && !searchCondition.getKeyword().isEmpty()) {
 	        sql.append("AND ro.ROOM_TITLE LIKE ? ");
@@ -813,6 +816,9 @@ public class RoomDao {
 	        if (searchCondition.getKeyword() != null && !searchCondition.getKeyword().isEmpty()) {
 	            pstmt.setString(paramIndex++, "%" + searchCondition.getKeyword() + "%");
 	        }
+	        
+
+
 	        
 	        try (ResultSet rs = pstmt.executeQuery()) {
 	            if (rs.next()) {
@@ -1361,6 +1367,96 @@ public class RoomDao {
 	      return false;
 	    }
 	  }
+	  
+	  
+	  // 1) 총개수
+	    public int countMyPosts(long userId, String q) {
+	        StringBuilder sql = new StringBuilder();
+	        sql.append("SELECT COUNT(*) ")
+	           .append("  FROM ROOM_BOARD rb ")
+	           .append("  JOIN ROOM ro ON ro.ROOM_ID = rb.ROOM_ID ")
+	           .append("  JOIN CERTIFICATION_MASTER cm ")
+	           .append("    ON cm.JMCD = ro.JMCD AND cm.YEAR = ro.YEAR AND cm.IMPLSEQ = ro.IMPLSEQ ")
+	           .append(" WHERE rb.USER_ID = ? ")
+	           .append("   AND NVL(rb.IS_DELETED,'N')='N' ")
+	           .append("   AND NVL(ro.IS_DELETED,'N')='N' ");
+	        // ★ 제목만 검색
+	        if (q != null && !q.isBlank()) {
+	            sql.append(" AND LOWER(rb.ROOM_BOARD_TITLE) LIKE LOWER(?) ");
+	        }
+
+	        try (Connection conn = ConnectionPoolHelper.getConnection();
+	             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+	            int i = 1;
+	            ps.setLong(i++, userId);
+	            if (q != null && !q.isBlank()) {
+	                ps.setString(i++, "%" + q.trim() + "%");
+	            }
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) return rs.getInt(1);
+	            }
+	        } catch (Exception e) { e.printStackTrace(); }
+	        return 0;
+	    }
+
+	 // 2) 목록
+	    public List<kr.or.kosa.dto.user.MyPostSummaryDto> findMyPosts(
+	            long userId, String q, String sort, int size, int page) {
+
+	        List<kr.or.kosa.dto.user.MyPostSummaryDto> list = new ArrayList<>();
+	        String order = " rb.CREATED_AT DESC, rb.ROOM_BOARD_ID DESC ";
+	        if ("old".equalsIgnoreCase(sort)) order = " rb.CREATED_AT ASC, rb.ROOM_BOARD_ID ASC ";
+
+	        StringBuilder sql = new StringBuilder();
+	        sql.append("SELECT * FROM ( ")
+	           .append("  SELECT rb.ROOM_BOARD_ID AS board_id, ")
+	           .append("         rb.ROOM_BOARD_TITLE AS title, ")
+	           .append("         cm.JMNAME AS category, ")
+	           .append("         rb.ROOM_BOARD_VIEW_CNT AS view_cnt, ")
+	           .append("         TO_CHAR(rb.CREATED_AT,'YYYY.MM.DD') AS created_fmt, ")
+	           // ★ 테이블명이 LIKE_ROOM_BOARD 인 점 반영
+	           .append("         (SELECT COUNT(*) FROM LIKE_ROOM_BOARD l ")
+	           .append("           WHERE l.ROOM_BOARD_ID = rb.ROOM_BOARD_ID) AS like_cnt ")
+	           .append("    FROM ROOM_BOARD rb ")
+	           .append("    JOIN ROOM ro ON ro.ROOM_ID = rb.ROOM_ID ")
+	           .append("    JOIN CERTIFICATION_MASTER cm ")
+	           .append("      ON cm.JMCD=ro.JMCD AND cm.YEAR=ro.YEAR AND cm.IMPLSEQ=ro.IMPLSEQ ")
+	           .append("   WHERE rb.USER_ID=? ")
+	           .append("     AND NVL(rb.IS_DELETED,'N')='N' ")
+	           .append("     AND NVL(ro.IS_DELETED,'N')='N' ");
+	        // ★ 제목만 검색
+	        if (q != null && !q.isBlank()) {
+	            sql.append(" AND LOWER(rb.ROOM_BOARD_TITLE) LIKE LOWER(?) ");
+	        }
+	        sql.append("   ORDER BY ").append(order)
+	           .append(") OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+	        try (Connection conn = ConnectionPoolHelper.getConnection();
+	             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+	            int i=1;
+	            ps.setLong(i++, userId);
+	            if (q != null && !q.isBlank()) {
+	                ps.setString(i++, "%" + q.trim() + "%");
+	            }
+	            ps.setInt(i++, (page-1)*size);
+	            ps.setInt(i++, size);
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                while (rs.next()) {
+	                    list.add(kr.or.kosa.dto.user.MyPostSummaryDto.builder()
+	                        .boardId(rs.getLong("board_id"))
+	                        .boardTitle(rs.getString("title"))
+	                        .category(rs.getString("category"))   // cm.jmName
+	                        .likeCount(rs.getInt("like_cnt"))
+	                        .viewCount(rs.getInt("view_cnt"))
+	                        .createdAt(rs.getString("created_fmt"))
+	                        .build());
+	                }
+	            }
+	        } catch (Exception e) { e.printStackTrace(); }
+	        return list;
+	    }
+	  
 
 	  private static String nvl(String s, String d){ return (s==null)? d : s; }
 	  
