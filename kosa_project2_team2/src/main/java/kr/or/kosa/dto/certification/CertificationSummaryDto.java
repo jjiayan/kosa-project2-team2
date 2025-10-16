@@ -1,4 +1,4 @@
-package kr.or.kosa.dto;
+package kr.or.kosa.dto.certification;
 
 
 public class CertificationSummaryDto {
@@ -14,15 +14,15 @@ public class CertificationSummaryDto {
     private int implSeq;            // 회차
 
     // 필기 통계
-    private Double docPassRate; // 필기 합격률 (0.00~100.00)
+    private Double docPassRate;     // 필기 합격률 (0.00~100.00)
     private int docApplicants;      // 필기 응시자 수
 
     // 실기 통계
-    private Double pracPassRate;// 실기 합격률
+    private Double pracPassRate;    // 실기 합격률
     private int pracApplicants;     // 실기 응시자 수
 
     // 시험 비용
-    private int examFee;     // 시험 응시 총비용 (필기+실기 합산 or 한 번 기준)
+    private int examFee;            // 시험 응시 총비용 (필기+실기 합산 or 한 번 기준)
     
     // 시행기관
     private String organName;

@@ -18,7 +18,6 @@
 body{font-family:'Noto Sans KR',sans-serif;background:#fff;padding:40px 20px;color:#333;}
 .container{max-width:1400px;margin:0 auto;padding: 60px 24px 0;}
 
-
 /* 상단 헤더 영역 */
 .header-section{margin-bottom:32px;}
 h1{font-size:32px;font-weight:700;color:#333;margin-bottom:20px;text-align:center;}
@@ -54,10 +53,10 @@ thead th{color:#fff;padding:16px 12px;font-weight:600;font-size:13px;text-align:
 tbody tr{border-bottom:1px solid #f1f1f1;transition:.15s;}
 tbody tr:hover{background:#fff8f8;}
 tbody td{
-  padding:0 12px;              /* ✅ 위아래 패딩 제거 */
-  height:52px; line-height:52px; /* ✅ 행 높이 고정 & 수직 중앙정렬 */
+  padding:0 12px;
+  height:52px; line-height:52px;
   font-size:13px;color:#555;text-align:center;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis; /* ✅ 긴 글자 ... 처리 */
+  overflow:hidden;text-overflow:ellipsis;
 }
 tbody td:first-child{color:#FF7272;font-weight:700;text-align:left;padding-left:16px;}
 
@@ -126,33 +125,17 @@ tbody td:first-child{color:#FF7272;font-weight:700;text-align:left;padding-left:
         </div>
       </div>
 
-      <!-- 오른쪽: 드롭다운 필터 -->
+      <!-- 오른쪽: 드롭다운 필터 (동적 옵션) -->
       <div class="filter-right">
         <div class="custom-select">
           <select id="gradeFilter">
             <option value="">등급전체</option>
-            <option value="기사">기사</option>
-            <option value="산업기사">산업기사</option>
-            <option value="기능사">기능사</option>
-            <option value="전문자격">전문자격</option>
-            <option value="마스터">마스터</option>
-            <option value="기타">기타</option>
           </select>
         </div>
 
         <div class="custom-select">
           <select id="fieldFilter">
             <option value="">분야전체</option>
-            <option value="IT">IT</option>
-            <option value="전기전자">전기전자</option>
-            <option value="건설기계">건설기계</option>
-            <option value="안전소방">안전소방</option>
-            <option value="데이터AI">데이터AI</option>
-            <option value="보안네트워크">보안네트워크</option>
-            <option value="사무회계">사무회계</option>
-            <option value="전문직">전문직</option>
-            <option value="의료보건">의료보건</option>
-            <option value="기타">기타</option>
           </select>
         </div>
       </div>
@@ -255,11 +238,12 @@ tbody td:first-child{color:#FF7272;font-weight:700;text-align:left;padding-left:
 var certData = [];
 <c:forEach var="c" items="${certList}">
 certData.push({
+  jmcd: "<c:out value='${c.jmcd}'/>",
   jmName: "<c:out value='${c.jmName}'/>",
   grade: "<c:out value='${c.grade}'/>",
   field: "<c:out value='${c.field}'/>",
-  year: ${c.year},         
-  implSeq: ${c.implSeq},   
+  year: ${c.year},
+  implSeq: ${c.implSeq},
   docPassRate: ${c.docPassRate != null ? c.docPassRate : 0},
   pracPassRate: ${c.pracPassRate != null ? c.pracPassRate : 0},
   docApplicants: ${c.docApplicants != null ? c.docApplicants : 0},
@@ -268,17 +252,19 @@ certData.push({
   organName: "<c:out value='${c.organName}'/>"
 });
 </c:forEach>
-console.log(certData[0]);
 var contextPath = "<c:out value='${ctx}'/>";
 
 document.addEventListener("DOMContentLoaded", function () {
   var gradePieChart = null;
   var categoryBarChart = null;
 
+  // 옵션 동적 로드
+  loadCategories(contextPath);
+
   // 페이지네이션 변수
-  var currentData = certData.slice(); // 필터된 데이터
-  var currentPage = 1;                // 현재 페이지
-  var itemsPerPage = 10;              // 페이지당 항목 수
+  var currentData = certData.slice();
+  var currentPage = 1;
+  var itemsPerPage = 10;
   var totalPages = Math.max(1, Math.ceil(currentData.length / itemsPerPage));
 
   var gradeFilter  = document.getElementById("gradeFilter");
@@ -318,6 +304,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
+  // 이벤트 바인딩
   searchBtn.addEventListener("click", loadFilteredData);
   gradeFilter.addEventListener("change", loadFilteredData);
   fieldFilter.addEventListener("change", loadFilteredData);
@@ -349,15 +336,15 @@ document.addEventListener("DOMContentLoaded", function () {
         '<td>' + toNum(cert.pracApplicants) + '</td>' +
         '<td>' + toCurrency(cert.examFee) + '</td>' +
         '<td>' + escapeHtml(cert.organName || "-") + '</td>';
-        
-        /* 더블클릭 이벤트 -> 상세페이지 */
-        row.addEventListener("dblclick", function () {
-          var url = contextPath + "/certificationDetail.cert"
-                  + "?jmcd=" + encodeURIComponent(cert.jmcd)
-                  + "&year=" + encodeURIComponent(cert.year)
-                  + "&implSeq=" + encodeURIComponent(cert.implSeq);
-          window.location.href = url;
-        });
+
+      // 더블클릭 -> 상세
+      row.addEventListener("dblclick", function () {
+        var url = contextPath + "/certificationDetail.cert"
+                + "?jmcd=" + encodeURIComponent(cert.jmcd)
+                + "&year=" + encodeURIComponent(cert.year)
+                + "&implSeq=" + encodeURIComponent(cert.implSeq);
+        window.location.href = url;
+      });
       tbody.appendChild(row);
     });
   }
@@ -416,26 +403,25 @@ document.addEventListener("DOMContentLoaded", function () {
     pagination.appendChild(nextBtn);
   }
 
-  // 차트/통계
   function renderCharts(data) {
     var safe = Array.isArray(data) ? data : [];
+
+    // 통계 카드
     var total = safe.length;
-    var avgRate = total > 0 ? safe.reduce(function(sum, c){
-      return sum + avg((+c.docPassRate)||0, (+c.pracPassRate)||0);
-    }, 0) / total : 0;
-    var totalApplicants = safe.reduce(function(sum, c){
-      return sum + ((+c.docApplicants)||0) + ((+c.pracApplicants)||0);
-    }, 0);
+    var avgRate = total > 0 ? safe.reduce((sum, c) => sum + ((+c.docPassRate||0 + +c.pracPassRate||0)/2), 0) / total : 0;
+    var totalApplicants = safe.reduce((sum, c) => sum + ((+c.docApplicants||0) + (+c.pracApplicants||0)), 0);
 
     document.getElementById("totalCount").textContent = total;
     document.getElementById("avgRate").innerHTML = (avgRate || 0).toFixed(1) + '<span class="stat-suffix">%</span>';
-    document.getElementById("totalApplicants").textContent = (totalApplicants||0).toLocaleString();
+    document.getElementById("totalApplicants").textContent = totalApplicants.toLocaleString();
 
+    // 기존 차트 제거
     if (gradePieChart) gradePieChart.destroy();
     if (categoryBarChart) categoryBarChart.destroy();
 
+    // 등급 파이
     var gradeCounts = {};
-    safe.forEach(function(c){ var g = c.grade || "기타"; gradeCounts[g] = (gradeCounts[g] || 0) + 1; });
+    safe.forEach(c => { var g = c.grade || "기타"; gradeCounts[g] = (gradeCounts[g]||0)+1; });
     var grades = Object.keys(gradeCounts);
     var gradeValues = Object.values(gradeCounts);
     var gradeColors = ["#FFD66B","#FF9F68","#FF7272","#B28DFF","#AEE8D7","#8EC5FF"];
@@ -444,56 +430,43 @@ document.addEventListener("DOMContentLoaded", function () {
     if (pieCtx && grades.length > 0) {
       gradePieChart = new Chart(pieCtx, {
         type: "doughnut",
-        data: { labels: grades, datasets: [{ data: gradeValues, backgroundColor: gradeColors, borderWidth: 2, borderColor: '#fff' }]},
-        options: {
-          plugins: {
-            legend: { position: "right", labels: { padding: 15, font: { size: 13 } } },
-            tooltip: { callbacks: { label: function(ctx){ return ctx.label + ': ' + ctx.parsed + ' 종목'; } } }
-          },
-          cutout: "65%"
-        }
+        data: { labels: grades, datasets:[{ data: gradeValues, backgroundColor: gradeColors, borderWidth:2, borderColor:'#fff' }]},
+        options: { plugins: { legend: { position:"right", labels:{padding:15, font:{size:13}} } }, cutout: "65%" }
       });
     }
 
+    // 분야별 평균 합격률 Bar
+    var officialFields = ["IT","전기전자","건설기계","안전소방","데이터AI","보안네트워크","사무회계","전문직","의료보건","기타"];
     var fieldMap = {};
-    safe.forEach(function(c){
-      var key = c.field || "기타";
+    officialFields.forEach(f => fieldMap[f] = []);
+
+    safe.forEach(c => {
+      var key = (c.field || "기타").trim();
       if (!fieldMap[key]) fieldMap[key] = [];
-      fieldMap[key].push(avg((+c.docPassRate)||0, (+c.pracPassRate)||0));
+      fieldMap[key].push(((+c.docPassRate||0 + +c.pracPassRate||0)/2));
     });
-    var fields = Object.keys(fieldMap);
-    var fieldAvg = fields.map(function(f){
-      var arr = fieldMap[f]; return (arr.reduce(function(a,b){return a+b;},0) / arr.length) || 0;
+
+    var fieldAvg = officialFields.map(f => {
+      var arr = fieldMap[f];
+      return arr.length > 0 ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
     });
 
     var barCtx = document.getElementById("categoryBar");
-    if (barCtx && fields.length > 0) {
+    if (barCtx && officialFields.length > 0) {
       categoryBarChart = new Chart(barCtx, {
         type: "bar",
-        data: {
-          labels: fields,
-          datasets: [{ label: "평균 합격률(%)", data: fieldAvg, backgroundColor:"rgba(255,114,114,0.85)", borderRadius: 8, borderWidth: 0 }]
-        },
-        options: {
-          plugins: { legend: { display: false }},
-          scales: {
-            y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
-            x: { ticks: { font: { size: 12 } }, grid: { display: false } }
-          }
-        }
+        data: { labels: officialFields, datasets:[{ label: "평균 합격률(%)", data: fieldAvg, backgroundColor:"rgba(255,114,114,0.85)", borderRadius: 8, borderWidth: 0 }]},
+        options: { plugins: { legend:{ display:false } }, scales: { y: { beginAtZero:true, max:100, grid:{color:'#f0f0f0'} }, x: { ticks:{ font:{ size:12 } }, grid:{ display:false } } } }
       });
     }
   }
 
   // 유틸
-  function avg(a,b){ return (a+b)/2; }
   function toRate(v){ var n = +v; return n ? n.toFixed(1) + '%' : '-'; }
   function toNum(v){ var n = +v; return n ? n.toLocaleString() : '0'; }
   function toCurrency(v){ var n = +v; return n ? n.toLocaleString() + '원' : '-'; }
   function escapeHtml(s){
-    return String(s||'').replace(/[&<>"']/g, function(m){
-      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
-    });
+    return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});
   }
 
   // 초기 렌더
@@ -501,6 +474,37 @@ document.addEventListener("DOMContentLoaded", function () {
   renderPagination();
   renderCharts(currentData);
 });
+
+// === 카테고리 옵션 한 번에 동적 로딩 ===
+// GET /certificationCategories.sync → { "grades":[...], "fields":[...] }
+function loadCategories(ctx){
+  var gradeSel = document.getElementById("gradeFilter");
+  var fieldSel = document.getElementById("fieldFilter");
+
+  // '전체' 제외 초기화(중복 방지)
+  gradeSel.length = 1;
+  fieldSel.length = 1;
+
+  fetch(ctx + "/certificationCategories.sync", { headers: { "Accept": "application/json" }})
+    .then(function(res){ if(!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+    .then(function(data){
+      var grades = (data && Array.isArray(data.grades)) ? data.grades : [];
+      var fields = (data && Array.isArray(data.fields)) ? data.fields : [];
+
+      grades.forEach(function(g){
+        var opt = document.createElement("option");
+        opt.value = g; opt.textContent = g;
+        gradeSel.appendChild(opt);
+      });
+
+      fields.forEach(function(f){
+        var opt = document.createElement("option");
+        opt.value = f; opt.textContent = f;
+        fieldSel.appendChild(opt);
+      });
+    })
+    .catch(function(err){ console.error("카테고리 로드 실패:", err); });
+}
 </script>
 </body>
 </html>
