@@ -9,7 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
-import kr.or.kosa.service.certification.ajax.CertificationCategoryAjaxService;
+import kr.or.kosa.service.certification.ajax.CertificationCategoriesAjaxService;
 import kr.or.kosa.service.certification.ajax.CertificationFilterAjaxService;
 import kr.or.kosa.service.certification.ajax.CertificationMasterAjaxService;
 import kr.or.kosa.service.certification.ajax.CertificationScheduleAjaxService;
@@ -59,7 +59,7 @@ public class CertificationAjaxController extends HttpServlet {
         
         // AJAX 카테고리
         } else if (urlCommand.equals("/certificationCategories.sync")) {
-            action = new CertificationCategoryAjaxService();
+            action = new CertificationCategoriesAjaxService();
             forward = action.execute(request, response);
         }
 

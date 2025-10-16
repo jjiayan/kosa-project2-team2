@@ -10,7 +10,7 @@ import kr.or.kosa.dao.CertificationDao;
 import java.io.IOException;
 import java.util.Map;
 
-public class CertificationCategoryAjaxService implements Action {
+public class CertificationCategoriesAjaxService implements Action {
 
     private final CertificationDao dao = new CertificationDao();
     private final Gson gson = new Gson();

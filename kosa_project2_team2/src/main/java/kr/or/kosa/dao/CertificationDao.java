@@ -519,14 +519,12 @@ public class CertificationDao {
         	    "SELECT DISTINCT GRADE " +
         	    "FROM CERTIFICATION_CATEGORY " +
         	    "WHERE GRADE IS NOT NULL " +
-        	    "  AND TRIM(GRADE) <> '' " +
         	    "ORDER BY GRADE";
 
         	String sql2 =
         	    "SELECT DISTINCT FIELD " +
         	    "FROM CERTIFICATION_CATEGORY " +
         	    "WHERE FIELD IS NOT NULL " +
-        	    "  AND TRIM(FIELD) <> '' " +
         	    "ORDER BY FIELD";
 
         try (Connection conn = ConnectionPoolHelper.getConnection()) {
