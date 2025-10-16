@@ -13,7 +13,12 @@ public class RoomDetailService implements Action{
 	@Override
 	public ActionForward execute(HttpServletRequest request, HttpServletResponse response) {
 		int roomId = Integer.parseInt(request.getParameter("roomId"));
-		int userId = Integer.parseInt(request.getParameter("userId"));
+		String strUserId = request.getParameter("userId");
+		int userId = 0;
+		if(!strUserId.isEmpty() || !strUserId.equals("")) {
+			userId = Integer.parseInt(request.getParameter("userId"));
+		}
+		 
 		
 		
 		// 세션에 현재 방 ID 저장 (덮어쓰기)
@@ -27,7 +32,8 @@ public class RoomDetailService implements Action{
 		HttpSession session = request.getSession();
         session.setAttribute("currentRoomId", roomId);
         session.setAttribute("leaderCheck", roomDetail.isLeaderCheck());
-        System.out.println(roomDetail.isLeaderCheck());
+        session.setAttribute("roomTier", roomDetail.getJoinUserStatus());
+       
 	
 		
 		request.setAttribute("roomDetail", roomDetail);

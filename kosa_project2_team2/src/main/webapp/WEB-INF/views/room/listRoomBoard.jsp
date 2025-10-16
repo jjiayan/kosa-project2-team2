@@ -57,7 +57,8 @@
         </div>
 
         <c:forEach var="roomBoard" items="${roomBoardList}">
-          <div class="post-item" onclick="location.href='${ctx}/roomboarddetail.room?roomBoardId=${roomBoard.roomBoardId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=GENERAL'">
+          <div class="post-item" 
+       		onclick="handlePostClick('${sessionScope.roomTier}', '${ctx}', '${roomBoard.roomBoardId}', '${sessionScope.LOGIN_USER.user_id}')">
             <div class="post-title-cell">
               ${roomBoard.roomBoardTitle}
               <c:if test="${roomBoard.replyCount > 0}"><span class="reply-count">[${roomBoard.replyCount}]</span></c:if>
@@ -75,9 +76,13 @@
           <input type="text" class="search-input" placeholder="제목으로 검색..." id="searchInput"/>
           <button class="search-btn" onclick="searchPosts()">🔍</button>
         </div>
-        <button class="write-btn" onclick="location.href='${ctx}/roomboardinsertform.room?roomId=${roomId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=GENERAL'">
-          게시글 쓰기
-        </button>
+        <c:if test="${sessionScope.roomTier == 'MEMBER' or sessionScope.roomTier == 'LEADER'}">
+		  <button class="write-btn" 
+		    onclick="location.href='${ctx}/roomboardinsertform.room?roomId=${roomId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=GENERAL'">
+		    게시글 쓰기
+		  </button>
+		</c:if>
+
       </div>
 
       <div class="pagination">
@@ -101,6 +106,27 @@
     // 필요시 검색 구현
   }
   document.getElementById('searchInput').addEventListener('keypress', e=>{ if(e.key==='Enter') searchPosts() });
+  
+  
+  function handlePostClick(roomTier, ctx, roomBoardId, userId) {
+	    // 🔒 초대받지 않은 사람 (즉, MEMBER/LEADER가 아닌 경우)
+	    if (roomTier !== 'MEMBER' && roomTier !== 'LEADER') {
+	    	function handlePostClick(roomTier, ctx, roomBoardId, userId) {
+	    	    // 🔒 초대받지 않은 사람 (즉, MEMBER/LEADER가 아닌 경우)
+	    	    if (roomTier !== 'MEMBER' && roomTier !== 'LEADER') {
+	    	      alert("초대받은 회원만 게시글을 볼 수 있습니다.");
+	    	      return;
+	    	    }
+
+	    	    // ✅ 정상 접근 가능
+	    	    location.href = ctx + "/roomboarddetail.room?roomBoardId=" + roomBoardId + "&userId=" + userId + "&roomBoardType=GENERAL";
+	    	  }
+	      return;
+	    }
+
+	    // ✅ 정상 접근 가능
+	    location.href = ctx + "/roomboarddetail.room?roomBoardId=" + roomBoardId + "&userId=" + userId + "&roomBoardType=GENERAL";
+	  }
 </script>
 </body>
 </html>

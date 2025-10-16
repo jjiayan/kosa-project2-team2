@@ -214,8 +214,6 @@
 			font-size: 15px;
 			padding: 6px 12px;
 		}
-		@media (max-width: 900px) { .member-grid { grid-template-columns: repeat(2, 1fr); } }
-		@media (max-width: 600px) { .member-grid { grid-template-columns: 1fr; } }
 		
 		/* ===== sideBar 전체 레이아웃 ===== */
 		.layout-wrap {
@@ -234,17 +232,91 @@
 		    min-height: 100vh;
 		}
 		
-		/* ===== 반응형 ===== */
-		@media (max-width: 900px) {
-		    .layout-wrap {
-		        grid-template-columns: 1fr;
-		    }
-		    main {
-		        border-left: none;
-		        border-top: 1px solid #e5e7eb;
-		        padding: 16px;
-		    }
-		}
+		/* ✅ main 부분 반응형 스타일 */
+@media (max-width: 1200px) {
+	main {
+		padding: 20px;
+	}
+	.member-container {
+		margin: 40px auto;
+		max-width: 900px;
+	}
+}
+
+@media (max-width: 992px) {
+	main {
+		padding: 18px;
+	}
+	.page-header h1 {
+		font-size: 28px;
+	}
+	.member-container {
+		margin: 30px auto;
+	}
+	.search-box {
+		justify-content: center;
+		margin-bottom: 30px;
+	}
+	.search-box input {
+		width: 220px;
+		font-size: 13px;
+	}
+	.member-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media (max-width: 768px) {
+	main {
+		padding: 16px;
+		border-left: none;
+		border-top: 1px solid #e5e7eb;
+	}
+	.page-header h1 {
+		font-size: 24px;
+	}
+	.member-container {
+		margin: 20px auto;
+	}
+	.search-box {
+		justify-content: center;
+		margin: 0 auto 25px;
+	}
+	.search-box input {
+		width: 100%;
+		max-width: 280px;
+	}
+	.member-grid {
+		grid-template-columns: 1fr;
+		gap: 18px;
+	}
+	.member-card {
+		width: 100%;
+		padding: 14px 16px;
+	}
+	.member-info img {
+		width: 40px;
+		height: 40px;
+		margin-right: 10px;
+	}
+	.member-info .name {
+		font-size: 15px;
+	}
+	.btn-delete {
+		padding: 6px 14px;
+		font-size: 13px;
+	}
+	.pagination {
+		gap: 6px;
+	}
+	.page-arrow, .page-num {
+		width: 34px;
+		height: 34px;
+		font-size: 14px;
+	}
+}
+		
+		
 	</style>
 </head>
 

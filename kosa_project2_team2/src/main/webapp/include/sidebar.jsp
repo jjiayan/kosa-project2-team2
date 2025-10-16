@@ -8,15 +8,15 @@
 
 <style>
   :root{
-    --snav-width: 240px;   /* 기본 폭 (줄임) */
+    --snav-width: 240px;
     --ink: #222;
-    --pill-bg: #fde4e4;    /* 활성 분홍색 */
+    --pill-bg: #fde4e4;  /* ✅ 기존 연분홍색 유지 */
     --hover-bg: #f4f5f7;
   }
 
   .app-sidenav{
     width: var(--snav-width);
-    padding: 20px 0;       /* 왼쪽 패딩 0 유지 */
+    padding: 20px 0;
     box-sizing: border-box;
     background: #fff;
   }
@@ -24,7 +24,7 @@
   .snav-list{
     list-style: none;
     margin: 0;
-    padding: 0 8px;        /* 좌우 살짝 여백 */
+    padding: 0 8px;
     display: grid;
     gap: 8px;
   }
@@ -52,78 +52,70 @@
   .snav-link .label{ flex: 1; }
   .snav-link .count{ font-weight: 700; font-size: 13px; }
 
-  .snav-item.is-active .snav-link{ background: var(--pill-bg); }
+  /* ✅ 메인 메뉴 활성화: 기존 연한 분홍 유지 */
+  .snav-item.is-active .snav-link{
+    background: var(--pill-bg);
+    color: var(--ink);
+  }
   .snav-item.is-active .snav-link i,
   .snav-item.is-active .snav-link .label,
-  .snav-item.is-active .snav-link .count{ color: var(--ink); }
-  /* 서브메뉴 스타일 */
-.has-submenu {
-    position: relative;
-}
+  .snav-item.is-active .snav-link .count{
+    color: var(--ink);
+  }
 
-.submenu-arrow {
-    margin-left: auto;
-    font-size: 12px;
-    transition: transform 0.3s ease;
-}
+  /* ====== 서브메뉴 ====== */
+  .has-submenu {
+      position: relative;
+      cursor: pointer;
+  }
 
-.has-submenu.active .submenu-arrow {
-    transform: rotate(180deg);
-}
+  .submenu-arrow {
+      margin-left: auto;
+      font-size: 12px;
+      transition: transform 0.3s ease;
+  }
 
-.submenu {
-    display: none;
-    position: absolute;
-    left: 100%;
-    top: 0;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    min-width: 200px;
-    z-index: 1000;
-}
+  .has-submenu.active .submenu-arrow {
+      transform: rotate(180deg);
+  }
 
-.submenu.show {
-    display: block;
-}
+  .submenu-item {
+      display: none;
+      margin-left: 20px;
+  }
+  .submenu-item.show {
+      display: block;
+  }
 
-.submenu li {
-    list-style: none;
-}
+  /* ✅ 서브메뉴도 메인 색상에 맞춰 통일 */
+  .submenu-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      color: #666;
+      text-decoration: none;
+      transition: all 0.2s;
+      border-bottom: 1px solid #f3f4f6;
+      border-radius: 8px;
+  }
 
-.submenu-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    color: #666;
-    text-decoration: none;
-    transition: all 0.2s;
-    border-bottom: 1px solid #f3f4f6;
-}
+  .submenu-link:hover {
+      background: #f8f9fa;
+      color: #333;
+  }
 
-.submenu-link:hover {
-    background: #f8f9fa;
-    color: #333;
-}
-
-.submenu-link.active {
-    background: #ff6b6b;
-    color: white;
-}
-
-.submenu li:last-child .submenu-link {
-    border-bottom: none;
-}
+  .submenu-link.active {
+      background: var(--pill-bg);
+      color: var(--ink);
+      font-weight: bold;
+  }
 
   /* ====== 반응형 ====== */
-  /* 1200px 이하면 살짝 더 좁게 */
   @media (max-width: 1200px){
     .app-sidenav{ --snav-width: 220px; }
   }
 
-  /* 900px 이하면 컴팩트 모드 (아이콘만) */
   @media (max-width: 900px){
     .app-sidenav{ --snav-width: 72px; }
     .snav-list{ padding: 0 6px; }
@@ -134,13 +126,14 @@
     }
     .snav-link .label,
     .snav-link .count{
-      display: none;       /* 아이콘만 표시 */
+      display: none;
     }
   }
 </style>
 
 <nav class="app-sidenav" aria-label="사이드바">
   <ul class="snav-list">
+    <!-- 홈 -->
     <li class="snav-item ${current eq 'home' ? 'is-active' : ''}">
       <a href="<c:url value='/roomdetail.room'>
             <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
@@ -151,71 +144,109 @@
       </a>
     </li>
 
-	<c:if test="${not empty sessionScope.currentRoomId}">
-	    <li class="snav-item ${current eq 'posts' ? 'is-active' : ''}">
-	        <a href="<c:url value='/roomboardlist.room'>
-	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
-	        </c:url>" class="snav-link" aria-label="게시글">
-	            <i class="fa-regular fa-rectangle-list"></i>
-	            <span class="label">게시글</span>
-	        </a>
-	    </li>
-	</c:if>
+    <!-- 게시글 -->
+    <c:if test="${not empty sessionScope.currentRoomId and not empty sessionScope.LOGIN_USER.user_id}">
+      <li class="snav-item ${current eq 'posts' ? 'is-active' : ''}">
+        <a href="<c:url value='/roomboardlist.room'>
+            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+        </c:url>" class="snav-link" aria-label="게시글">
+            <i class="fa-regular fa-rectangle-list"></i>
+            <span class="label">게시글</span>
+        </a>
+      </li>
+    </c:if>
 
+    <!-- 캘린더 -->
     <li class="snav-item ${current eq 'calendar' ? 'is-active' : ''}">
-      <a href="<c:url value='/roomboard.room'/>" class="snav-link" aria-label="캘린더">
+      <a href="<c:url value='/roomcalender.room'>
+            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+        </c:url>" class="snav-link" aria-label="캘린더">
         <i class="fa-regular fa-calendar-days"></i>
         <span class="label">캘린더</span>
       </a>
     </li>
     
-	<c:if test="${not empty sessionScope.currentRoomId}">
-	    <li class="snav-item ${current eq 'notice' ? 'is-active' : ''}">
-	        <a href="<c:url value='/roomboardnotice.room'>
-	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
-	        </c:url>" class="snav-link" aria-label="공지">
-	            <i class="fa-regular fa-bell"></i>
-	            <span class="label">공지사항</span>
-	        </a>
-	    </li>
-	</c:if>
+    <!-- 공지사항 -->
+    <c:if test="${not empty sessionScope.currentRoomId}">
+      <li class="snav-item ${current eq 'notice' ? 'is-active' : ''}">
+        <a href="<c:url value='/roomboardnotice.room'>
+            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+        </c:url>" class="snav-link" aria-label="공지">
+            <i class="fa-regular fa-bell"></i>
+            <span class="label">공지사항</span>
+        </a>
+      </li>
+    </c:if>
 
-   <%-- <c:if test="${sessionScope.leaderCheck}"> --%>
-		<li class="snav-item ${current eq 'admin' ? 'is-active' : ''} has-submenu">
-		     <a href="<c:url value='/roomboardadmin.room'>
-	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
-	        	</c:url>" class="snav-link" aria-label="관리">
-		        <i class="fa-regular fa-user"></i>
-		        <span class="label">관리</span>
-		        <i class="fa-solid fa-chevron-down submenu-arrow"></i>
-		    </a>
-		</li>
-		
-		<!-- 서브메뉴들을 별도 li로 분리 -->
-		<li class="submenu-item ${current eq 'admin' ? 'show' : ''}" data-parent="admin">
-		    <a href="<c:url value='/roommembermanageform.room'>
-		        <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
-		    </c:url>" class="snav-link submenu-link ${current eq 'members' ? 'is-active' : ''}">
-		        <i class="fa-solid fa-users"></i>
-		        <span class="label">회원관리</span>
-		    </a>
-		</li>
-		
-		<li class="submenu-item ${current eq 'admin' ? 'show' : ''}" data-parent="admin">
-		    <a href="<c:url value='/roomupdateform.room'>
-		        <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
-		    </c:url>" class="snav-link submenu-link ${current eq 'room-edit' ? 'is-active' : ''}">
-		        <i class="fa-solid fa-edit"></i>
-		        <span class="label">방정보 수정</span>
-		    </a>
-		</li>
-		
-		<li class="submenu-item ${current eq 'admin' ? 'show' : ''}" data-parent="admin">
-		    <a href="#" class="snav-link submenu-link" onclick="deleteRoom(${sessionScope.currentRoomId})">
-		        <i class="fa-solid fa-trash"></i>
-		        <span class="label">방 삭제</span>
-		    </a>
-		</li>
-	<%-- </c:if> --%>
+    <!-- 관리 -->
+    <c:if test="${sessionScope.leaderCheck}">
+      <li class="snav-item has-submenu ${(current eq 'admin' || current eq 'members' || current eq 'room-edit') ? 'is-active active' : ''}" id="adminMenu">
+        <a href="#" class="snav-link" aria-label="관리" onclick="toggleSubmenu(event)">
+          <i class="fa-regular fa-user"></i>
+          <span class="label">관리</span>
+          <i class="fa-solid fa-chevron-down submenu-arrow"></i>
+        </a>
+      </li>
+
+      <!-- ✅ 서브메뉴: current 값이 admin/members/room-edit이면 항상 show -->
+      <li class="submenu-item ${(current eq 'admin' || current eq 'members' || current eq 'room-edit') ? 'show' : ''}" data-parent="admin">
+        <a href="<c:url value='/roommembermanageform.room'>
+            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+        </c:url>" class="snav-link submenu-link ${current eq 'members' ? 'active' : ''}">
+          <i class="fa-solid fa-users"></i>
+          <span class="label">회원관리</span>
+        </a>
+      </li>
+
+      <li class="submenu-item ${(current eq 'admin' || current eq 'members' || current eq 'room-edit') ? 'show' : ''}" data-parent="admin">
+        <a href="<c:url value='/roomupdateform.room'>
+            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+        </c:url>" class="snav-link submenu-link ${current eq 'room-edit' ? 'active' : ''}">
+          <i class="fa-solid fa-edit"></i>
+          <span class="label">방정보 수정</span>
+        </a>
+      </li>
+
+      <li class="submenu-item ${(current eq 'admin' || current eq 'members' || current eq 'room-edit') ? 'show' : ''}" data-parent="admin">
+        <a href="#" class="snav-link submenu-link" 
+		   onclick="deleteRoom('${sessionScope.currentRoomId}', '${sessionScope.LOGIN_USER.user_id}'); return false;">
+		  <i class="fa-solid fa-trash"></i>
+		  <span class="label">방 삭제</span>
+		</a>
+
+      </li>
+    </c:if>
   </ul>
 </nav>
+
+<script>
+  // ✅ 메뉴 토글 기능 (클릭 시 접었다 펼침)
+  function toggleSubmenu(e) {
+    e.preventDefault();
+    document.querySelectorAll('.submenu-item').forEach(item => {
+      item.classList.toggle('show');
+    });
+    document.getElementById('adminMenu').classList.toggle('active');
+  }
+  
+  function deleteRoom(roomId, userId){
+	  if(!confirm('이 모임에 삭제하시겠습니까?')) return;
+	  $.ajax({
+	    	url: "/roomdelete.roomajax",
+	    	data: {
+	    		userId: userId,
+	    		roomId: roomId
+	    	},
+	    	success: function(res){
+	            console.log(res);
+	            alert('모입방 삭제가 완료되었습니다.');
+	            window.location.href = "/roomlist.room";
+	        },
+	        error: function(e){
+	        	console.log(e)
+	            alert('모임방 삭제 중 오류가 발생했습니다.');
+	        }
+	    	
+	    })
+  }
+</script>
