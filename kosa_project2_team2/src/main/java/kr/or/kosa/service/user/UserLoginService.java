@@ -68,12 +68,17 @@ public class UserLoginService implements Action {
                     // 이미 invalidated 됐으면 무시
                 }
             }
+            //1 
+            //2
+            
+            //  1, 2 , 3 4
+            
             HttpSession session = request.getSession(true);
             session.setAttribute("LOGIN_USER", user);
 
             // 메인으로 이동
             f.setRedirect(true);
-            f.setPath("/roomlist.room");
+            f.setPath("/roomlist.room?userId="+user.getUser_id());
             return f;
 
         } catch (Exception e) {
