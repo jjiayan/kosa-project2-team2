@@ -124,61 +124,48 @@
     margin-top: 40px;
   }
 
-
 .btn-2 {
-  display: inline-block;
   position: relative;
+  display: inline-block;
   font-size: 16px;
   font-weight: 600;
   color: #666;
   text-decoration: none;
-  background-color: transparent;
+  background: transparent;
   padding: 12px 40px;
-  border-top: 2px solid #666;
-  border-bottom: 2px solid #666;
-  border-left: none;
-  border-right: none;
-  border-radius: 0;
-  letter-spacing: 1px;
-  margin-top: 30px;
-  transition: all 0.3s ease;
+  border-top: 3px double #666;
+  border-bottom: 3px double #666;
+  letter-spacing: 2px;
   overflow: hidden;
-}
-
-/* 좌우 라인 효과 */
-.btn-2::before,
-.btn-2::after {
-  content: "";
-  position: absolute;
-  width: 2px;
-  height: 0;
-  background-color: #FF7272;
-  transition: height 0.3s ease;
+  margin-top: 30px;
+  transition: color 0.3s ease, border-color 0.3s ease, letter-spacing 0.4s ease;
 }
 
 .btn-2::before {
+  content: "";
+  position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  width: 0%;
+  height: 100%;
+  background: rgba(255, 114, 114, 0.1);
+  transition: width 0.4s ease;
+  z-index: 0;
 }
 
-.btn-2::after {
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+.btn-2 span {
+  position: relative;
+  z-index: 1;
 }
 
 .btn-2:hover {
   color: #FF7272;
-  border-top: 2px solid #FF7272;
-  border-bottom: 2px solid #FF7272;
-  transform: translateY(-3px);
+  border-color: #FF7272;
+  letter-spacing: 3px;
 }
 
-/* hover 시 세로 라인 올라오는 애니메이션 */
-.btn-2:hover::before,
-.btn-2:hover::after {
-  height: 100%;
+.btn-2:hover::before {
+  width: 100%;
 }
 
 
@@ -194,7 +181,7 @@
 
   <main>
     <section class="hero" id="hero">
-      <small>—— 자격증의 바이블 ——</small>
+      <small>═══ 자격증의 바이블 ═══</small>
       <h1>THE CERTIFICATION<br>BIBLE</h1>
 
       <div class="intro">
