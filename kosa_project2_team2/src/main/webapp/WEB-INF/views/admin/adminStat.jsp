@@ -150,20 +150,21 @@ header.nav-root * {
 .rank-item {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 16px;
+	gap: 20px;           
+	margin-bottom: 10px; 
+	font-weight: 600;
 }
 
 .rank-left {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 50px;            
+	min-width: 300px;  
 }
 
 .rank-num {
 	background: #FF7272;
 	color: #fff;
-	font-weight: 600;
 	width: 28px;
 	height: 28px;
 	display: flex;
@@ -174,14 +175,15 @@ header.nav-root * {
 }
 
 .rank-title {
-	font-weight: 600;
+	font-size: 18px;
 	color: #333;
 	min-width: 120px;
 	white-space: nowrap;
+	letter-spacing : 1px;
 }
 
 .rank-bar {
-	width: 50%;
+	flex: 1; 
 	height: 8px;
 	border-radius: 4px;
 	background: #f1f1f1;
@@ -191,6 +193,13 @@ header.nav-root * {
 .rank-fill {
 	height: 100%;
 	background: #FF7272;
+}
+
+.rank-right {
+	width: 50px;          
+	text-align: right;
+	font-size: 13px;
+	color: #777;
 }
 
 .layout-wrap {
@@ -343,9 +352,11 @@ $(document).ready(function() {
 					const listContainer = $(".stat-container .top-list");
 					let html = '<h5>인기 자격증 카테고리 TOP 5</h5>';
 					const max = Math.max(...topCerts.map(c => c.count));
+					const totalCount = topCerts.reduce((sum, c) => sum + c.count, 0);
 
 					topCerts.forEach((cert, i) => {
-						const width = Math.max(10, (cert.count / max) * 100);
+						const width = ((cert.count / totalCount) * 100).toFixed(1);
+
 						const color = i >= 3 ? '#bdbdbd' : '#FF7272';
 						html += 
 						  '<div class="rank-item">' +
@@ -355,6 +366,9 @@ $(document).ready(function() {
 						    '</div>' +
 						    '<div class="rank-bar">' +
 						      '<div class="rank-fill" style="width:' + width + '%; background:' + color + ';"></div>' +
+						    '</div>' +
+						    '<div class="rank-right">' +
+						    	'<div class="rank-width">' + width + '%' + '</div>' +
 						    '</div>' +
 						  '</div>';
 					});

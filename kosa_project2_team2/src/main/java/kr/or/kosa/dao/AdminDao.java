@@ -344,8 +344,7 @@ public class AdminDao {
 		}
 		return result;
 	}
-
-	// 인기 자격증 TOP 5
+ 
 	// 인기 자격증 TOP 5
 	public List<Map<String, Object>> getTopCertifications() {
 	    List<Map<String, Object>> topList = new ArrayList<>();
