@@ -199,9 +199,6 @@ main {
 } 
 
 @media ( max-width : 900px) {
-	.layout-wrap {
-		grid-template-columns: 1fr;
-	}
 	main {
 		border-left: none;
 		border-top: 1px solid #e5e7eb;

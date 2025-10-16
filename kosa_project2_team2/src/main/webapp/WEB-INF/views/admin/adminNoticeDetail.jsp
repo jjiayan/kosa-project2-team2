@@ -192,24 +192,6 @@ main {
     min-height: 100vh;
 }
 
-/* ===== 반응형 ===== */
-@media (max-width: 900px) {
-    .layout-wrap {
-        grid-template-columns: 1fr;
-    }
-    main {
-        border-left: none;
-        border-top: 1px solid #e5e7eb;
-        padding: 16px;
-    }
-    .notice-container {
-		padding: 30px 25px;
-	}
-	.notice-title {
-		font-size: 18px;
-	}
-} 
-
 </style>
 </head>
 

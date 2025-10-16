@@ -4,14 +4,18 @@ import java.util.Date;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 @Builder
 @Getter
+@ToString
 public class RoomDto {
 	private int roomId;    
 	private int regionId;
-    private String certificate1;
-    private String certificate2;
+	private int subRegionId;
+    private int jmcd;
+    private int year;
+    private int implseq;
     private int maxParticipant;
     private String thumbnailUrl;
     private String title;
@@ -27,6 +31,8 @@ public class RoomDto {
     private String joinUserStatus;
     private boolean leaderCheck;
     private double roomScore;
+    private String totalJmName;
+    private String examgb; // 기사, 산업기사 
     private int userId;
     private String userNickName;
     private Date createdAt;

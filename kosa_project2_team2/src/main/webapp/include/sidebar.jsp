@@ -151,7 +151,7 @@
       </a>
     </li>
 
-	<c:if test="${not empty sessionScope.currentRoomId}">
+	<c:if test="${not empty sessionScope.currentRoomId and not empty sessionScope.LOGIN_USER.user_id}">
 	    <li class="snav-item ${current eq 'posts' ? 'is-active' : ''}">
 	        <a href="<c:url value='/roomboardlist.room'>
 	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
@@ -163,7 +163,9 @@
 	</c:if>
 
     <li class="snav-item ${current eq 'calendar' ? 'is-active' : ''}">
-      <a href="<c:url value='/roomboard.room'/>" class="snav-link" aria-label="캘린더">
+      <a href="<c:url value='/roomcalender.room'>
+	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
+	        </c:url>" class="snav-link" aria-label="캘린">
         <i class="fa-regular fa-calendar-days"></i>
         <span class="label">캘린더</span>
       </a>
@@ -180,7 +182,7 @@
 	    </li>
 	</c:if>
 
-   <%-- <c:if test="${sessionScope.leaderCheck}"> --%>
+   <c:if test="${sessionScope.leaderCheck}">
 		<li class="snav-item ${current eq 'admin' ? 'is-active' : ''} has-submenu">
 		     <a href="<c:url value='/roomboardadmin.room'>
 	            <c:param name='roomId' value='${sessionScope.currentRoomId}'/>
@@ -211,11 +213,11 @@
 		</li>
 		
 		<li class="submenu-item ${current eq 'admin' ? 'show' : ''}" data-parent="admin">
-		    <a href="#" class="snav-link submenu-link" onclick="deleteRoom(${sessionScope.currentRoomId})">
+		    <a href="#" class="snav-link submenu-link" onclick="deleteRoom(${sessionScope.currentRoomId}, ${sessionScope.LOGIN_USER.user_id})">
 		        <i class="fa-solid fa-trash"></i>
 		        <span class="label">방 삭제</span>
 		    </a>
 		</li>
-	<%-- </c:if> --%>
+	</c:if>
   </ul>
 </nav>

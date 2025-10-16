@@ -14,6 +14,7 @@ import kr.or.kosa.service.admin.AdminNoticeInsertService;
 import kr.or.kosa.service.admin.AdminNoticeService;
 import kr.or.kosa.service.admin.AdminNoticeUpdateService;
 import kr.or.kosa.service.admin.AdminNoticeWriteService;
+import kr.or.kosa.service.admin.AdminStatAjaxService;
 
 @WebServlet("*.admin")
 public class AdminController extends HttpServlet {
@@ -34,14 +35,17 @@ public class AdminController extends HttpServlet {
 
 		ActionForward forward = null;
 
-		if (command.equals("/adminMember.admin")) { // 관리자회원관리페이지 
+		if (command.equals("/adminMember.admin")) { // 관리자회원관리페이지 (ajax)
 			forward = new ActionForward();
 			forward.setRedirect(false);
 			forward.setPath(USER_VIEW_PATH + "adminMember.jsp");
-		} else if (command.equals("/adminStat.admin")) { // 관리자통계보드페이지
+		} else if (command.equals("/adminStat.admin")) { // 관리자통계보드페이지 (ajax)
 			forward = new ActionForward();
 			forward.setRedirect(false);
 			forward.setPath(USER_VIEW_PATH + "adminStat.jsp");
+		} else if (command.equals("/AdminStatAjax")) {
+			Action action = new AdminStatAjaxService();
+		    forward = action.execute(request, response);
 		} else if (command.equals("/adminNotice.admin")) { // 관리자공지사항페이지
    			    Action action = new AdminNoticeService();
      			forward = action.execute(request, response);
@@ -57,7 +61,7 @@ public class AdminController extends HttpServlet {
 		} else if (command.equals("/adminNoticeUpdate.admin")) {
 		    Action action = new AdminNoticeUpdateService();
 		    forward = action.execute(request, response);
-		}else {
+		} else {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 			return;
 		}
