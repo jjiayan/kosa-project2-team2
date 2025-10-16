@@ -59,10 +59,12 @@
 .reply-item.child-reply { margin-left: 52px; background: #ffffff; padding-left: 20px; }
 .reply-item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; position: relative; }
 .reply-author { display: flex; align-items: flex-start; gap: 12px; flex: 1; }
-.profile-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.profile-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; cursor: pointer; transition: transform 0.2s; }
+.profile-img:hover { transform: scale(1.05); }
 .reply-main-content { flex: 1; min-width: 0; }
 .author-info { display: flex; align-items: center; gap: 6px; margin-bottom: 0px; margin-top: 2px; }
-.author-name { font-weight: 700;  font-size: 14px; color: #333; }
+.author-name { font-weight: 700;  font-size: 14px; color: #333; cursor: pointer; text-decoration: none; transition: color 0.2s; }
+.author-name:hover { color: #ff5a5f; }
 .my-comment-badge { background: #ff5a5f; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: 600; margin-left: 4px; }
 .reply-target { color: #ff5a5f; font-weight: 700; margin-right: 4px; }
 .reply-content { margin: 0px 0 0px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: #333; font-size: 14px; }
@@ -90,7 +92,7 @@
 /* ===== 게시글 좋아요한 사용자 리스트 ===== */
 .like-list-container { padding: 20px 24px; background: white; }
 .like-users-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-.like-user-item { display: flex; align-items: center; gap: 12px; padding: 0; transition: all 0.2s; }
+.like-user-item { display: flex; align-items: center; gap: 12px; padding: 0; transition: all 0.2s; cursor: pointer; }
 .like-user-item:hover { transform: translateY(-2px); }
 .like-user-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid #f0f0f0; }
 .like-user-info { flex: 1; min-width: 0; }
@@ -229,6 +231,8 @@ var currentOrder = 'ASC';
 var currentTab = 'reply';
 // 현재 로그인한 사용자 ID (JSP에서 전달받음)
 var CURRENT_USER_ID = ${not empty sessionScope.LOGIN_USER ? sessionScope.LOGIN_USER.user_id : 'null'};
+// 현재 방 ID (JSP에서 전달받음)  
+var CURRENT_ROOM_ID = ${param.roomId != null ? param.roomId : (sessionScope.currentRoomId != null ? sessionScope.currentRoomId : 'null')};
 // 게시글 좋아요 상태 전역 변수
 var isPostLiked = false;
 // 좋아요 페이지네이션 변수들
@@ -247,6 +251,7 @@ var replyMap = {};
 jQuery(document).ready(function() {
     console.log('댓글 시스템 로드, ROOM_BOARD_ID:', ROOM_BOARD_ID);
     console.log('현재 사용자 ID:', CURRENT_USER_ID);
+    console.log('현재 방 ID:', CURRENT_ROOM_ID);
     loadReplyList();
     loadInitialLikeCount();
     loadPostLikeStatus();
@@ -316,7 +321,7 @@ function flattenReplyTree(replies) {
     console.log('평면화 완료. 총 댓글 수:', flattened.length);
     return flattened;
 }
-/* ==== 댓글 목록 로드 & 랜더링 (비동기 로드, 더보기, html 빌드) ==== */
+/* ==== 댓글 목록 로드 & 렌더링 (비동기 로드, 더보기, html 빌드) ==== */
 // 댓글 목록 불러오기 (서버에서 전체 댓글 가져오기)
 function loadReplyList() {
     jQuery.ajax({
@@ -423,8 +428,14 @@ function createReplyHtml(reply, isChild) {
         contextPath + reply.userPhoto : 
         contextPath + '/images/default-avatar.png';
     var defaultImgSrc = contextPath + '/images/default-avatar.png';
+    
+    // ★ 사용자 활동 페이지 URL 생성
+    var userActivityUrl = contextPath + '/room/useractivity.room?userId=' + reply.userId + '&roomId=' + CURRENT_ROOM_ID;
+    
     var profileImg = '<img src="' + profileImgSrc + '" alt="프로필" class="profile-img" ' +
+        'onclick="goToUserActivity(' + reply.userId + ')" ' +
         'onerror="this.onerror=null; this.src=\'' + defaultImgSrc + '\';">';
+    
     // 삭제된 원댓글만 "삭제된 댓글입니다" 표시
     if (reply.status === 'DELETED' && !isChild) {
         return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
@@ -487,13 +498,17 @@ function createReplyHtml(reply, isChild) {
     if (isChild && reply.parentReplyInfo && reply.parentReplyInfo.parentReplyId != null) {
         replyTargetNickname = '<span class="reply-target">@' + escapeHtml(reply.parentReplyInfo.userNickname) + '</span>';
     }
+    
+    // ★ 사용자 이름에 클릭 이벤트 추가
+    var authorName = '<a href="' + userActivityUrl + '" class="author-name">' + escapeHtml(reply.userNickname) + '</a>';
+    
     return '<div class="reply-item ' + childClass + '" data-reply-id="' + reply.replyId + '">' +
         '<div class="reply-item-header">' +
         '<div class="reply-author">' +
         profileImg +
         '<div class="reply-main-content">' +
         '<div class="author-info">' +
-        '<span class="author-name">' + escapeHtml(reply.userNickname) + '</span>' +
+        authorName +
         myCommentBadge +
         '</div>' +
         '<div class="reply-content" data-original="' + escapeHtml(reply.replyContent) + '">' +
@@ -505,6 +520,15 @@ function createReplyHtml(reply, isChild) {
 	    childForm +
 	    '</div>';  
 }
+
+// ★ 사용자 활동 페이지로 이동하는 함수
+function goToUserActivity(userId) {
+    if (userId && CURRENT_ROOM_ID) {
+        var url = '${pageContext.request.contextPath}/room/useractivity.room?userId=' + userId + '&roomId=' + CURRENT_ROOM_ID;
+        window.location.href = url;
+    }
+}
+
 /* ==== 공통 포맷 ==== */
 function escapeHtml(text) {
     if (!text) return '';
@@ -998,7 +1022,9 @@ function displayLikeList(likeUsers) {
         if (CURRENT_USER_ID && user.userId === CURRENT_USER_ID) {
             meBadge = '<span class="me-badge">나</span>';
         }
-        var userHtml = '<div class="like-user-item">' +
+        
+        // ★ 사용자 정보에 클릭 이벤트 추가
+        var userHtml = '<div class="like-user-item" onclick="goToUserActivity(' + user.userId + ')">' +
             '<img src="' + profileImgSrc + '" alt="프로필" class="like-user-avatar" ' +
             'onerror="this.src=\'' + contextPath + '/images/default-avatar.png\';">' +
             '<div class="like-user-info">' +
