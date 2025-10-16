@@ -255,6 +255,7 @@ tbody td:first-child{color:#FF7272;font-weight:700;text-align:left;padding-left:
 var certData = [];
 <c:forEach var="c" items="${certList}">
 certData.push({
+  jmcd: "<c:out value='${c.jmcd}'/>",
   jmName: "<c:out value='${c.jmName}'/>",
   grade: "<c:out value='${c.grade}'/>",
   field: "<c:out value='${c.field}'/>",
@@ -416,74 +417,88 @@ document.addEventListener("DOMContentLoaded", function () {
     pagination.appendChild(nextBtn);
   }
 
-  // 차트/통계
   function renderCharts(data) {
-    var safe = Array.isArray(data) ? data : [];
-    var total = safe.length;
-    var avgRate = total > 0 ? safe.reduce(function(sum, c){
-      return sum + avg((+c.docPassRate)||0, (+c.pracPassRate)||0);
-    }, 0) / total : 0;
-    var totalApplicants = safe.reduce(function(sum, c){
-      return sum + ((+c.docApplicants)||0) + ((+c.pracApplicants)||0);
-    }, 0);
+	    var safe = Array.isArray(data) ? data : [];
 
-    document.getElementById("totalCount").textContent = total;
-    document.getElementById("avgRate").innerHTML = (avgRate || 0).toFixed(1) + '<span class="stat-suffix">%</span>';
-    document.getElementById("totalApplicants").textContent = (totalApplicants||0).toLocaleString();
+	    // 통계 카드 업데이트
+	    var total = safe.length;
+	    var avgRate = total > 0 ? safe.reduce((sum, c) => sum + ((+c.docPassRate||0 + +c.pracPassRate||0)/2), 0) / total : 0;
+	    var totalApplicants = safe.reduce((sum, c) => sum + ((+c.docApplicants||0) + (+c.pracApplicants||0)), 0);
 
-    if (gradePieChart) gradePieChart.destroy();
-    if (categoryBarChart) categoryBarChart.destroy();
+	    document.getElementById("totalCount").textContent = total;
+	    document.getElementById("avgRate").innerHTML = (avgRate || 0).toFixed(1) + '<span class="stat-suffix">%</span>';
+	    document.getElementById("totalApplicants").textContent = totalApplicants.toLocaleString();
 
-    var gradeCounts = {};
-    safe.forEach(function(c){ var g = c.grade || "기타"; gradeCounts[g] = (gradeCounts[g] || 0) + 1; });
-    var grades = Object.keys(gradeCounts);
-    var gradeValues = Object.values(gradeCounts);
-    var gradeColors = ["#FFD66B","#FF9F68","#FF7272","#B28DFF","#AEE8D7","#8EC5FF"];
+	    // 기존 차트 제거
+	    if (gradePieChart) gradePieChart.destroy();
+	    if (categoryBarChart) categoryBarChart.destroy();
 
-    var pieCtx = document.getElementById("gradePie");
-    if (pieCtx && grades.length > 0) {
-      gradePieChart = new Chart(pieCtx, {
-        type: "doughnut",
-        data: { labels: grades, datasets: [{ data: gradeValues, backgroundColor: gradeColors, borderWidth: 2, borderColor: '#fff' }]},
-        options: {
-          plugins: {
-            legend: { position: "right", labels: { padding: 15, font: { size: 13 } } },
-            tooltip: { callbacks: { label: function(ctx){ return ctx.label + ': ' + ctx.parsed + ' 종목'; } } }
-          },
-          cutout: "65%"
-        }
-      });
-    }
+	    // === 등급별 파이 차트 ===
+	    var gradeCounts = {};
+	    safe.forEach(c => { var g = c.grade || "기타"; gradeCounts[g] = (gradeCounts[g]||0)+1; });
+	    var grades = Object.keys(gradeCounts);
+	    var gradeValues = Object.values(gradeCounts);
+	    var gradeColors = ["#FFD66B","#FF9F68","#FF7272","#B28DFF","#AEE8D7","#8EC5FF"];
 
-    var fieldMap = {};
-    safe.forEach(function(c){
-      var key = c.field || "기타";
-      if (!fieldMap[key]) fieldMap[key] = [];
-      fieldMap[key].push(avg((+c.docPassRate)||0, (+c.pracPassRate)||0));
-    });
-    var fields = Object.keys(fieldMap);
-    var fieldAvg = fields.map(function(f){
-      var arr = fieldMap[f]; return (arr.reduce(function(a,b){return a+b;},0) / arr.length) || 0;
-    });
+	    var pieCtx = document.getElementById("gradePie");
+	    if (pieCtx && grades.length > 0) {
+	        gradePieChart = new Chart(pieCtx, {
+	            type: "doughnut",
+	            data: { labels: grades, datasets:[{ data: gradeValues, backgroundColor: gradeColors, borderWidth:2, borderColor:'#fff' }]},
+	            options: {
+	                plugins: {
+	                    legend: { position:"right", labels:{padding:15, font:{size:13}} },
+	                    tooltip: { callbacks:{ label: ctx => ctx.label + ': ' + ctx.parsed + ' 종목' } }
+	                },
+	                cutout: "65%"
+	            }
+	        });
+	    }
 
-    var barCtx = document.getElementById("categoryBar");
-    if (barCtx && fields.length > 0) {
-      categoryBarChart = new Chart(barCtx, {
-        type: "bar",
-        data: {
-          labels: fields,
-          datasets: [{ label: "평균 합격률(%)", data: fieldAvg, backgroundColor:"rgba(255,114,114,0.85)", borderRadius: 8, borderWidth: 0 }]
-        },
-        options: {
-          plugins: { legend: { display: false }},
-          scales: {
-            y: { beginAtZero: true, max: 100, grid: { color: '#f0f0f0' } },
-            x: { ticks: { font: { size: 12 } }, grid: { display: false } }
-          }
-        }
-      });
-    }
-  }
+	    // === 분야별 평균 합격률 Bar 차트 ===
+	    var officialFields = ["IT","전기전자","건설기계","안전소방","데이터AI","보안네트워크","사무회계","전문직","의료보건","기타"];
+	    var fieldMap = {};
+	    officialFields.forEach(f => fieldMap[f] = []); // 데이터 없어도 0으로 초기화
+
+	    safe.forEach(c => {
+	        var key = (c.field || "기타").trim();
+	        if (!fieldMap[key]) fieldMap[key] = [];
+	        fieldMap[key].push(((+c.docPassRate||0 + +c.pracPassRate||0)/2));
+	    });
+
+	    var fieldAvg = officialFields.map(f => {
+	        var arr = fieldMap[f];
+	        return arr.length > 0 ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+	    });
+
+	    var barCtx = document.getElementById("categoryBar");
+	    if (barCtx && officialFields.length > 0) {
+	        categoryBarChart = new Chart(barCtx, {
+	            type: "bar",
+	            data: {
+	                labels: officialFields,
+	                datasets:[{
+	                    label: "평균 합격률(%)",
+	                    data: fieldAvg,
+	                    backgroundColor:"rgba(255,114,114,0.85)",
+	                    borderRadius: 8,
+	                    borderWidth: 0
+	                }]
+	            },
+	            options: {
+	                plugins: { legend:{ display:false } },
+	                scales: {
+	                    y: { beginAtZero:true, max:100, grid:{color:'#f0f0f0'} },
+	                    x: { ticks:{ font:{ size:12 } }, grid:{ display:false } }
+	                }
+	            }
+	        });
+	    }
+
+	    console.log("FieldMap:", fieldMap); // 확인용
+	}
+
+
 
   // 유틸
   function avg(a,b){ return (a+b)/2; }
