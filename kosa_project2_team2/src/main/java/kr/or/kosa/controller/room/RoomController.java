@@ -17,10 +17,13 @@ import kr.or.kosa.service.room.RoomBoardInsertService;
 import kr.or.kosa.service.room.RoomBoardListService;
 import kr.or.kosa.service.room.RoomBoardUpdateFormService;
 import kr.or.kosa.service.room.RoomBoardUpdateService;
+import kr.or.kosa.service.room.RoomCalenderService;
 import kr.or.kosa.service.room.RoomDetailService;
 import kr.or.kosa.service.room.RoomInsertService;
 import kr.or.kosa.service.room.RoomListService;
 import kr.or.kosa.service.room.RoomMemberManageService;
+import kr.or.kosa.service.room.RoomUpdateFormService;
+import kr.or.kosa.service.room.RoomUpdateService;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
 import java.io.IOException;
@@ -61,7 +64,6 @@ public class RoomController extends HttpServlet {
     	}else if(urlCommand.equals("/insert.room")) {
     		action = new RoomInsertService(); 
     		forward = action.execute(request, response);
-    		
     	}else if(urlCommand.equals("/roomlist.room")) {
     		action = new RoomListService();
     		forward = action.execute(request, response);
@@ -95,9 +97,18 @@ public class RoomController extends HttpServlet {
     	}else if(urlCommand.equals("/roommembermanageform.room")) {
     		action = new RoomMemberManageService();
     		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomupdateform.room")) {
+    		action = new RoomUpdateFormService();
+    		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomupdate.room")) {
+    		action = new RoomUpdateService();
+    		forward = action.execute(request, response);
+    	}else if(urlCommand.equals("/roomcalender.room")) {
+    		System.out.println("캘린더 들어오니?");
+    		action = new RoomCalenderService();
+    		forward = action.execute(request, response);
     	}
     	
-
     	if(forward != null) {
     		if (forward.isRedirect()) {
                 // redirect (주소창 변경, 새 요청)

@@ -156,6 +156,27 @@
     	
     })
   }
+
+  function deleteRoom(roomId, userId){
+	  if(!confirm('이 모임에 삭제하시겠습니까?')) return;
+	  $.ajax({
+	    	url: "/roomdelete.roomajax",
+	    	data: {
+	    		userId: userId,
+	    		roomId: roomId
+	    	},
+	    	success: function(res){
+	            console.log(res);
+	            alert('모입방 삭제가 완료되었습니다.');
+	            window.location.href = "/roomlist.room";
+	        },
+	        error: function(e){
+	        	console.log(e)
+	            alert('모임방 삭제 중 오류가 발생했습니다.');
+	        }
+	    	
+	    })
+  }
   
   //===== 스터디 좋아요 =====
   //===== 좋아요 UI 헬퍼 =====
