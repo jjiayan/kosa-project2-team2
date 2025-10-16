@@ -189,7 +189,7 @@
         <aside class="card side-card" aria-labelledby="posts-title">
           <div class="head" id="posts-title">내가 쓴 글</div>
           <div id="myPostsArea"><div class="empty">로딩 중...</div></div>
-          <div class="side-more"><a href="${ctx}/boards/mine">내가 쓴 글 보러가기 »</a></div>
+          <div class="side-more"><a href="${ctx}/mypage/myPosts.user">내가 쓴 글 보러가기 »</a></div>
         </aside>
       </div>
     </div>
