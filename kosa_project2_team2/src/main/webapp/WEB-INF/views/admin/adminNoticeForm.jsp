@@ -132,28 +132,6 @@ header.nav-root * {
 	background-color: #E85A5A;
 	box-shadow: 0 3px 8px rgba(255, 114, 114, 0.25);
 }
-
-/* ===== 반응형 ===== */
-@media ( max-width : 900px) {
-	.layout-wrap {
-		grid-template-columns: 1fr;
-	}
-	main {
-		border-left: none;
-		border-top: 1px solid #e5e7eb;
-		padding: 16px;
-	}
-	.notice-container {
-		padding: 20px;
-	}
-	.bottom-buttons {
-		flex-direction: column;
-		gap: 10px;
-	}
-	.btn-cancel, .btn-submit {
-		width: 100%;
-	}
-}
 </style>
 </head>
 

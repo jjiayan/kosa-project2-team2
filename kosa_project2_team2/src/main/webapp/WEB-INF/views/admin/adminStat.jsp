@@ -153,6 +153,7 @@ header.nav-root * {
 	gap: 20px;           
 	margin-bottom: 10px; 
 	font-weight: 600;
+	flex-wrap: wrap; /* ✅ 반응형 추가 */
 }
 
 .rank-left {
@@ -175,7 +176,7 @@ header.nav-root * {
 }
 
 .rank-title {
-	font-size: 18px;
+	font-size: 15px;
 	color: #333;
 	min-width: 120px;
 	white-space: nowrap;
@@ -217,15 +218,54 @@ main {
 	padding: 24px 28px;
 	min-height: 100vh;
 }
+/* ✅ main 부분 반응형 */
+@media (max-width: 1200px) {
+	main {
+		padding: 20px;
+	}
+	.stat-container {
+		padding: 30px 35px;
+	}
+	.stat-cards {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
 
-@media (max-width: 900px) {
-	.layout-wrap {
+@media (max-width: 992px) {
+	main {
+		padding: 18px;
+	}
+	.stat-container {
+		padding: 25px 28px;
+	}
+	.stat-cards {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	.charts {
 		grid-template-columns: 1fr;
 	}
+}
+
+@media (max-width: 768px) {
 	main {
-		border-left: none;
-		border-top: 1px solid #e5e7eb;
 		padding: 16px;
+		border-top: 1px solid #e5e7eb;
+	}
+	.stat-container {
+		padding: 20px;
+	}
+	.stat-cards {
+		grid-template-columns: 1fr;
+	}
+	.page-header h1 {
+		font-size: 26px;
+	}
+	.chart-box {
+		padding: 15px;
+	}
+	.rank-left {
+		gap: 20px;
+		min-width: auto;
 	}
 }
 </style>
@@ -386,7 +426,5 @@ $(document).ready(function() {
 	$("#refreshBtn").on("click", loadDashboardData);
 });
 </script>
-
-
 </body>
 </html>
