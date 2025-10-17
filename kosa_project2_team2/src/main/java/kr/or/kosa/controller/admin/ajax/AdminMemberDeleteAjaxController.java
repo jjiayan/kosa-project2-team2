@@ -41,7 +41,7 @@ public class AdminMemberDeleteAjaxController extends HttpServlet {
             String userIdParam = request.getParameter("user_id");
             if (userIdParam == null || userIdParam.isBlank()) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                response.getWriter().write("{\"error\": \"user_id가 누락되었습니다.\"}");
+                response.getWriter().write("{\"error\": \"삭제할 회원 ID가 전달되지 않았습니다.\"}");
                 return;
             }
 
