@@ -28,6 +28,8 @@ public class AuthFilter implements Filter {
         // web.xml에서 설정한 초기 파라미터나, DB에서 페이지별 권한 정보를 가져와 설정
         // 예시: /adminPage.jsp는 관리자 권한 필요, /userPage.jsp는 "user" 권한 필요
         pageRoles.put("/adminMember.admin", "ADMIN");
+        pageRoles.put("/roomboardlist.room", "ACTIVE,ADMIN");
+        
     }
 
     @Override
