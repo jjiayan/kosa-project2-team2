@@ -89,7 +89,7 @@ public class RoomDao {
 		
 	}
 	
-	public PageResult<RoomDto> getRoomsBySearch(SearchCondition searchCondition){
+	public PageResult<RoomDto> getRoomsBySearch(SearchCondition searchCondition, int userId){
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -120,10 +120,9 @@ public class RoomDao {
 	        sql.append("JOIN CERTIFICATION_MASTER cm ON cm.JMCD = ro.JMCD ");
 	        sql.append("  AND cm.YEAR = ro.YEAR ");
 	        sql.append("  AND cm.IMPLSEQ = ro.IMPLSEQ ");
-	       //유저가 있다면 없다면 체크하는거 추가 해야한다.
-	        sql.append("LEFT JOIN LIKE_ROOM lr ON lr.ROOM_ID = ro.ROOM_ID AND lr.USER_ID = ?");
+	        sql.append("LEFT JOIN LIKE_ROOM lr ON lr.ROOM_ID = ro.ROOM_ID AND lr.USER_ID = ? ");
 	        sql.append("WHERE 1=1 ");
-	        sql.append("AND is_deleted = 'N' ");
+	        sql.append("AND ro.is_deleted = 'N' ");
 	        // 서울시 이런식으로 있다면
 	        if (searchCondition.getSi() != null && !searchCondition.getSi().isEmpty()) {
 	            sql.append("AND r2.REGION_ID = ? ");
@@ -141,7 +140,7 @@ public class RoomDao {
 			pstmt = conn.prepareStatement(sql.toString());
 			
 			int paramIndex = 1;
-			pstmt.setInt(paramIndex++, 1); // 이거는 유저아이디가 들어간다.
+			pstmt.setInt(paramIndex++, userId); // 이거는 유저아이디가 들어간다.
 			
 			if (searchCondition.getSi() != null && !searchCondition.getSi().isEmpty()) {
 	            pstmt.setInt(paramIndex++, Integer.parseInt(searchCondition.getSi()));
@@ -166,6 +165,7 @@ public class RoomDao {
 	        
 	        pageResult.setTotalCount(totalCount);
 	        int totalPages = (int) Math.ceil((double) totalCount / searchCondition.getSize());
+	        
 	        pageResult.setTotalPages(totalPages);
 	        
 
@@ -362,12 +362,14 @@ public class RoomDao {
 			sqlBuilder.append("FROM ROOM_SCORE rs WHERE rs.room_id = ro.room_id) AS room_score, ");
 			sqlBuilder.append("NVL(jr2.ROOM_TIER, 'NOT_JOINED') AS join_status, ");
 			sqlBuilder.append("CASE WHEN lr.USER_ID IS NOT NULL THEN 1 ELSE 0 END AS is_liked, ");
-			sqlBuilder.append("CASE WHEN u.USER_ID = ? THEN 1 ELSE 0 END AS leader_check ");			
+			sqlBuilder.append("CASE WHEN u.USER_ID = ? THEN 1 ELSE 0 END AS leader_check, ");
+			sqlBuilder.append("CASE WHEN rs.USER_ID = ? THEN 1 ELSE 0 END AS is_score_check ");
 			sqlBuilder.append("FROM room ro ");
 			sqlBuilder.append("JOIN JOIN_ROOM jr ON jr.room_id = ro.room_id ");
 			sqlBuilder.append("JOIN \"USER\" u ON u.user_id = jr.user_id ");
 			sqlBuilder.append("LEFT JOIN LIKE_ROOM lr ON lr.ROOM_ID = ro.ROOM_ID AND lr.USER_ID = ? ");
 			sqlBuilder.append("LEFT JOIN JOIN_ROOM jr2 ON jr2.USER_ID = ? AND jr2.ROOM_ID = ? ");
+			sqlBuilder.append("LEFT JOIN ROOM_SCORE rs ON rs.USER_ID = ? AND rs.ROOM_ID = ? ");
 			sqlBuilder.append("WHERE ro.room_id = ? AND jr.room_tier = 'LEADER'");
 			
 		try {
@@ -376,8 +378,12 @@ public class RoomDao {
 			pstmt.setInt(1, userId); // 현재 접속 유저 아이디
 			pstmt.setInt(2, userId); // 현재 접속 유저 아이디
 			pstmt.setInt(3, userId);
-			pstmt.setInt(4, roomId);
-			pstmt.setInt(5, roomId);
+			pstmt.setInt(4, userId);
+			pstmt.setInt(5, roomId); // 현재 접속 유저 아이디
+			pstmt.setInt(6, userId);
+			pstmt.setInt(7, roomId);
+			pstmt.setInt(8, roomId);
+			
 			
 			rs = pstmt.executeQuery();
 			while(rs.next()) {
@@ -391,9 +397,11 @@ public class RoomDao {
 				        .joinUserStatus(rs.getString("join_status"))
 				        .roomScore(rs.getDouble("room_score"))
 				        .isLiked(rs.getInt("is_liked") == 1)
+				        .isScore(rs.getInt("is_score_check") != 1)
 				        .leaderCheck(rs.getInt("leader_check") == 1)
 						.build();
 			}
+			System.out.println("??? 룸디테일 ==>> " + roomDetail);
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -539,10 +547,11 @@ public class RoomDao {
 	}
 	
 	// 룸보드 게시판 검색
-	public List<RoomBoardDto> getRoomBoardBySearch(SearchCondition searchCondition, int roomId, String roomBoardType) {
+	public PageResult<RoomBoardDto> getRoomBoardBySearch(SearchCondition searchCondition, int roomId, String roomBoardType) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
+		PageResult<RoomBoardDto> pageResult = new PageResult<>();
 		List<RoomBoardDto> roomBoardList = new ArrayList<>();
 		
 		StringBuilder sqlBuilder = new StringBuilder();
@@ -596,6 +605,14 @@ public class RoomDao {
 			
 				roomBoardList.add(roomBoard);
 			}
+			pageResult.setData(roomBoardList);
+			int totalCount = getRoomBoardCount(searchCondition, roomId, roomBoardType, conn);
+			int totalPages = (int) Math.ceil((double) totalCount / searchCondition.getSize());
+			pageResult.setTotalCount(totalCount);
+			pageResult.setCurrentPage(searchCondition.getRoomBoardPage());
+			pageResult.setPageSize(searchCondition.getRoomBoardSize());
+			pageResult.setKeyword(searchCondition.getKeyword());
+			pageResult.setTotalPages(totalPages);
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -605,7 +622,47 @@ public class RoomDao {
 			ConnectionPoolHelper.close(pstmt);
 			ConnectionPoolHelper.close(conn);
 		}
-		return roomBoardList;
+		return pageResult;
+	}
+	
+	private int getRoomBoardCount(SearchCondition searchCondition, int roomId, String roomBoardType, Connection conn) {
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int toTalCount = 0;
+		StringBuilder sqlBuilder = new StringBuilder();
+		sqlBuilder.append("SELECT COUNT(*) AS total_count ")
+		    .append("FROM ROOM_BOARD rb ")
+		    .append("WHERE ROOM_BOARD_TYPE = ? ")
+		    .append("AND rb.ROOM_ID = ? ")
+		    .append("AND rb.IS_DELETED = 'N' ");
+
+		if (searchCondition.getKeyword() != null && !searchCondition.getKeyword().trim().isEmpty()) {
+		    sqlBuilder.append("AND rb.ROOM_BOARD_TITLE LIKE ? ");
+		}
+		
+		try {
+			pstmt = conn.prepareStatement(sqlBuilder.toString());
+			int paramIndex = 1;
+			pstmt.setString(paramIndex++, roomBoardType); // 예: "GENERAL"
+			pstmt.setInt(paramIndex++, roomId);
+
+			if (searchCondition.getKeyword() != null && !searchCondition.getKeyword().trim().isEmpty()) {
+			    pstmt.setString(paramIndex++, "%" + searchCondition.getKeyword() + "%");
+			}
+			rs = pstmt.executeQuery();
+			while(rs.next()) {
+				toTalCount = rs.getInt("total_count");
+			}
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("토탈 카운트 ==>> " + toTalCount);
+		
+		
+		
+		return toTalCount;
 	}
 	
 	public RoomBoardDto getRoomBoardDetail(int roomBoardId, int userId) {
@@ -785,15 +842,15 @@ public class RoomDao {
 	    sql.append("JOIN CERTIFICATION_MASTER cm ON cm.JMCD = ro.JMCD ");
 	    sql.append("  AND cm.YEAR = ro.YEAR ");
 	    sql.append("  AND cm.IMPLSEQ = ro.IMPLSEQ ");
-	    sql.append("WHERE 1=1 ");
+	    sql.append("WHERE 1=1 AND ro.is_deleted = 'N' ");
 	    
 	    if (searchCondition.getSi() != null && !searchCondition.getSi().isEmpty()) {
-	        sql.append("AND r2.REGION_NAME = ? ");
-	    }
-	    
-	    if (searchCondition.getSiGun() != null && !searchCondition.getSiGun().isEmpty()) {
-	        sql.append("AND r1.REGION_NAME = ? ");
-	    }
+            sql.append("AND r2.REGION_ID = ? ");
+        }
+        // ~구가 있다면
+        if (searchCondition.getSiGun() != null && !searchCondition.getSiGun().isEmpty()) {
+            sql.append("AND r1.REGION_ID = ? ");
+        }
 	    
 	    if (searchCondition.getKeyword() != null && !searchCondition.getKeyword().isEmpty()) {
 	        sql.append("AND ro.ROOM_TITLE LIKE ? ");
@@ -813,6 +870,9 @@ public class RoomDao {
 	        if (searchCondition.getKeyword() != null && !searchCondition.getKeyword().isEmpty()) {
 	            pstmt.setString(paramIndex++, "%" + searchCondition.getKeyword() + "%");
 	        }
+	        
+
+
 	        
 	        try (ResultSet rs = pstmt.executeQuery()) {
 	            if (rs.next()) {
@@ -1361,6 +1421,181 @@ public class RoomDao {
 	      return false;
 	    }
 	  }
+	  
+	  
+	  public int countMyReplies(long userId, String q) {
+	        StringBuilder sql = new StringBuilder();
+	        sql.append("SELECT COUNT(*) ")
+	           .append("  FROM REPLY r ")
+	           .append("  JOIN ROOM_BOARD rb ON rb.ROOM_BOARD_ID = r.ROOM_BOARD_ID ")
+	           .append("  JOIN ROOM ro       ON ro.ROOM_ID       = rb.ROOM_ID ")
+	           .append(" WHERE r.USER_ID=? AND r.STATUS='ACTIVE' ")
+	           .append("   AND rb.IS_DELETED='N' AND ro.IS_DELETED='N' ");
+	        if (q != null && !q.isBlank()) {
+	            sql.append(" AND (LOWER(rb.ROOM_BOARD_TITLE) LIKE LOWER(?) ")
+	               .append("   OR LOWER(ro.ROOM_TITLE)      LIKE LOWER(?) ")
+	               .append("   OR LOWER(r.REPLY_CONTENT)    LIKE LOWER(?)) ");
+	        }
+	        try (Connection conn = ConnectionPoolHelper.getConnection();
+	             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+	            int i=1;
+	            ps.setLong(i++, userId);
+	            if (q != null && !q.isBlank()) {
+	                String like = "%"+q+"%";
+	                ps.setString(i++, like);
+	                ps.setString(i++, like);
+	                ps.setString(i++, like);
+	            }
+	            try(ResultSet rs = ps.executeQuery()){
+	                if(rs.next()) return rs.getInt(1);
+	            }
+	        } catch(Exception e){ e.printStackTrace(); }
+	        return 0;
+	    }
+	  
+	  public List<kr.or.kosa.dto.user.MyReplyItem> findMyReplies(long userId, String q, String sort, int size, int page) {
+	        List<kr.or.kosa.dto.user.MyReplyItem> list = new ArrayList<>();
+	        String order = " r.REPLY_CREATED_AT DESC, r.REPLY_ID DESC ";
+	        if ("old".equalsIgnoreCase(sort)) order = " r.REPLY_CREATED_AT ASC, r.REPLY_ID ASC ";
+
+	        StringBuilder sql = new StringBuilder();
+	        sql.append("SELECT * FROM ( ")
+	           .append("  SELECT r.REPLY_ID, r.REPLY_CONTENT, ")
+	           .append("         TO_CHAR(r.REPLY_CREATED_AT,'YYYY.MM.DD') AS created_fmt, ")
+	           .append("         rb.ROOM_BOARD_ID, rb.ROOM_BOARD_TITLE, ")
+	           .append("         ro.ROOM_ID, ro.ROOM_TITLE ")
+	           .append("    FROM REPLY r ")
+	           .append("    JOIN ROOM_BOARD rb ON rb.ROOM_BOARD_ID = r.ROOM_BOARD_ID ")
+	           .append("    JOIN ROOM ro       ON ro.ROOM_ID       = rb.ROOM_ID ")
+	           .append("   WHERE r.USER_ID=? AND r.STATUS='ACTIVE' ")
+	           .append("     AND rb.IS_DELETED='N' AND ro.IS_DELETED='N' ");
+	        if (q != null && !q.isBlank()) {
+	            sql.append(" AND (LOWER(rb.ROOM_BOARD_TITLE) LIKE LOWER(?) ")
+	               .append("   OR LOWER(ro.ROOM_TITLE)      LIKE LOWER(?) ")
+	               .append("   OR LOWER(r.REPLY_CONTENT)    LIKE LOWER(?)) ");
+	        }
+	        sql.append("   ORDER BY ").append(order)
+	           .append(") OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+	        try (Connection conn = ConnectionPoolHelper.getConnection();
+	             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+	            int i=1;
+	            ps.setLong(i++, userId);
+	            if (q != null && !q.isBlank()) {
+	                String like = "%"+q+"%";
+	                ps.setString(i++, like);
+	                ps.setString(i++, like);
+	                ps.setString(i++, like);
+	            }
+	            ps.setInt(i++, (page-1)*size);
+	            ps.setInt(i++, size);
+
+	            try(ResultSet rs = ps.executeQuery()){
+	                while(rs.next()){
+	                    list.add(kr.or.kosa.dto.user.MyReplyItem.builder()
+	                        .replyId(rs.getLong("REPLY_ID"))
+	                        .content(rs.getString("REPLY_CONTENT"))
+	                        .createdAt(rs.getString("created_fmt"))
+	                        .boardId(rs.getLong("ROOM_BOARD_ID"))
+	                        .boardTitle(rs.getString("ROOM_BOARD_TITLE"))
+	                        .roomId(rs.getLong("ROOM_ID"))
+	                        .roomTitle(rs.getString("ROOM_TITLE"))
+	                        .build());
+	                }
+	            }
+	        } catch(Exception e){ e.printStackTrace(); }
+	        return list;
+	    }
+	  
+	  
+	  // 1) 총개수
+	    public int countMyPosts(long userId, String q) {
+	        StringBuilder sql = new StringBuilder();
+	        sql.append("SELECT COUNT(*) ")
+	           .append("  FROM ROOM_BOARD rb ")
+	           .append("  JOIN ROOM ro ON ro.ROOM_ID = rb.ROOM_ID ")
+	           .append("  JOIN CERTIFICATION_MASTER cm ")
+	           .append("    ON cm.JMCD = ro.JMCD AND cm.YEAR = ro.YEAR AND cm.IMPLSEQ = ro.IMPLSEQ ")
+	           .append(" WHERE rb.USER_ID = ? ")
+	           .append("   AND NVL(rb.IS_DELETED,'N')='N' ")
+	           .append("   AND NVL(ro.IS_DELETED,'N')='N' ");
+	        // ★ 제목만 검색
+	        if (q != null && !q.isBlank()) {
+	            sql.append(" AND LOWER(rb.ROOM_BOARD_TITLE) LIKE LOWER(?) ");
+	        }
+
+	        try (Connection conn = ConnectionPoolHelper.getConnection();
+	             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+	            int i = 1;
+	            ps.setLong(i++, userId);
+	            if (q != null && !q.isBlank()) {
+	                ps.setString(i++, "%" + q.trim() + "%");
+	            }
+	            try (ResultSet rs = ps.executeQuery()) {
+	                if (rs.next()) return rs.getInt(1);
+	            }
+	        } catch (Exception e) { e.printStackTrace(); }
+	        return 0;
+	    }
+
+	 // 2) 목록
+	    public List<kr.or.kosa.dto.user.MyPostSummaryDto> findMyPosts(
+	            long userId, String q, String sort, int size, int page) {
+
+	        List<kr.or.kosa.dto.user.MyPostSummaryDto> list = new ArrayList<>();
+	        String order = " rb.CREATED_AT DESC, rb.ROOM_BOARD_ID DESC ";
+	        if ("old".equalsIgnoreCase(sort)) order = " rb.CREATED_AT ASC, rb.ROOM_BOARD_ID ASC ";
+
+	        StringBuilder sql = new StringBuilder();
+	        sql.append("SELECT * FROM ( ")
+	           .append("  SELECT rb.ROOM_BOARD_ID AS board_id, ")
+	           .append("         rb.ROOM_BOARD_TITLE AS title, ")
+	           .append("         cm.JMNAME AS category, ")
+	           .append("         rb.ROOM_BOARD_VIEW_CNT AS view_cnt, ")
+	           .append("         TO_CHAR(rb.CREATED_AT,'YYYY.MM.DD') AS created_fmt, ")
+	           // ★ 테이블명이 LIKE_ROOM_BOARD 인 점 반영
+	           .append("         (SELECT COUNT(*) FROM LIKE_ROOM_BOARD l ")
+	           .append("           WHERE l.ROOM_BOARD_ID = rb.ROOM_BOARD_ID) AS like_cnt ")
+	           .append("    FROM ROOM_BOARD rb ")
+	           .append("    JOIN ROOM ro ON ro.ROOM_ID = rb.ROOM_ID ")
+	           .append("    JOIN CERTIFICATION_MASTER cm ")
+	           .append("      ON cm.JMCD=ro.JMCD AND cm.YEAR=ro.YEAR AND cm.IMPLSEQ=ro.IMPLSEQ ")
+	           .append("   WHERE rb.USER_ID=? ")
+	           .append("     AND NVL(rb.IS_DELETED,'N')='N' ")
+	           .append("     AND NVL(ro.IS_DELETED,'N')='N' ");
+	        // ★ 제목만 검색
+	        if (q != null && !q.isBlank()) {
+	            sql.append(" AND LOWER(rb.ROOM_BOARD_TITLE) LIKE LOWER(?) ");
+	        }
+	        sql.append("   ORDER BY ").append(order)
+	           .append(") OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+	        try (Connection conn = ConnectionPoolHelper.getConnection();
+	             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+	            int i=1;
+	            ps.setLong(i++, userId);
+	            if (q != null && !q.isBlank()) {
+	                ps.setString(i++, "%" + q.trim() + "%");
+	            }
+	            ps.setInt(i++, (page-1)*size);
+	            ps.setInt(i++, size);
+
+	            try (ResultSet rs = ps.executeQuery()) {
+	                while (rs.next()) {
+	                    list.add(kr.or.kosa.dto.user.MyPostSummaryDto.builder()
+	                        .boardId(rs.getLong("board_id"))
+	                        .boardTitle(rs.getString("title"))
+	                        .category(rs.getString("category"))   // cm.jmName
+	                        .likeCount(rs.getInt("like_cnt"))
+	                        .viewCount(rs.getInt("view_cnt"))
+	                        .createdAt(rs.getString("created_fmt"))
+	                        .build());
+	                }
+	            }
+	        } catch (Exception e) { e.printStackTrace(); }
+	        return list;
+	    }
+	  
 
 	  private static String nvl(String s, String d){ return (s==null)? d : s; }
 	  
@@ -1495,6 +1730,45 @@ public class RoomDao {
             ConnectionPoolHelper.close(pstmt);
             ConnectionPoolHelper.close(conn);
         }
+		 
+	  }
+	  public double startRating(int userId, int roomId, int rating) {
+		  Connection conn = null;
+		  PreparedStatement pstmt = null;
+		  PreparedStatement pstmt2 = null;
+		  ResultSet rs = null;
+		  int result = 0;
+		  double starRating = 0; 
+		  
+		  String sql1 = "INSERT INTO ROOM_SCORE (user_id, room_id, score) "
+		  		+ "VALUES (?, ?, ?)";
+		  
+		  
+		  try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sql1);
+			pstmt.setInt(1, userId);
+			pstmt.setInt(2, roomId);
+			pstmt.setInt(3, rating);
+			
+			result = pstmt.executeUpdate();
+			if(result > 0) {
+				String sql2 = "SELECT ROUND(AVG(score), 1) as avg FROM ROOM_SCORE rs "
+							+ "	WHERE rs.USER_ID = ? AND rs.ROOM_ID = ?";
+				pstmt2 = conn.prepareStatement(sql2);
+				pstmt2.setInt(1, userId);
+				pstmt2.setInt(2, roomId);
+				
+				rs = pstmt2.executeQuery();
+				while(rs.next()) {
+					starRating = rs.getDouble("avg");
+				}
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		  return starRating;
 		  
 	  }
 	  

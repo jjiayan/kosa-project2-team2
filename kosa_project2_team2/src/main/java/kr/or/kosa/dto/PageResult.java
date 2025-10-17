@@ -18,8 +18,6 @@ public class PageResult<T> {
     private String keyword;
     private String si;
     private String siGun;
-    
-    
 }
 
 

@@ -4,10 +4,10 @@ import java.util.List;
 
 import kr.or.kosa.dao.ApiCertificationDao;
 import kr.or.kosa.dao.CertificationDao;
-import kr.or.kosa.dto.CertificationMasterDto;
-import kr.or.kosa.dto.CertificationScheduleDto;
-import kr.or.kosa.dto.CertificationStatsDto;
-import kr.or.kosa.dto.CertificationSummaryDto;
+import kr.or.kosa.dto.certification.CertificationMasterDto;
+import kr.or.kosa.dto.certification.CertificationScheduleDto;
+import kr.or.kosa.dto.certification.CertificationStatsDto;
+import kr.or.kosa.dto.certification.CertificationSummaryDto;
 
 // 자격증 API 연동 및 DB 반영을 관리하는 서비스 클래스
 public class CertificationService {

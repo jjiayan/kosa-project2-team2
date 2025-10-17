@@ -45,6 +45,7 @@
   </jsp:include>
 
   <main>
+  <input type="hidden" id="roomId" name="roomId" value="${sessionScope.currentRoomId}">
     <div class="posts-container">
       <h1 class="page-title">스터디 게시글</h1>
 
@@ -56,8 +57,10 @@
           <div class="header-views">조회수</div>
         </div>
 
-        <c:forEach var="roomBoard" items="${roomBoardList}">
-          <div class="post-item" onclick="location.href='${ctx}/roomboarddetail.room?roomBoardId=${roomBoard.roomBoardId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=GENERAL'">
+        <!-- ✅ pageResult.data 로 변경 -->
+        <c:forEach var="roomBoard" items="${pageResult.data}">
+          <div class="post-item" 
+       		onclick="handlePostClick('${sessionScope.roomTier}', '${ctx}', '${roomBoard.roomBoardId}', '${sessionScope.LOGIN_USER.user_id}')">
             <div class="post-title-cell">
               ${roomBoard.roomBoardTitle}
               <c:if test="${roomBoard.replyCount > 0}"><span class="reply-count">[${roomBoard.replyCount}]</span></c:if>
@@ -72,22 +75,38 @@
       <div class="search-write-section">
         <div></div>
         <div class="search-container">
-          <input type="text" class="search-input" placeholder="제목으로 검색..." id="searchInput"/>
-          <button class="search-btn" onclick="searchPosts()">🔍</button>
+          <input 
+						  type="text" 
+						  class="search-input" 
+						  placeholder="제목으로 검색..." 
+						  id="searchInput"
+						  <c:if test="${not empty pageResult.keyword}">
+						      value="${pageResult.keyword}"
+						  </c:if>
+						>
+          <button class="search-btn" onclick="searchPosts(${sessionScope.currentRoomId})">🔍</button>
         </div>
-        <button class="write-btn" onclick="location.href='${ctx}/roomboardinsertform.room?roomId=${roomId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=GENERAL'">
-          게시글 쓰기
-        </button>
+        <c:if test="${sessionScope.roomTier == 'MEMBER' or sessionScope.roomTier == 'LEADER'}">
+		  <button class="write-btn" 
+		    onclick="location.href='${ctx}/roomboardinsertform.room?roomId=${roomId}&userId=${sessionScope.LOGIN_USER.user_id}&roomBoardType=GENERAL'">
+		    게시글 쓰기
+		  </button>
+		</c:if>
       </div>
 
+      <!-- ✅ pageResult 기반 페이지네이션 -->
       <div class="pagination">
-        <button class="page-btn nav">‹</button>
-        <button class="page-btn active">1</button>
-        <button class="page-btn">2</button>
-        <button class="page-btn">3</button>
-        <button class="page-btn">4</button>
-        <button class="page-btn">5</button>
-        <button class="page-btn nav">›</button>
+        <c:if test="${pageResult.currentPage > 1}">
+          <button class="page-btn" onclick="goToPage(${pageResult.currentPage - 1}, ${sessionScope.currentRoomId})">‹</button>
+        </c:if>
+
+        <c:forEach begin="1" end="${pageResult.totalPages}" var="i">
+          <button class="page-btn ${i == pageResult.currentPage ? 'active' : ''}" onclick="goToPage(${i}, ${sessionScope.currentRoomId})">${i}</button>
+        </c:forEach>
+
+        <c:if test="${pageResult.currentPage < pageResult.totalPages}">
+          <button class="page-btn" onclick="goToPage(${pageResult.currentPage + 1}, ${sessionScope.currentRoomId})">›</button>
+        </c:if>
       </div>
     </div>
   </main>
@@ -95,12 +114,29 @@
 
 <script>
   const ctx='${ctx}';
-  function searchPosts(){
+
+  function searchPosts(roomId){
     const q=document.getElementById('searchInput').value.trim();
+    console.log("asdasdadsdasd");
+    console.log("?"+roomId);
     if(!q) return;
-    // 필요시 검색 구현
+    location.href = ctx + "/roomboardlist.room?keyword=" + encodeURIComponent(q)+ "&roomId="+roomId;
   }
-  document.getElementById('searchInput').addEventListener('keypress', e=>{ if(e.key==='Enter') searchPosts() });
+
+  function goToPage(page, roomId){
+    const q=document.getElementById('searchInput').value.trim();
+    let url = ctx + "/roomboardlist.room?page=" + page + "&roomId="+roomId;
+    if(q) url += "&keyword=" + encodeURIComponent(q);
+    location.href = url;
+  }
+
+  function handlePostClick(roomTier, ctx, roomBoardId, userId) {
+    if (roomTier !== 'MEMBER' && roomTier !== 'LEADER') {
+      alert("모임에 가입해주세요.");
+      return;
+    }
+    location.href = ctx + "/roomboarddetail.room?roomBoardId=" + roomBoardId + "&userId=" + userId + "&roomBoardType=GENERAL";
+  }
 </script>
 </body>
 </html>

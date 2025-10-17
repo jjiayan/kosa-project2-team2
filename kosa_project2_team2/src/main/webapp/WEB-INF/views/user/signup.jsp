@@ -23,50 +23,31 @@
   .title{margin:12px 0 16px; text-align:center; font-size:44px; font-weight:900; color:#555;}
 
   .avatar-area{display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:16px;}
-  /* ▼ 회원가입 전용 아바타 (nav.jsp의 .avatar와 충돌 방지) */
   .signup-avatar{
     width:140px; height:140px; border-radius:999px; overflow:hidden; border:2px solid #111; background:#fff;
     display:flex; align-items:center; justify-content:center;
   }
   .signup-avatar img{width:100%; height:100%; object-fit:cover; display:block;}
   .avatar-actions{display:flex; gap:8px;}
-  .chip{
-    font-size:12px; padding:6px 10px; border-radius:10px; border:1.5px solid #111; background:#fff; cursor:pointer;
-  }
+  .chip{font-size:12px; padding:6px 10px; border-radius:10px; border:1.5px solid #111; background:#fff; cursor:pointer;}
 
-  .card{
-    background:#fff; border:2px solid #111; border-radius:20px; padding:24px 20px; box-shadow:0 8px 24px rgba(0,0,0,.06);
-  }
+  .card{background:#fff; border:2px solid #111; border-radius:20px; padding:24px 20px; box-shadow:0 8px 24px rgba(0,0,0,.06);}
 
   .field{margin:16px 8px;}
   .label{font-size:14px; color:#444; margin-bottom:6px;}
-  .input-row{
-    display:flex; align-items:center; gap:8px; border-bottom:2px solid #111; padding:10px 4px;
-  }
-  .input-row input, .input-row textarea{
-    flex:1; border:0; outline:none; font-size:15px; background:transparent; padding:6px 4px;
-  }
-  .input-row textarea{
-    border:2px solid #111; border-radius:10px; min-height:120px; padding:12px;
-  }
-  .btn-mini{
-    border:1.5px solid #111; background:#fff; border-radius:8px; padding:6px 10px; cursor:pointer; font-size:13px;
-  }
-  .btn-eye{
-    border:0; background:transparent; cursor:pointer; width:34px; height:34px; display:flex; align-items:center; justify-content:center; color:#666;
-  }
+  .input-row{display:flex; align-items:center; gap:8px; border-bottom:2px solid #111; padding:10px 4px;}
+  .input-row input, .input-row textarea{flex:1; border:0; outline:none; font-size:15px; background:transparent; padding:6px 4px;}
+  .input-row textarea{border:2px solid #111; border-radius:10px; min-height:120px; padding:12px;}
+  .btn-mini{border:1.5px solid #111; background:#fff; border-radius:8px; padding:6px 10px; cursor:pointer; font-size:13px;}
+  .btn-eye{border:0; background:transparent; cursor:pointer; width:34px; height:34px; display:flex; align-items:center; justify-content:center; color:#666;}
 
-  .badge{
-    margin-left:6px; font-size:11px; color:#fff; background:#ff6b6b; border-radius:999px; padding:3px 8px; display:inline-flex; align-items:center; gap:4px;
-  }
+  .badge{margin-left:6px; font-size:11px; color:#fff; background:#ff6b6b; border-radius:999px; padding:3px 8px; display:inline-flex; align-items:center; gap:4px;}
 
   .notes{margin:16px 10px; color:#ef4444; font-size:13px;}
   .notes li{margin:6px 0;}
 
   .actions{display:flex; gap:14px; margin-top:18px;}
-  .btn{
-    flex:1; height:52px; border-radius:12px; border:0; font-weight:800; cursor:pointer;
-  }
+  .btn{flex:1; height:52px; border-radius:12px; border:0; font-weight:800; cursor:pointer;}
   .btn-primary{background:var(--accent); color:#fff; box-shadow:0 8px 20px rgba(255,107,107,.35);}
   .btn-primary:hover{background:var(--accent-hover)}
   .btn-ghost{background:var(--disabled); color:#777;}
@@ -76,35 +57,41 @@
     .signup-avatar{width:120px; height:120px}
   }
   .badge.ok{ background:#16a34a; }
-  .age-select {
-  width: 100%;
-  border: 1.5px solid #111;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 15px;
-  background: #fff;
-  cursor: pointer;
-}
-.age-select:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-  
+  .age-select { width:100%; border:1.5px solid #111; border-radius:8px; padding:10px 12px; font-size:15px; background:#fff; cursor:pointer; }
+  .age-select:focus { outline:none; border-color:var(--accent); }
 </style>
 </head>
 <body>
 
 <jsp:include page="/include/nav.jsp" />
 
+<!-- 소셜 연동 여부 플래그 -->
+<c:set var="socialProvider" value="${sessionScope.PENDING_PROVIDER}" />
+<c:set var="socialAuthId"   value="${sessionScope.PENDING_AUTH_ID}" />
+<c:set var="isSocialJoin"   value="${not empty socialProvider and not empty socialAuthId}" />
+
 <div class="wrap">
   <div class="container">
-    <h1 class="title">회원가입</h1>
+    <h1 class="title">
+      회원가입
+      <c:if test="${isSocialJoin}">
+        <span style="font-size:14px; margin-left:8px; padding:4px 8px; border:1px solid #111; border-radius:999px;">
+          카카오 연동
+        </span>
+      </c:if>
+    </h1>
 
     <!-- ✅ form 시작 -->
     <form class="card" action="${pageContext.request.contextPath}/signupOk.user"
           method="post" enctype="multipart/form-data" autocomplete="on">
 
-      <!-- ✅ 아바타 -->
+      <!-- ✅ 소셜가입이면 provider/authId 숨김 전달 -->
+      <c:if test="${isSocialJoin}">
+        <input type="hidden" name="provider" value="${socialProvider}" />
+        <input type="hidden" name="authId"   value="${socialAuthId}" />
+      </c:if>
+
+      <!-- 아바타 -->
       <div class="avatar-area">
         <div class="signup-avatar">
           <img id="avatarImg" src="${pageContext.request.contextPath}/images/default-avatar.png" alt="프로필 이미지" />
@@ -112,7 +99,6 @@
         <div class="avatar-actions">
           <button type="button" class="chip" onclick="setDefaultAvatar()">기본 이미지</button>
           <button type="button" class="chip" onclick="document.getElementById('avatarFile').click()">이미지 추가</button>
-          <!-- ✅ form 내부로 이동 -->
           <input type="file" id="avatarFile" name="avatarFile" accept="image/*" style="display:none" />
         </div>
       </div>
@@ -161,34 +147,31 @@
       <div class="field">
         <div class="label">닉네임</div>
         <div class="input-row">
-          <input type="text" name="nickname" id="nickname" placeholder="닉네임"  required />
+          <input type="text" name="nickname" id="nickname" placeholder="닉네임" required />
           <button type="button" class="btn-mini" onclick="checkNickname()">확인</button>
         </div>
       </div>
-      
-      <!-- 나이 -->
-	<!-- 나이 -->
-<div class="field">
-  <div class="label">나이</div>
-  <div class="input-row" style="border-bottom:none;">
-    <select name="ageGroup" id="ageGroup" class="age-select" required>
-      <option value="" disabled selected>나이대 선택</option>
-      <option value="10">10대</option>
-      <option value="20">20대</option>
-      <option value="30">30대</option>
-      <option value="40">40대</option>
-      <option value="50">50대</option>
-    </select>
-  </div>
-</div>
 
-      
+      <!-- 나이 -->
+      <div class="field">
+        <div class="label">나이</div>
+        <div class="input-row" style="border-bottom:none;">
+          <select name="ageGroup" id="ageGroup" class="age-select" required>
+            <option value="" disabled selected>나이대 선택</option>
+            <option value="10">10대</option>
+            <option value="20">20대</option>
+            <option value="30">30대</option>
+            <option value="40">40대</option>
+            <option value="50">50대</option>
+          </select>
+        </div>
+      </div>
 
       <!-- 자기소개 -->
       <div class="field">
         <div class="label">자기소개</div>
         <div class="input-row" style="border-bottom:none; padding:0;">
-          <textarea name="bio" id="bio" placeholder="간단한 자기소개를 입력해 주세요." required ></textarea>
+          <textarea name="bio" id="bio" placeholder="간단한 자기소개를 입력해 주세요." required></textarea>
         </div>
       </div>
 
@@ -258,7 +241,7 @@
     if (curDigits !== lastChecked.phone) isPhoneOk=false;
   }
 
-  // ===== 아이디/닉네임 입력 변경 시 플래그 무효화 =====
+  // ===== 입력 변경 시 플래그 무효화 =====
   $("#userId").on("input", function(){ if(nz(this.value)!==lastChecked.id) isIdOk=false; });
   $("#nickname").on("input", function(){ if(nz(this.value)!==lastChecked.nick) isNickOk=false; });
 
@@ -327,10 +310,6 @@
       })
       .fail(()=>alert("서버 통신 오류가 발생했습니다."));
   }
-
-  // export
-  window.checkId=checkId; window.checkNickname=checkNickname; window.checkPhone=checkPhone;
-  window.setDefaultAvatar=setDefaultAvatar; window.togglePw=togglePw;
 
   // 제출 가드
   $("form.card").on("submit", function(e){

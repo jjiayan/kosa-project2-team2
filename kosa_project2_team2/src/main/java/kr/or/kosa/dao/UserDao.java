@@ -1,21 +1,19 @@
 package kr.or.kosa.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Types;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import kr.or.kosa.dto.RoomBoardDto;
 import kr.or.kosa.dto.UserDto;
 import kr.or.kosa.dto.user.MyBoardItemDto;
 import kr.or.kosa.utils.ConnectionPoolHelper;
 
 public class UserDao {
 
-    /** 회원가입: CREATED_AT은 SYSDATE로 명시 입력 */
-    public int insertUser(UserDto user) throws Exception {
+    /* ===== 가입 INSERT 분리 ===== */
+
+    /** 일반가입: auth 컬럼 없이 INSERT */
+    public int insertLocalUser(UserDto user) throws Exception {
         String sql =
             "INSERT INTO \"USER\" (" +
             "  user_login_id, user_pw, user_status, user_nickname, " +
@@ -24,25 +22,67 @@ public class UserDao {
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, user.getUser_login_id());
-            pstmt.setString(2, user.getUser_pw());
+            pstmt.setString(2, user.getUser_pw());        // not null (일반가입)
             pstmt.setString(3, user.getUser_status());
             pstmt.setString(4, user.getUser_nickname());
             pstmt.setString(5, user.getUser_bio());
             pstmt.setString(6, user.getUser_phonenumber());
             pstmt.setString(7, user.getUser_photo());
-            // age_group: null 허용 시 setNull 처리, 아니면 setInt
-            if (user.getAge_group() == 0) {
-                pstmt.setNull(8, Types.INTEGER);
-            } else {
-                pstmt.setInt(8, user.getAge_group());
-            }
+            if (user.getAge_group() == 0) pstmt.setNull(8, Types.INTEGER);
+            else pstmt.setInt(8, user.getAge_group());
             return pstmt.executeUpdate();
         }
     }
 
-    /** 아이디 중복 확인: DELETED 제외 */
+    /** 소셜가입: auth_provider, auth_id 포함 INSERT (비번 null 허용 가능) */
+    public int insertSocialUser(UserDto user) throws Exception {
+        String sql =
+            "INSERT INTO \"USER\" (" +
+            "  user_login_id, user_pw, user_status, user_nickname, " +
+            "  user_bio, user_phonenumber, user_photo, age_group, " +
+            "  auth_provider, auth_id, CREATED_AT" +
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, SYSDATE)";
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, user.getUser_login_id());
+            if (user.getUser_pw() == null || user.getUser_pw().isEmpty())
+                pstmt.setNull(2, Types.VARCHAR);
+            else
+                pstmt.setString(2, user.getUser_pw());
+            pstmt.setString(3, user.getUser_status());
+            pstmt.setString(4, user.getUser_nickname());
+            pstmt.setString(5, user.getUser_bio());
+            pstmt.setString(6, user.getUser_phonenumber());
+            pstmt.setString(7, user.getUser_photo());
+            if (user.getAge_group() == 0) pstmt.setNull(8, Types.INTEGER);
+            else pstmt.setInt(8, user.getAge_group());
+            pstmt.setString(9, user.getAuth_provider());  // "kakao"
+            pstmt.setString(10, user.getAuth_id());       // kakao user id
+            return pstmt.executeUpdate();
+        }
+    }
+
+    /** 소셜: (provider, authId)로 사용자 조회 */
+    public UserDto findByAuth(String provider, String authId) throws Exception {
+        String sql = "SELECT user_id, user_login_id, user_pw, user_status, " +
+                " user_nickname, user_bio, user_phonenumber, user_photo, " +
+                " age_group, CREATED_AT, auth_provider, auth_id " +
+                " FROM \"USER\" WHERE auth_provider = ? AND auth_id = ? AND user_status <> 'DELETED'";
+        try (Connection conn = ConnectionPoolHelper.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, provider);
+            ps.setString(2, authId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return mapUser(rs);
+            }
+        }
+        return null;
+    }
+
+    /* ====== 기존 메서드들 (DELETED 제외 조건 유지) ====== */
+
     public int findUserByLoginId(String loginId) {
-        String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_login_id = ? AND user_status <> 'DELETED'"; // ★ CHANGED
+        String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_login_id = ? AND user_status <> 'DELETED'";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, loginId);
@@ -53,9 +93,8 @@ public class UserDao {
         return 0;
     }
 
-    /** 닉네임 중복 확인: DELETED 제외 */
     public int findUserByNickName(String nickname) {
-        String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_nickname = ? AND user_status <> 'DELETED'"; // ★ CHANGED
+        String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_nickname = ? AND user_status <> 'DELETED'";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, nickname);
@@ -66,9 +105,8 @@ public class UserDao {
         return 0;
     }
 
-    /** 전화번호 중복 확인: DELETED 제외 */
     public int findUserByPhoneNumber(String phoneDigits) {
-        String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_phonenumber = ? AND user_status <> 'DELETED'"; // ★ CHANGED
+        String sql = "SELECT COUNT(*) FROM \"USER\" WHERE user_phonenumber = ? AND user_status <> 'DELETED'";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, phoneDigits);
@@ -79,9 +117,8 @@ public class UserDao {
         return 0;
     }
 
-    /** 휴대폰(숫자만)으로 로그인 ID 찾기: DELETED 제외 */
     public String findLoginIdByPhone(String phoneOnlyDigits) throws Exception {
-        String sql = "SELECT user_login_id FROM \"USER\" WHERE user_phonenumber = ? AND user_status <> 'DELETED'"; // ★ CHANGED
+        String sql = "SELECT user_login_id FROM \"USER\" WHERE user_phonenumber = ? AND user_status <> 'DELETED'";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, phoneOnlyDigits);
@@ -92,22 +129,18 @@ public class UserDao {
         return null;
     }
 
-    /** 아이디+휴대폰 매칭 여부: DELETED 제외 */
     public boolean existsByLoginIdAndPhone(String loginId, String phoneOnlyDigits) throws Exception {
-        String sql = "SELECT 1 FROM \"USER\" WHERE user_login_id = ? AND user_phonenumber = ? AND user_status <> 'DELETED'"; // ★ CHANGED
+        String sql = "SELECT 1 FROM \"USER\" WHERE user_login_id = ? AND user_phonenumber = ? AND user_status <> 'DELETED'";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, loginId);
             ps.setString(2, phoneOnlyDigits);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
         }
     }
 
-    /** 비밀번호 업데이트 (loginId 기준): DELETED 제외 */
     public int updatePasswordByLoginId(String loginId, String encPw) throws Exception {
-        String sql = "UPDATE \"USER\" SET user_pw = ? WHERE user_login_id = ? AND user_status <> 'DELETED'"; // ★ CHANGED
+        String sql = "UPDATE \"USER\" SET user_pw = ? WHERE user_login_id = ? AND user_status <> 'DELETED'";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, encPw);
@@ -116,13 +149,12 @@ public class UserDao {
         }
     }
 
-    /** 로그인용 (loginId 기준 상세 조회): DELETED 제외 */
     public UserDto findByLoginId(String loginId) throws Exception {
         String sql =
             "SELECT user_id, user_login_id, user_pw, user_status, " +
             "       user_nickname, user_bio, user_phonenumber, user_photo, " +
-            "       age_group, CREATED_AT " +
-            "FROM \"USER\" WHERE user_login_id = ? AND user_status <> 'DELETED'"; // ★ CHANGED
+            "       age_group, CREATED_AT, auth_provider, auth_id " +
+            "FROM \"USER\" WHERE user_login_id = ? AND user_status <> 'DELETED'";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, loginId);
@@ -133,13 +165,12 @@ public class UserDao {
         return null;
     }
 
-    /** PK로 상세 조회: DELETED 제외 (일반 서비스 관점) */
     public UserDto findById(int userId) throws Exception {
         String sql =
             "SELECT user_id, user_login_id, user_pw, user_status, " +
             "       user_nickname, user_bio, user_phonenumber, user_photo, " +
-            "       age_group, CREATED_AT " +
-            "FROM \"USER\" WHERE user_id = ? AND user_status <> 'DELETED'"; // ★ CHANGED
+            "       age_group, CREATED_AT, auth_provider, auth_id " +
+            "FROM \"USER\" WHERE user_id = ? AND user_status <> 'DELETED'";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
@@ -150,13 +181,6 @@ public class UserDao {
         return null;
     }
 
-    /**
-     * 프로필 업데이트: DELETED 제외
-     *  - setPhoto == null  : user_photo 컬럼 미변경
-     *  - setPhoto == true  : photoUrl == null → NULL 저장(기본 이미지 의도)
-     *                        photoUrl 값 존재 → URL 저장
-     *  - ageGroup == null  : age_group 컬럼 미변경
-     */
     public int updateUserProfileById(int userId,
                                      String nickname,
                                      String bio,
@@ -171,57 +195,31 @@ public class UserDao {
           .append(" user_bio = ?, ")
           .append(" user_phonenumber = ? ");
 
-        if (setPhoto != null) {
-            sb.append(", user_photo = ? ");
-        }
-        if (ageGroup != null) {
-            sb.append(", age_group = ? ");
-        }
+        if (setPhoto != null) sb.append(", user_photo = ? ");
+        if (ageGroup != null) sb.append(", age_group = ? ");
 
-        sb.append(" WHERE user_id = ? AND user_status <> 'DELETED'"); // ★ CHANGED
+        sb.append(" WHERE user_id = ? AND user_status <> 'DELETED'");
 
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sb.toString())) {
 
             int idx = 1;
-
-            // nickname
             ps.setString(idx++, nickname);
-
-            // bio
             ps.setString(idx++, bio);
-
-            // phoneDigits (null/blank → NULL)
-            if (phoneDigits == null || phoneDigits.isBlank()) {
-                ps.setNull(idx++, Types.VARCHAR);
-            } else {
-                ps.setString(idx++, phoneDigits);
-            }
-
-            // photo (옵션)
+            if (phoneDigits == null || phoneDigits.isBlank()) ps.setNull(idx++, Types.VARCHAR);
+            else ps.setString(idx++, phoneDigits);
             if (setPhoto != null) {
-                if (photoUrl == null || photoUrl.isBlank()) {
-                    ps.setNull(idx++, Types.VARCHAR);
-                } else {
-                    ps.setString(idx++, photoUrl);
-                }
+                if (photoUrl == null || photoUrl.isBlank()) ps.setNull(idx++, Types.VARCHAR);
+                else ps.setString(idx++, photoUrl);
             }
-
-            // age_group (옵션)
-            if (ageGroup != null) {
-                ps.setInt(idx++, ageGroup);
-            }
-
-            // userId
+            if (ageGroup != null) ps.setInt(idx++, ageGroup);
             ps.setInt(idx, userId);
-
             return ps.executeUpdate();
         }
     }
 
-    /** 비밀번호 업데이트 (userId 기준): DELETED 제외 */
     public int updateUserPasswordById(int userId, String encPw) throws Exception {
-        String sql = "UPDATE \"USER\" SET user_pw = ? WHERE user_id = ? AND user_status <> 'DELETED'"; // ★ CHANGED
+        String sql = "UPDATE \"USER\" SET user_pw = ? WHERE user_id = ? AND user_status <> 'DELETED'";
         try (Connection conn = ConnectionPoolHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, encPw);
@@ -230,115 +228,7 @@ public class UserDao {
         }
     }
 
-    // --------------------------------- 내가 쓴 글 목록 ---------------------------------
-
-    // 목록 + 페이지네이션 (작성자 본인 기준이므로 여기선 별도 상태 조건 불필요)
-    public List<MyBoardItemDto> findMyBoards(
-            int userId, String q, String sort, int size, int page) throws Exception {
-
-        if (size <= 0) size = 10;
-        if (page <= 0) page = 1;
-        int offset = (page - 1) * size;
-
-        String orderBy = "rb.created_at DESC";
-        if ("old".equalsIgnoreCase(sort)) {
-            orderBy = "rb.created_at ASC";
-        }
-
-        boolean hasQ = (q != null && !q.trim().isEmpty());
-        q = hasQ ? q.trim() : null;
-
-        String sql =
-            "SELECT * FROM ( " +
-            "  SELECT inner_q.*, ROWNUM rnum FROM ( " +
-            "    SELECT " +
-            "      rb.room_board_id, " +
-            "      rb.room_board_title        AS title, " +
-            "      rb.created_at, " +
-            "      rb.room_board_view_cnt     AS view_count, " +
-            "      rb.room_board_type         AS board_type, " +
-            "      rb.room_id, " +
-            "      r.room_title, " +
-            "      (SELECT COUNT(*) " +
-            "         FROM \"REPLY\" rp " +
-            "        WHERE rp.room_board_id = rb.room_board_id " +
-            "          AND NVL(rp.status,'ACTIVE')='ACTIVE') AS reply_count " +
-            "    FROM room_board rb " +
-            "    JOIN \"ROOM\" r ON r.room_id = rb.room_id " +
-            "   WHERE rb.user_id = ? " +
-            "     AND NVL(rb.is_deleted,'N')='N' " +
-            (hasQ ? "     AND (LOWER(rb.room_board_title) LIKE LOWER(?) OR LOWER(r.room_title) LIKE LOWER(?)) " : "") +
-            "   ORDER BY " + orderBy +
-            "  ) inner_q " +
-            "  WHERE ROWNUM <= ? " +
-            ") " +
-            "WHERE rnum > ?";
-
-        try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            int idx = 1;
-            ps.setInt(idx++, userId);
-            if (hasQ) {
-                String like = "%" + q + "%";
-                ps.setString(idx++, like);
-                ps.setString(idx++, like);
-            }
-            ps.setInt(idx++, offset + size);
-            ps.setInt(idx++, offset);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                List<MyBoardItemDto> list = new ArrayList<>();
-                while (rs.next()) {
-                    MyBoardItemDto dto = MyBoardItemDto.builder()
-                        .roomBoardId(rs.getInt("room_board_id"))
-                        .boardTitle(rs.getString("title"))
-                        .createdAt(rs.getTimestamp("created_at"))
-                        .viewCount(rs.getInt("view_count"))
-                        .boardType(rs.getString("board_type"))
-                        .roomId(rs.getInt("room_id"))
-                        .roomTitle(rs.getString("room_title"))
-                        .replyCount(rs.getInt("reply_count"))
-                        .build();
-                    list.add(dto);
-                }
-                return list;
-            }
-        }
-    }
-
-    // 총 건수
-    public int countMyBoards(int userId, String q) throws Exception {
-        boolean hasQ = (q != null && !q.trim().isEmpty());
-        q = hasQ ? q.trim() : null;
-
-        String sql =
-            "SELECT COUNT(*) " +
-            "  FROM room_board rb " +
-            "  JOIN \"ROOM\" r ON r.room_id = rb.room_id " +
-            " WHERE rb.user_id = ? " +
-            "   AND NVL(rb.is_deleted,'N')='N' " +
-            (hasQ ? "   AND (LOWER(rb.room_board_title) LIKE LOWER(?) OR LOWER(r.room_title) LIKE LOWER(?)) " : "");
-
-        try (Connection conn = ConnectionPoolHelper.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            int idx = 1;
-            ps.setInt(idx++, userId);
-            if (hasQ) {
-                String like = "%" + q + "%";
-                ps.setString(idx++, like);
-                ps.setString(idx++, like);
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
-                return 0;
-            }
-        }
-    }
-
-    // ========= 공용 매퍼 =========
+    /* ===== 공용 매퍼: auth 컬럼 포함 ===== */
     private UserDto mapUser(ResultSet rs) throws Exception {
         UserDto u = new UserDto();
         u.setUser_id(rs.getInt("user_id"));
@@ -354,9 +244,13 @@ public class UserDao {
         if (rs.wasNull()) age = 0;
         u.setAge_group(age);
 
-        java.sql.Timestamp ts = rs.getTimestamp("CREATED_AT");
+        Timestamp ts = rs.getTimestamp("CREATED_AT");
         if (ts != null) u.setCreatedAt(new java.util.Date(ts.getTime()));
 
+        try { u.setAuth_provider(rs.getString("auth_provider")); } catch (SQLException ignore) {}
+        try { u.setAuth_id(rs.getString("auth_id")); } catch (SQLException ignore) {}
         return u;
     }
+
+    /* ===== (생략) 내가 쓴 글 목록/카운트 등 기존 메서드들 유지 ===== */
 }
