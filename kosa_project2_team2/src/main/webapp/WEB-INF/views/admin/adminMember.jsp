@@ -94,6 +94,8 @@
 			background-color: #fff;
 			box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
 			transition: 0.3s ease-in-out;
+			gap: 10px; /* ✅ 좌우 간격 여유 */
+			min-width: 0;
 		}
 		.member-card:hover {
 			transform: translateY(-4px);
@@ -103,6 +105,8 @@
 			display: flex;
 			align-items: center;
 			cursor: pointer;
+			flex: 1 1 auto; /* 왼쪽 영역이 유연하게 줄어듦 */
+			min-width: 0;
 		}
 		.member-info img {
 			width: 45px;
@@ -114,17 +118,33 @@
 			object-position: center;
 			display: block;
 			padding: 3px;
+			flex-shrink: 0;
 		}
+		
+		.member-info > div {
+			min-width: 0;  
+		}
+
 		.member-info .name {
 			font-weight: 600;
 			font-size: 16px;
 			margin-bottom: 2px;
+			max-width: 100%;            
+			white-space: nowrap;        
+			overflow: hidden;          
+			text-overflow: ellipsis;     
+			display: block; 
+			vertical-align: middle;
+		}
+		.member-info .name:hover {
+			cursor: help;
 		}
 		.member-info .date {
 			color: #999;
 			font-size: 13px;
 		}
 		.btn-delete {
+			flex-shrink: 0;
 			background-color: #FF7272;
 			color: #fff;
 			border: none;
@@ -218,7 +238,7 @@
 		/* ===== sideBar 전체 레이아웃 ===== */
 		.layout-wrap {
 		    display: grid;
-		    grid-template-columns: auto 1fr; /* 왼쪽: 사이드바 / 오른쪽: 메인 */
+		    grid-template-columns: auto 1fr; 
 		    gap: 0; /* 간격 제거 */
 		    align-items: flex-start;
 		    margin: 0;
@@ -226,13 +246,13 @@
 		}
 		
 		main {
-		    background: #fff; /* 흰색으로 변경 */
+		    background: #fff; 
 		    border-left: 1px solid #e5e7eb;
 		    padding: 24px 28px;
 		    min-height: 100vh;
 		}
 		
-		/* ✅ main 부분 반응형 스타일 */
+
 @media (max-width: 1200px) {
 	main {
 		padding: 20px;
