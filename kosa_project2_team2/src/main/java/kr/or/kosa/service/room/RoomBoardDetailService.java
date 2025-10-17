@@ -43,10 +43,10 @@ public class RoomBoardDetailService implements Action{
 	        	 if (cookieName.equals(c.getName())) {
 	                 viewed = c.getValue();
 	             }else if(c.getName().contains("roomBoard")) {
-	            	 c.setMaxAge(0);
-	            	 c.setPath("/");   // 기존 쿠키와 동일한 path
-	                 response.addCookie(c);
-	             }
+	        		 c.setMaxAge(0);
+	        		 c.setPath("/");
+	        	    response.addCookie(c);
+	        	}
 	        }
 	    }
 	    if (!viewed.contains(String.valueOf(roomBoardId))) {
@@ -59,10 +59,8 @@ public class RoomBoardDetailService implements Action{
 	   
 	    // 현재 시간
 	    LocalDateTime now = LocalDateTime.now();
-
 	    // 오늘 자정(다음날 0시)
 	    LocalDateTime midnight = now.toLocalDate().plusDays(1).atStartOfDay();
-
 	    // 남은 초 계산
 	    long secondsUntilMidnight = Duration.between(now, midnight).getSeconds();
 

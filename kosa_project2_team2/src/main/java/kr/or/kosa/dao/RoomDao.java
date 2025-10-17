@@ -355,22 +355,38 @@ public class RoomDao {
 		RoomDto roomDetail = null;
 		
 		StringBuilder sqlBuilder = new StringBuilder();
-			sqlBuilder.append("SELECT ro.room_id, ro.room_title, ro.room_content, ");
-			sqlBuilder.append("ro.updated_at, u.user_nickname, ");
-			sqlBuilder.append("(SELECT COUNT(*) FROM LIKE_ROOM lr WHERE lr.room_id = ro.room_id) AS like_count, ");
-			sqlBuilder.append("(SELECT CASE WHEN ROUND(AVG(score), 1) IS NOT NULL THEN ROUND(AVG(score), 1) ELSE 0 END ");
-			sqlBuilder.append("FROM ROOM_SCORE rs WHERE rs.room_id = ro.room_id) AS room_score, ");
-			sqlBuilder.append("NVL(jr2.ROOM_TIER, 'NOT_JOINED') AS join_status, ");
-			sqlBuilder.append("CASE WHEN lr.USER_ID IS NOT NULL THEN 1 ELSE 0 END AS is_liked, ");
-			sqlBuilder.append("CASE WHEN u.USER_ID = ? THEN 1 ELSE 0 END AS leader_check, ");
-			sqlBuilder.append("CASE WHEN rs.USER_ID = ? THEN 1 ELSE 0 END AS is_score_check ");
-			sqlBuilder.append("FROM room ro ");
-			sqlBuilder.append("JOIN JOIN_ROOM jr ON jr.room_id = ro.room_id ");
-			sqlBuilder.append("JOIN \"USER\" u ON u.user_id = jr.user_id ");
-			sqlBuilder.append("LEFT JOIN LIKE_ROOM lr ON lr.ROOM_ID = ro.ROOM_ID AND lr.USER_ID = ? ");
-			sqlBuilder.append("LEFT JOIN JOIN_ROOM jr2 ON jr2.USER_ID = ? AND jr2.ROOM_ID = ? ");
-			sqlBuilder.append("LEFT JOIN ROOM_SCORE rs ON rs.USER_ID = ? AND rs.ROOM_ID = ? ");
-			sqlBuilder.append("WHERE ro.room_id = ? AND jr.room_tier = 'LEADER'");
+		sqlBuilder.append("SELECT ");
+		sqlBuilder.append("    ro.room_id, ");
+		sqlBuilder.append("    ro.room_title, ");
+		sqlBuilder.append("    ro.room_content, ");
+		sqlBuilder.append("    ro.updated_at, ");
+		sqlBuilder.append("    u.user_nickname, ");
+		sqlBuilder.append("    (SELECT COUNT(*) FROM LIKE_ROOM lr WHERE lr.room_id = ro.room_id) AS like_count, ");
+		sqlBuilder.append("    (SELECT CASE WHEN ROUND(AVG(score), 1) IS NOT NULL THEN ROUND(AVG(score), 1) ELSE 0 END ");
+		sqlBuilder.append("     FROM ROOM_SCORE rs WHERE rs.room_id = ro.room_id) AS room_score, ");
+		sqlBuilder.append("    NVL(jr2.ROOM_TIER, 'NOT_JOINED') AS join_status, ");
+		sqlBuilder.append("    CASE WHEN lr.USER_ID IS NOT NULL THEN 1 ELSE 0 END AS is_liked, ");
+		sqlBuilder.append("    CASE WHEN u.USER_ID = ? THEN 1 ELSE 0 END AS leader_check, ");
+		sqlBuilder.append("    CASE WHEN rs.USER_ID = ? THEN 1 ELSE 0 END AS is_score_check, ");
+		sqlBuilder.append("    (SELECT COUNT(*) ");
+		sqlBuilder.append("     FROM JOIN_ROOM jr_sub ");
+		sqlBuilder.append("     WHERE jr_sub.room_id = ro.room_id) AS join_count, ");
+		sqlBuilder.append("    (SELECT r_sub.maxparticipant ");
+		sqlBuilder.append("     FROM ROOM r_sub ");
+		sqlBuilder.append("     WHERE r_sub.room_id = ro.room_id) AS max_participant, ");
+		sqlBuilder.append("    (SELECT CASE WHEN COUNT(*) = r_sub.maxparticipant THEN 1 ELSE 0 END ");
+		sqlBuilder.append("     FROM JOIN_ROOM jr_sub ");
+		sqlBuilder.append("     JOIN ROOM r_sub ON r_sub.room_id = jr_sub.room_id ");
+		sqlBuilder.append("     WHERE jr_sub.room_id = ro.room_id ");
+		sqlBuilder.append("     GROUP BY r_sub.maxparticipant) AS is_full ");
+		sqlBuilder.append("FROM ROOM ro ");
+		sqlBuilder.append("JOIN JOIN_ROOM jr ON jr.room_id = ro.room_id ");
+		sqlBuilder.append("JOIN \"USER\" u ON u.user_id = jr.user_id ");
+		sqlBuilder.append("LEFT JOIN LIKE_ROOM lr ON lr.ROOM_ID = ro.ROOM_ID AND lr.USER_ID = ? ");
+		sqlBuilder.append("LEFT JOIN JOIN_ROOM jr2 ON jr2.USER_ID = ? AND jr2.ROOM_ID = ? ");
+		sqlBuilder.append("LEFT JOIN ROOM_SCORE rs ON rs.USER_ID = ? AND rs.ROOM_ID = ? ");
+		sqlBuilder.append("WHERE ro.room_id = ? AND jr.room_tier = 'LEADER'");
+
 			
 		try {
 			String sql = sqlBuilder.toString();
@@ -399,6 +415,7 @@ public class RoomDao {
 				        .isLiked(rs.getInt("is_liked") == 1)
 				        .isScore(rs.getInt("is_score_check") != 1)
 				        .leaderCheck(rs.getInt("leader_check") == 1)
+				        .isFull(rs.getInt("is_full") == 1)
 						.build();
 			}
 			
@@ -562,7 +579,7 @@ public class RoomDao {
         .append("       u.USER_NICKNAME as USER_NICKNAME, ")
         .append("       (SELECT COUNT(*) ")
         .append("        FROM \"REPLY\" r ")
-        .append("        WHERE r.ROOM_BOARD_ID = rb.ROOM_BOARD_ID ")
+        .append("        WHERE r.ROOM_BOARD_ID = rb.ROOM_BOARD_ID AND r.status = 'ACTIVE' ")
         .append("        AND r.PARENT_REPLY_ID IS NULL) AS reply_count ")
         .append("FROM ROOM_BOARD rb \n")
         .append("JOIN \"USER\" u ON u.USER_ID = rb.USER_ID ")
