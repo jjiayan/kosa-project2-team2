@@ -23,7 +23,7 @@ public class RoomInsertService implements Action{
 		int maxParticipant = Integer.parseInt(request.getParameter("maxParticipant"));
 		String content = request.getParameter("content");
 		
-		System.out.println("userId -== >>  " + userId);
+	
 		
 		RoomDto insertRoomDto = RoomDto.builder()
 										.regionId(region2)

@@ -27,12 +27,36 @@ public class AuthFilter implements Filter {
     public void init(FilterConfig filterConfig) throws ServletException {
         // web.xml에서 설정한 초기 파라미터나, DB에서 페이지별 권한 정보를 가져와 설정
         // 예시: /adminPage.jsp는 관리자 권한 필요, /userPage.jsp는 "user" 권한 필요
+
         pageRoles.put("/adminMember.admin", "ADMIN"); 
         pageRoles.put("/adminStat.admin", "ADMIN");
         pageRoles.put("/AdminMemberAjax", "ADMIN");
         pageRoles.put("/AdminStatAjax", "ADMIN");
         pageRoles.put("/AdminNoticeDelete", "ADMIN"); 
-        pageRoles.put("/roomboardlist.room", "ACTIVE,ADMIN"); 
+      
+
+        pageRoles.put("/insertForm.room", "ACTIVE");
+        pageRoles.put("/insert.room", "ACTIVE");
+
+        pageRoles.put("/roomdetail.room", "ACTIVE,ADMIN");
+        pageRoles.put("/roomboardlist.room", "ACTIVE,ADMIN");
+        pageRoles.put("/roomboarddetail.room", "ACTIVE,ADMIN");
+        pageRoles.put("/roomboardinsertform.room", "ACTIVE");
+        pageRoles.put("/roomboardinsert.room", "ACTIVE");
+        pageRoles.put("/roomboardnotice.room", "ACTIVE,ADMIN");
+        pageRoles.put("/roomboardupdateform.room", "ACTIVE");
+        pageRoles.put("/roomboardupdate.room", "ACTIVE");
+        pageRoles.put("/roomadminform.room", "ACTIVE");
+        pageRoles.put("/roommembermanageform.room", "ACTIVE");
+        pageRoles.put("/roomupdateform.room", "ACTIVE");
+        pageRoles.put("/roomupdate.room", "ACTIVE");
+        pageRoles.put("/roomcalender.room", "ACTIVE,ADMIN");
+
+
+        
+
+        
+
     }
 
     @Override

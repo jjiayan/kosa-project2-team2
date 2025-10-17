@@ -22,7 +22,7 @@ public class RoomUpdateFormService implements Action{
 		ActionForward forward = new ActionForward();
 		
 		forward.setRedirect(false);
-		forward.setPath("/WEB-INF/views/room/updateRoomBoardForm.jsp");
+		forward.setPath("/WEB-INF/views/room/updateRoomForm.jsp");
 		request.setAttribute("updateRoomInfo", updateRoomInfo);
 		request.setAttribute("mainRegionList",mainRegion);
 	

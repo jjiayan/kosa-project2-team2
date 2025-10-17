@@ -27,7 +27,7 @@ public class RoomSearchListService implements Action{
 		if(!strUserId.isEmpty() || !strUserId.equals("")) {
 			userId = Integer.parseInt(request.getParameter("userId"));
 		}
-		System.out.println("userId ==>> " + userId);
+		
     	int pageNum = (page != null && !page.trim().isEmpty()) ? Integer.parseInt(page) : 1;
     	SearchCondition searchCondition = new SearchCondition(region1, region2, keyword);
     	searchCondition.setPage(pageNum);  
