@@ -104,7 +104,6 @@ public class RoomController extends HttpServlet {
     		action = new RoomUpdateService();
     		forward = action.execute(request, response);
     	}else if(urlCommand.equals("/roomcalender.room")) {
-    		System.out.println("캘린더 들어오니?");
     		action = new RoomCalenderService();
     		forward = action.execute(request, response);
     	}

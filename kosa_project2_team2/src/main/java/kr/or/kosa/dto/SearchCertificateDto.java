@@ -3,7 +3,8 @@ package kr.or.kosa.dto;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.sql.Date;
+
+import java.util.Map;
 
 @Builder
 @Getter
@@ -13,17 +14,6 @@ public class SearchCertificateDto {
     private int year;
     private String jmName;
     private String totalJmName;
+    private Map<String, CertificateDateDto> info;
 
-    // DATE 타입 필드들
-    private Date docRegStartDt;
-    private Date docRegEndDt;
-    private Date docExamStartDt;
-    private Date docExamEndDt;
-    private Date docExamDt;
-    private Date docPassDt;
-    private Date pracRegStartDt;
-    private Date pracRegEndDt;
-    private Date pracExamStartDt;
-    private Date pracExamEndDt;
-    private Date pracPassDt;
 }

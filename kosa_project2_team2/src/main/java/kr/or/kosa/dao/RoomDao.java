@@ -1,6 +1,7 @@
 package kr.or.kosa.dao;
 
 
+import kr.or.kosa.dto.CertificateDateDto;
 import kr.or.kosa.dto.JoinRoomUserDto;
 import kr.or.kosa.dto.PageResult;
 import kr.or.kosa.dto.RegionDto;
@@ -1105,7 +1106,9 @@ public class RoomDao {
 	
 	public String manageRoomMember(int roomId, int userId, String type) {
 		Connection conn = null;
-		PreparedStatement pstmt = null;
+		PreparedStatement pstmt1 = null;
+		PreparedStatement pstmt2 = null;
+		PreparedStatement pstmt3 = null;
 		ResultSet rs = null;
 		int result = 0;
 		
@@ -1118,16 +1121,49 @@ public class RoomDao {
 		
 		try {
 			conn = ConnectionPoolHelper.getConnection();
-			pstmt = conn.prepareStatement(sql);
-			pstmt.setInt(1,userId);
-			pstmt.setInt(2, roomId);
-			result = pstmt.executeUpdate();
+			pstmt1 = conn.prepareStatement(sql);
+			pstmt1.setInt(1,userId);
+			pstmt1.setInt(2, roomId);
+			result = pstmt1.executeUpdate();
+			if(result > 0) {
+				// 여기서 체크 정원이 다 찼는지
+				sql = "SELECT " +
+						"    COUNT(*) AS join_count, " +
+						"    r.MAXPARTICIPANT, " +
+						"    CASE " +
+						"        WHEN COUNT(*) = r.MAXPARTICIPANT THEN 1 " +
+						"        ELSE 0 " +
+						"    END AS is_full " +
+						"FROM JOIN_ROOM jr " +
+						"JOIN ROOM r ON r.ROOM_ID = jr.ROOM_ID " +
+						"WHERE jr.ROOM_ID = ? " +
+						"GROUP BY r.MAXPARTICIPANT";
+				pstmt2 = conn.prepareStatement(sql);
+				pstmt2.setInt(1, roomId);
+				rs = pstmt2.executeQuery();
+				boolean checkFull = false;
+				while(rs.next()) {
+					checkFull = rs.getInt("is_full") == 1; // 가득 찼다면 tru
+				}
+				if(checkFull) {
+					String sqlUpdateRoomStatus = "UPDATE ROOM "
+							+ "	SET ROOM_STATUS = 'CLOSED' "
+							+ "WHERE ROOM_ID = ?";
+					pstmt3 = conn.prepareStatement(sqlUpdateRoomStatus);
+					pstmt3.setInt(1, roomId);
+					pstmt3.executeUpdate();
+					
+				}
+
+			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}finally {
             ConnectionPoolHelper.close(rs);
-            ConnectionPoolHelper.close(pstmt);
+            ConnectionPoolHelper.close(pstmt3);
+            ConnectionPoolHelper.close(pstmt2);
+            ConnectionPoolHelper.close(pstmt1);
             ConnectionPoolHelper.close(conn);
 		}
 		
@@ -1664,11 +1700,11 @@ public class RoomDao {
 		return searchcertificateList;
 	  }
 	  
-	  public void getRoomCertificate(int roomId) {
+	  public SearchCertificateDto getRoomCertificateDate(int roomId) {
 		  Connection conn = null;
 		  PreparedStatement pstmt = null;
 		  ResultSet rs = null;
-//		  SearchCertificateDto searchC
+		  SearchCertificateDto certificateDate = null;
 		  
 		  
 		  String sql = "SELECT cm.JMNAME, " +
@@ -1702,23 +1738,33 @@ public class RoomDao {
 			
 			
 			while(rs.next()) {
-				SearchCertificateDto.builder()
-	            .jmcd(rs.getInt("JMCD"))
+				CertificateDateDto reg = CertificateDateDto.builder()
+						.docRegStartDt(rs.getDate("DOCREGSTARTDT"))
+						.docRegEndDt(rs.getDate("DOCREGENDDT"))
+						.build();
+				CertificateDateDto exam = CertificateDateDto.builder()
+						.docExamStartDt(rs.getDate("DOCEXAMSTARTDT"))
+			            .docExamEndDt(rs.getDate("DOCEXAMENDDT"))
+			            .docExamDt(rs.getDate("DOCEXAMDT"))
+			            .docPassDt(rs.getDate("DOCPASSDT"))
+						.build();
+				CertificateDateDto prac = CertificateDateDto.builder()
+						.pracRegStartDt(rs.getDate("PRACREGSTARTDT"))
+			            .pracRegEndDt(rs.getDate("PRACREGENDDT"))
+			            .pracExamStartDt(rs.getDate("PRACEXAMSTARTDT"))
+			            .pracExamEndDt(rs.getDate("PRACEXAMENDDT"))
+			            .pracPassDt(rs.getDate("PRACPASSDT"))
+						.build();
+				Map<String, CertificateDateDto> info = new HashMap<>();
+				info.put("원서", reg);
+				info.put("필기", exam);
+				info.put("실기", prac);
+				certificateDate = SearchCertificateDto.builder()
 	            .implseq(rs.getInt("IMPLSEQ"))
 	            .year(rs.getInt("YEAR"))
 	            .jmName(rs.getString("JMNAME"))
-	            .totalJmName(rs.getString("TOTALJMNAME")) // 만약 이 컬럼이 없으면 제거
-	            .docRegStartDt(rs.getDate("DOCREGSTARTDT"))
-	            .docRegEndDt(rs.getDate("DOCREGENDDT"))
-	            .docExamStartDt(rs.getDate("DOCEXAMSTARTDT"))
-	            .docExamEndDt(rs.getDate("DOCEXAMENDDT"))
-	            .docExamDt(rs.getDate("DOCEXAMDT"))
-	            .docPassDt(rs.getDate("DOCPASSDT"))
-	            .pracRegStartDt(rs.getDate("PRACREGSTARTDT"))
-	            .pracRegEndDt(rs.getDate("PRACREGENDDT"))
-	            .pracExamStartDt(rs.getDate("PRACEXAMSTARTDT"))
-	            .pracExamEndDt(rs.getDate("PRACEXAMENDDT"))
-	            .pracPassDt(rs.getDate("PRACPASSDT"))
+	            .totalJmName(rs.getInt("YEAR") +"년 " +rs.getInt("IMPLSEQ")+"회차 " + rs.getString("JMNAME"))
+	            .info(info)
 	            .build();
 			}
 			
@@ -1730,6 +1776,7 @@ public class RoomDao {
             ConnectionPoolHelper.close(pstmt);
             ConnectionPoolHelper.close(conn);
         }
+		 return certificateDate;
 		 
 	  }
 	  public double startRating(int userId, int roomId, int rating) {
