@@ -129,7 +129,17 @@ public class RoomAjaxController extends HttpServlet {
         		response.setContentType("application/json; charset=UTF-8");
         		response.getWriter().print("{\"success\": true}");
         	}
+        }else if(urlCommand.equals("/submitrating.roomajax")) {
+        	int roomId = Integer.parseInt(request.getParameter("roomId"));
+        	int userId = Integer.parseInt(request.getParameter("userId"));
+        	int rating = Integer.parseInt(request.getParameter("rating"));
         	
+        	
+        	RoomDao roomDao = new RoomDao();
+        	
+        	double result = roomDao.startRating(userId, roomId, rating);
+        	response.setContentType("application/json; charset=UTF-8");
+        	response.getWriter().print("{\"success\": true, \"star\": \"" + result + "\"}");
         }
         
 

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.RoomDao;
+import kr.or.kosa.dto.PageResult;
 import kr.or.kosa.dto.RoomBoardDto;
 import kr.or.kosa.dto.SearchCondition;
 
@@ -24,10 +25,10 @@ public class RooBoardNoticeService implements Action{
 		searchCondition.setKeyword(keyword);
 		if (page != null && !page.trim().isEmpty()) {
 	        int pageNum = Integer.parseInt(page);
-	        searchCondition.setPage(pageNum);
+	        searchCondition.setRoomBoardPage(pageNum);
 		}
 		RoomDao roomDao = new RoomDao();
-		List<RoomBoardDto> roomBoardList = roomDao.getRoomBoardBySearch(searchCondition, roomId, roomBoardType);
+		 PageResult<RoomBoardDto> pageResult = roomDao.getRoomBoardBySearch(searchCondition, roomId, roomBoardType);
 		ActionForward forward = new ActionForward();
 		
 		
@@ -35,7 +36,7 @@ public class RooBoardNoticeService implements Action{
 		
 		
 		forward.setPath("/WEB-INF/views/room/listRoomBoardnotice.jsp");
-		request.setAttribute("roomBoardList", roomBoardList);
+		request.setAttribute("pageResult", pageResult);
 		request.setAttribute("roomId", roomId);
 		return forward;
 		
