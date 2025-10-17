@@ -1136,17 +1136,25 @@ function buildReplyMap(replies) {
 function flattenReplyTree(replies) {
     var flattened = [];
     function processReply(reply, isChild, parentReply) {
-        // 삭제된 답글은 평면화에서 제외 (표시하지 않으므로)
+        // 삭제된 답글은 표시하지 않지만, 하위 댓글들은 계속 처리해야 함
         if (isChild && reply.status === 'DELETED') {
-            console.log('삭제된 답글 제외:', reply.replyId);
+            console.log('삭제된 답글 제외:', reply.replyId, '하지만 하위 댓글은 처리');
+            // 현재 댓글은 flattened에 추가하지 않지만, 자식 댓글들은 처리
+            if (reply.replies && reply.replies.length > 0) {
+                for (var i = 0; i < reply.replies.length; i++) {
+                    processReply(reply.replies[i], true, parentReply); // 삭제된 댓글의 부모를 전달
+                }
+            }
             return;
         }
+        
         // 현재 댓글 추가 (isChild 정보와 부모 댓글 정보 포함)
         var flatReply = Object.assign({}, reply);
         flatReply.isChild = isChild || false;
         flatReply.parentReplyInfo = parentReply || null;
         flattened.push(flatReply);
         console.log('평면화 추가:', flatReply.replyId, '(삭제여부:', flatReply.status, ', 답글여부:', flatReply.isChild, ')');
+        
         // 자식 댓글들이 있으면 재귀적으로 처리
         if (reply.replies && reply.replies.length > 0) {
             for (var i = 0; i < reply.replies.length; i++) {
@@ -1154,6 +1162,7 @@ function flattenReplyTree(replies) {
             }
         }
     }
+    
     // 모든 최상위 댓글들을 처리
     for (var i = 0; i < replies.length; i++) {
         processReply(replies[i], false, null);
