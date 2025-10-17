@@ -14,6 +14,7 @@ import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import kr.or.kosa.dto.UserDto;
 
 
 @WebFilter("/*")
@@ -27,8 +28,6 @@ public class AuthFilter implements Filter {
         // web.xml에서 설정한 초기 파라미터나, DB에서 페이지별 권한 정보를 가져와 설정
         // 예시: /adminPage.jsp는 관리자 권한 필요, /userPage.jsp는 "user" 권한 필요
         pageRoles.put("/adminPage.jsp", "admin");
-        pageRoles.put("/userPage.jsp", "user");
-        pageRoles.put("/commonPage.jsp", "user,admin"); // 여러 권한 허용 시 쉼표로 구분
     }
 
     @Override
@@ -50,20 +49,20 @@ public class AuthFilter implements Filter {
         HttpSession session = httpRequest.getSession(false);
         boolean authorized = false;
 
-        /*
+        
         if (session != null) {
-            UserDto user = (UserDto) session.getAttribute("user");
+            UserDto user = (UserDto) session.getAttribute("LOGIN_USER");
             if (user != null) {
                 // 사용자의 권한이 페이지에 필요한 권한 중 하나라도 포함되는지 확인
                 String[] roles = requiredRole.split(",");
                 for (String role : roles) {
-                    if (role.trim().equals(user.getRole())) {
+                    if (role.trim().equals(user.getUser_status())) {
                         authorized = true;
                         break;
                     }
                 }
             }
-        }*/
+        }
 
         if (authorized) {
             // 권한이 있으면 페이지 계속 진행
