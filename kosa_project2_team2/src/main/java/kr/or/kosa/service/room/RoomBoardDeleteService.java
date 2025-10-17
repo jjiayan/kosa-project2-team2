@@ -18,7 +18,7 @@ public class RoomBoardDeleteService implements Action{
 		RoomDao roomDao = new RoomDao();
 		int deleteCheck = roomDao.deleteRoomBoard(roomBoardId);
 		ActionForward forward = new ActionForward();
-		System.out.println("??? ==>> 딜리트 ? ==>> " + deleteCheck);
+	
 		if(deleteCheck > 0) {
 			forward.setRedirect(true);
 			forward.setPath("/roomboardnotice.room?roomId="+roomId);

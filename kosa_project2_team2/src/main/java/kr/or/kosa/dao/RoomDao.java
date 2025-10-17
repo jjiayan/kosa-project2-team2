@@ -160,9 +160,7 @@ public class RoomDao {
 	        pstmt.setInt(paramIndex++, searchCondition.getSize());
 	        
 	        int totalCount = getTotalCount(conn, searchCondition);
-	        if(totalCount == 0) {
-	        	System.out.println("조회결과없다.");
-	        }
+	      
 	        
 	        pageResult.setTotalCount(totalCount);
 	        int totalPages = (int) Math.ceil((double) totalCount / searchCondition.getSize());
@@ -288,7 +286,8 @@ public class RoomDao {
 		PreparedStatement pstmt = null;
 		int result = 0;
 		RoomDto resultRoom = null;
-		System.out.println("?? ==>> " + updateRoom);
+		
+
 		
 		String sql = "UPDATE ROOM SET " +
 	             "room_title = ?, " +
@@ -402,7 +401,6 @@ public class RoomDao {
 				        .leaderCheck(rs.getInt("leader_check") == 1)
 						.build();
 			}
-			System.out.println("??? 룸디테일 ==>> " + roomDetail);
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -659,14 +657,33 @@ public class RoomDao {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		System.out.println("토탈 카운트 ==>> " + toTalCount);
+		
 		
 		
 		
 		return toTalCount;
 	}
 	
-	public RoomBoardDto getRoomBoardDetail(int roomBoardId, int userId) {
+	private void viewCountUp(int roomBoardId, Connection conn) {
+		String sql = "UPDATE ROOM_BOARD "
+				+ "SET ROOM_BOARD_VIEW_CNT = ROOM_BOARD_VIEW_CNT + 1 "
+				+ "WHERE ROOM_BOARD_ID = ?";
+		PreparedStatement pstmt = null;
+		
+		try {
+			conn = ConnectionPoolHelper.getConnection();
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, roomBoardId);
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}finally {
+			ConnectionPoolHelper.close(pstmt);
+		}
+	}
+	
+	public RoomBoardDto getRoomBoardDetail(int roomBoardId, int userId, boolean viewCheck) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
@@ -698,6 +715,10 @@ public class RoomDao {
 		
 		try {
 			conn = ConnectionPoolHelper.getConnection();
+			
+			if(viewCheck) {
+				viewCountUp(roomBoardId, conn);
+			}
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setInt(1, userId);
 			pstmt.setInt(2, userId);
@@ -1799,16 +1820,17 @@ public class RoomDao {
 			pstmt.setInt(3, rating);
 			
 			result = pstmt.executeUpdate();
+			System.out.println("리절트 ==>> " + result);
 			if(result > 0) {
 				String sql2 = "SELECT ROUND(AVG(score), 1) as avg FROM ROOM_SCORE rs "
-							+ "	WHERE rs.USER_ID = ? AND rs.ROOM_ID = ?";
+							+ "	WHERE rs.ROOM_ID = ?";
 				pstmt2 = conn.prepareStatement(sql2);
-				pstmt2.setInt(1, userId);
-				pstmt2.setInt(2, roomId);
+				pstmt2.setInt(1, roomId);
 				
 				rs = pstmt2.executeQuery();
 				while(rs.next()) {
 					starRating = rs.getDouble("avg");
+					System.out.println("starRating ==>> " + starRating);
 				}
 			}
 		} catch (SQLException e) {

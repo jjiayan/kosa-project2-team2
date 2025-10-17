@@ -30,6 +30,25 @@ public class AuthFilter implements Filter {
         pageRoles.put("/adminMember.admin", "ADMIN");
         pageRoles.put("/roomboardlist.room", "ACTIVE,ADMIN");
         
+        pageRoles.put("/insertForm.room", "ACTIVE");
+        pageRoles.put("/insert.room", "ACTIVE");
+        
+        pageRoles.put("/roomdetail.room", "ACTIVE,ADMIN");
+        pageRoles.put("/roomboardlist.room", "ACTIVE,ADMIN");
+        pageRoles.put("/roomboarddetail.room", "ACTIVE,ADMIN");
+        pageRoles.put("/roomboardinsertform.room", "ACTIVE");
+        pageRoles.put("/roomboardinsert.room", "ACTIVE");
+        pageRoles.put("/roomboardnotice.room", "ACTIVE,ADMIN");
+        pageRoles.put("/roomboardupdateform.room", "ACTIVE");
+        pageRoles.put("/roomboardupdate.room", "ACTIVE");
+        pageRoles.put("/roomadminform.room", "ACTIVE");
+        pageRoles.put("/roommembermanageform.room", "ACTIVE");
+        pageRoles.put("/roomupdateform.room", "ACTIVE");
+        pageRoles.put("/roomupdate.room", "ACTIVE");
+        pageRoles.put("/roomcalender.room", "ACTIVE,ADMIN");
+
+
+        
     }
 
     @Override

@@ -1,5 +1,8 @@
 package kr.or.kosa.service.room;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,7 +21,7 @@ public class RoomBoardDetailService implements Action{
 		
 		
 		RoomDao roomDao = new RoomDao();
-		RoomBoardDto roomBoardDetail = roomDao.getRoomBoardDetail(roomBoardId, userId);
+		RoomBoardDto roomBoardDetail = roomDao.getRoomBoardDetail(roomBoardId, userId, viewCountCookie(request, response, roomBoardId, userId));
 		ActionForward forward = new ActionForward();
 		
 		forward.setRedirect(false);
@@ -29,27 +32,44 @@ public class RoomBoardDetailService implements Action{
 		return forward;
 	}
 	
-	private void viewCountCookie(HttpServletRequest request, HttpServletResponse response, int roomBoardId) {
-		String cookieName = "roomBoard_" + roomBoardId;
+	private boolean viewCountCookie(HttpServletRequest request, HttpServletResponse response, int roomBoardId, int userId) {
+		String cookieName = "roomBoard_" + userId;
+		String viewed = "";
+		boolean viewCheck = false; // false면 이미 조회를했다.
 		
 	    Cookie[] cookies = request.getCookies();
 	    if (cookies != null) {
 	        for (Cookie c : cookies) {
-	            if (c.getName().equals(cookieName)) {
-	                try {
-	                   
-	                } catch (NumberFormatException ignored) {}
-	            }
+	        	 if (cookieName.equals(c.getName())) {
+	                 viewed = c.getValue();
+	             }else if(c.getName().contains("roomBoard")) {
+	            	 c.setMaxAge(0);
+	            	 c.setPath("/");   // 기존 쿠키와 동일한 path
+	                 response.addCookie(c);
+	             }
 	        }
 	    }
+	    if (!viewed.contains(String.valueOf(roomBoardId))) {
+	        if (!viewed.isEmpty()) {
+	            viewed += "_";
+	        }
+	        viewCheck = true;
+	        viewed += roomBoardId;
+	    }
+	   
+	    // 현재 시간
+	    LocalDateTime now = LocalDateTime.now();
 
-	    // ✅ 조회 수 1 증가
-	    
+	    // 오늘 자정(다음날 0시)
+	    LocalDateTime midnight = now.toLocalDate().plusDays(1).atStartOfDay();
 
-	    // ✅ 쿠키 다시 저장 (유효기간: 1일)
-//	    Cookie cookie = Cookie(cookieName, String.valueOf());
-//	    cookie.setPath("/"); // 모든 경로에서 접근 가능
-//	    cookie.setMaxAge(60 * 60 * 24); // 24시간 유지
-//	    response.addCookie(cookie);
+	    // 남은 초 계산
+	    long secondsUntilMidnight = Duration.between(now, midnight).getSeconds();
+
+	    Cookie cookie = new Cookie(cookieName, viewed);
+	    cookie.setPath("/"); // 모든 경로에서 접근 가능
+	    cookie.setMaxAge((int) secondsUntilMidnight); // 오늘 자정까지 유지
+	    response.addCookie(cookie);
+	    return viewCheck;
 	}
 }

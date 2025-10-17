@@ -360,11 +360,15 @@
         rating: selectedRating
       },
       success: function(response) {
-        alert(`${selectedRating}점 별점이 등록되었습니다!`);
+        alert(`별점이 등록되었습니다!`);
         closeRatingModal();
         document.querySelectorAll('.rating-number')[0].textContent = response.star;
-        // 또는 특정 ID를 지정해서 안전하게
-        document.getElementById('ratingNumber').textContent = response.star;
+        const ratingBtn = document.querySelector('.rating-btn');
+        if (ratingBtn) {
+          ratingBtn.classList.add('rated');  // 완료 상태 CSS 적용
+          ratingBtn.textContent = '별점완료'; // 버튼 텍스트 변경
+          ratingBtn.setAttribute('onclick', 'editRatingModal()'); // 클릭 이벤트도 변경
+        }
       },
       error: function() {
         alert('별점 등록 중 오류가 발생했습니다.');

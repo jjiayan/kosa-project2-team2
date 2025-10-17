@@ -38,7 +38,7 @@ public class RoomListService implements Action{
 		if(page != null)
 			searchCondition.setPage(Integer.parseInt(page));
 		
-		System.out.println("들어오는 페이지 => " + searchCondition.getPage());
+	
 		ActionForward forward = new ActionForward();
 		// 검색조건 1. 시, 2. 시군, 3. 시군 제목검색 4. 제목검색		
 		RoomDao roomDao = new RoomDao();
