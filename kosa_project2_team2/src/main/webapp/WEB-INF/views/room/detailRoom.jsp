@@ -207,6 +207,9 @@
           	<c:when test="${empty sessionScope.LOGIN_USER or empty sessionScope.LOGIN_USER.user_id}">
               <button class="join-status-btn joined-btn" disabled>로그인을 해주세요.</button>
             </c:when>
+            <c:when test="${roomDetail.isFull()}">
+              <button class="join-status-btn joined-btn" disabled>모집 마감</button>
+            </c:when>
             <c:when test="${roomDetail.joinUserStatus == 'LEADER' || roomDetail.joinUserStatus == 'MEMBER'}">
               <button class="join-status-btn joined-btn" disabled>참여중</button>
             </c:when>

@@ -30,6 +30,7 @@ public class RoomDto {
     private String certName;
     private boolean updateCheck;
     private String joinUserStatus;
+    private boolean isFull;
     private boolean leaderCheck;
     private double roomScore;
     private String totalJmName;

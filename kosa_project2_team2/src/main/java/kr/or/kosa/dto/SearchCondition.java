@@ -6,25 +6,23 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SearchCondition {
-	public SearchCondition() {
-		
+	public SearchCondition() {	
 	}
-	
 	public SearchCondition(String si, String siGun, String keyword) {
 		this.si = si;
 		this.siGun = siGun;
 		this.keyword = keyword;
 	}
-	
+
 	private String si;              
     private String siGun;           
     private String keyword;           
     
-    private Integer page = 1;       // 기본값 1
-    private Integer size = 9;      // 기본값 8
+    private Integer page = 1;      
+    private Integer size = 9;      
     
-    private Integer roomBoardPage = 1;       // 기본값 1
-    private Integer roomBoardSize = 10;      // 기본값 8
+    private Integer roomBoardPage = 1;       
+    private Integer roomBoardSize = 10;      
     
     // offset 계산 메서드
     public int getOffset() {
