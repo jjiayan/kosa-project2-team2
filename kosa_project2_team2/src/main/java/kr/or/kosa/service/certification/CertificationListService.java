@@ -7,7 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.CertificationDao;
-import kr.or.kosa.dto.CertificationSummaryDto;
+import kr.or.kosa.dto.certification.CertificationSummaryDto;
+
 
 public class CertificationListService implements Action {
 

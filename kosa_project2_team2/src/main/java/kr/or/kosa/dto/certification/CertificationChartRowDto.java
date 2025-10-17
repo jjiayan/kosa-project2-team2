@@ -1,4 +1,4 @@
-package kr.or.kosa.dto;
+package kr.or.kosa.dto.certification;
 
 // chartDto를 가공한 이후 반환용 Dto
 public class CertificationChartRowDto {

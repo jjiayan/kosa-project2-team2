@@ -10,9 +10,10 @@ import java.util.Map;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.CertificationDao;
-import kr.or.kosa.dto.CertificationChartDto;
-import kr.or.kosa.dto.CertificationChartRowDto;
-import kr.or.kosa.dto.CertificationDetailDto;
+import kr.or.kosa.dto.certification.CertificationChartDto;
+import kr.or.kosa.dto.certification.CertificationChartRowDto;
+import kr.or.kosa.dto.certification.CertificationDetailDto;
+
 
 /**
  * 상세 화면 컨트롤러 + 비즈니스 로직 통합 버전

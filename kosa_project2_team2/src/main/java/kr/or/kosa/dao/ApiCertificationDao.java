@@ -9,9 +9,10 @@ import java.util.List;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import kr.or.kosa.dto.CertificationMasterDto;
-import kr.or.kosa.dto.CertificationScheduleDto;
-import kr.or.kosa.dto.CertificationStatsDto;
+import kr.or.kosa.dto.certification.CertificationMasterDto;
+import kr.or.kosa.dto.certification.CertificationScheduleDto;
+import kr.or.kosa.dto.certification.CertificationStatsDto;
+
 
 // 외부 자격증 API 서버에서 JSON 데이터를 불러오는 DAO
 public class ApiCertificationDao {

@@ -43,8 +43,9 @@
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
 
 <div class="layout-wrap">
+
   <jsp:include page="/include/sidebar.jsp">
-    <jsp:param name="current" value="posts"/>
+    <jsp:param name="current" value="${roomBoardType == 'NOTICE' ? 'notice' : 'posts'}"/>
   </jsp:include>
 
   <main>

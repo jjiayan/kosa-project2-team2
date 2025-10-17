@@ -1,4 +1,4 @@
-package kr.or.kosa.dto;
+package kr.or.kosa.dto.certification;
 
 import java.io.Serializable;
 

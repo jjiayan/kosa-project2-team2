@@ -1,7 +1,6 @@
 package kr.or.kosa.service.certification.ajax;
 
 import java.util.List;
-
 import com.google.gson.Gson;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,7 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.CertificationDao;
-import kr.or.kosa.dto.CertificationSummaryDto;
+import kr.or.kosa.dto.certification.CertificationSummaryDto;
 
 public class CertificationFilterAjaxService implements Action {
 
@@ -22,15 +21,15 @@ public class CertificationFilterAjaxService implements Action {
             String field = request.getParameter("field");
             String keyword = request.getParameter("keyword");
 
-            // null 또는 빈 문자열이면 null 처리
-            if (grade == null || grade.equals("")) grade = null;
-            if (field == null || field.equals("")) field = null;
-            if (keyword == null || keyword.trim().equals("")) keyword = null;
+            // 빈 문자열은 null 처리
+            if (grade == null || grade.trim().isEmpty()) grade = null;
+            if (field == null || field.trim().isEmpty()) field = null;
+            if (keyword == null || keyword.trim().isEmpty()) keyword = null;
 
-            // 2) DAO 호출
+            // 2) DAO 호출 (전체 필터 결과 리스트 반환 - 페이징 없음!)
             CertificationDao dao = new CertificationDao();
             List<CertificationSummaryDto> list =
-                    dao.getFilteredCertifications(grade, field, keyword);
+                    dao.getFilteredCertifications(grade, field, keyword);  // ✅ DAO에 이 메서드가 만들어져야 함!
 
             // 3) JSON 변환
             Gson gson = new Gson();
@@ -44,11 +43,11 @@ public class CertificationFilterAjaxService implements Action {
             e.printStackTrace();
             try {
                 response.setContentType("application/json; charset=UTF-8");
-                response.getWriter().print("{\"error\":\"서버 오류 발생\"}");
+                response.getWriter().print("{\"error\":\"server_error\"}");
             } catch (Exception ignore) {}
         }
 
-        // ✅ Ajax이므로 JSP로 forward X
+        // Ajax이므로 JSP로 forward 하지 않음
         return null;
     }
 }

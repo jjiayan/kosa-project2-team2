@@ -5,14 +5,18 @@ import java.util.Date;
 public class UserDto {
     private int user_id;
     private String user_login_id;
-    private String user_pw;
-    private String user_status;
+    private String user_pw;            // 해시 저장
+    private String user_status;        // ACTIVE / DELETED / ...
     private String user_nickname;
     private String user_bio;
-    private String user_phonenumber;
+    private String user_phonenumber;   // 숫자만(예: 01012345678) 권장
     private String user_photo;
-    private int age_group;          // ✅ 숫자형 나이대 (10,20,30,40,50)
+    private int age_group;             // 10/20/30/40/50
     private Date createdAt;
+
+    // 🔸 소셜 연동 필드
+    private String auth_provider;      // 예: "kakao"
+    private String auth_id;            // 예: "1234567890123" (카카오 user id)
 
     public UserDto() {
         this.createdAt = new Date();
@@ -35,7 +39,8 @@ public class UserDto {
 
     public UserDto(int user_id, String user_login_id, String user_pw, String user_status,
                    String user_nickname, String user_bio, String user_phonenumber,
-                   String user_photo, int age_group, Date createdAt) {
+                   String user_photo, int age_group, Date createdAt,
+                   String auth_provider, String auth_id) {
         this.user_id = user_id;
         this.user_login_id = user_login_id;
         this.user_pw = user_pw;
@@ -46,6 +51,8 @@ public class UserDto {
         this.user_photo = user_photo;
         this.age_group = age_group;
         this.createdAt = createdAt;
+        this.auth_provider = auth_provider;
+        this.auth_id = auth_id;
     }
 
     // ===== Getter / Setter =====
@@ -79,12 +86,25 @@ public class UserDto {
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 
+    public String getAuth_provider() { return auth_provider; }
+    public void setAuth_provider(String auth_provider) { this.auth_provider = auth_provider; }
+
+    public String getAuth_id() { return auth_id; }
+    public void setAuth_id(String auth_id) { this.auth_id = auth_id; }
+
+    // 편의: 소셜 연동 여부
+    public boolean isSocialUser() {
+        return auth_provider != null && !auth_provider.isBlank()
+            && auth_id != null && !auth_id.isBlank();
+    }
+
     @Override
     public String toString() {
+        String maskedPw = (user_pw == null || user_pw.isBlank()) ? "null" : "****";
         return "UserDto{" +
                 "user_id=" + user_id +
                 ", user_login_id='" + user_login_id + '\'' +
-                ", user_pw='" + user_pw + '\'' +
+                ", user_pw=" + maskedPw +
                 ", user_status='" + user_status + '\'' +
                 ", user_nickname='" + user_nickname + '\'' +
                 ", user_bio='" + user_bio + '\'' +
@@ -92,6 +112,8 @@ public class UserDto {
                 ", user_photo='" + user_photo + '\'' +
                 ", age_group=" + age_group +
                 ", createdAt=" + createdAt +
+                ", auth_provider='" + auth_provider + '\'' +
+                ", auth_id='" + auth_id + '\'' +
                 '}';
     }
 }
