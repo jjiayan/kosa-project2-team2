@@ -215,7 +215,7 @@
 </c:choose>
 
 <header class="nav-root">
-    <a href="${ctx}/index.user" class="left logo" id="logoArea">
+    <a href="${ctx}/roomlist.room" class="left logo" id="logoArea">
         <img class="barcode" src="${ctx}/images/barcode.jpg" alt="바코드">
         <div class="wordmark">Cer : <span id="bibleText">BIBLE</span></div>
     </a>
