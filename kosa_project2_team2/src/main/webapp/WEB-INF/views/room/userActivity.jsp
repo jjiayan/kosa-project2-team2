@@ -403,103 +403,18 @@ html, body {
 /* 페이지네이션 */
 .pagination {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 15px 0;
-  background: white;
-  border-top: 1px solid #f0f0f0;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.pagination-btn {
-  background: white;
-  border: 1px solid #e0e0e0;
-  padding: 6px 8px;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s;
-  display: flex;
+  gap: 12px;
   align-items: center;
   justify-content: center;
-  margin: 0 2px;
-  min-width: 32px;
-  height: 32px;
-}
-
-.pagination-btn:hover:not(:disabled) {
-  background: #f5f5f5;
-  border-color: #FF7272;
-}
-
-.pagination-btn:hover:not(:disabled) svg path {
-  stroke: #FF7272;
-}
-
-.pagination-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  background: #f9f9f9;
-}
-
-.pagination-number {
-  background: white;
-  border: 1px solid #e0e0e0;
-  padding: 6px 8px;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s;
-  min-width: 32px;
-  height: 32px;
-  font-size: clamp(12px, 3vw, 13px);
-  font-weight: 500;
-  margin: 0 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pagination-number:hover {
-  background: #f5f5f5;
-  border-color: #FF7272;
-  color: #FF7272;
-}
-
-.pagination-number.active {
-  background: #FF7272;
-  color: white;
-  border-color: #FF7272;
-}
-
-.pagination-svg-active {
-  margin: 0 2px;
-  cursor: default;
-}
-
-.pagination-svg-active svg {
-  filter: drop-shadow(0 1px 2px rgba(255, 114, 114, 0.3));
-}
-
-/* 페이지네이션 반응형 */
-@media (max-width: 768px) {
-  .pagination {
-    gap: 2px;
-    padding: 12px 0;
-  }
-  
-  .pagination-btn,
-  .pagination-number {
-    min-width: 28px;
-    height: 28px;
-    font-size: 12px;
-  }
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .page-btn {
-  min-width: 36px;
+  width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid var(--line);
+  border: 0;
   background: #fff;
   color: #374151;
   cursor: pointer;
@@ -508,6 +423,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .page-btn:hover {
@@ -515,15 +431,32 @@ html, body {
 }
 
 .page-btn.active {
-  background: var(--accent);
+  background: #ff6b6b;
   color: #fff;
   font-weight: 700;
-  border-color: var(--accent);
+}
+
+.page-btn.arrow {
+  font-size: 18px;
 }
 
 .page-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .pagination {
+    gap: 8px;
+    margin-top: 16px;
+  }
+  
+  .page-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
 }
 
 .empty-state, .loading {
@@ -732,6 +665,12 @@ html, body {
 	  
 	  var currentTab = 'posts';
 	  var currentPage = 1;
+	  var tabPages = {
+	    posts: 1,
+	    comments: 1,
+	    commented: 1,
+	    likes: 1
+	  }; // 각 탭별 현재 페이지 상태 관리
 	  var pageSize = 10;
 	  
 	  // 선택된 항목들을 추적하는 변수
@@ -1190,89 +1129,80 @@ html, body {
 	  
 	  // 탭 클릭 이벤트
 	  $('.tab-btn').on('click', function() {
-	    var tab = $(this).data('tab');
-	    if (tab === currentTab) return;
-	    
-	    $('.tab-btn').removeClass('active');
-	    $(this).addClass('active');
-	    
-	    currentTab = tab;
-	    currentPage = 1;
-	    selectedItems.clear();
-	    allItems = [];
-	    updateSelectionInfo();
-	    loadActivityData();
-	  });
+	  var tab = $(this).data('tab');
+	  if (tab === currentTab) return;
 	  
-	  // 일괄 삭제 버튼 클릭 이벤트
+	  $('.tab-btn').removeClass('active');
+	  $(this).addClass('active');
+	  
+	  currentTab = tab;
+	  currentPage = tabPages[tab];
+	  selectedItems.clear();
+	  allItems = [];
+	  updateSelectionInfo();
+	  loadActivityData();
+	});
+	  
+	// 일괄 삭제 버튼 클릭 이벤트
 	  $('#bulkDeleteBtn').on('click', performBulkAction);
+	  
+	  // renderPagination 함수를 여기로 이동
+	  function renderPagination(totalPages, page) {
+		  var $pagination = $('#pagination');
+		  $pagination.empty();
+		  
+		  if (totalPages <= 1) return;
+		  
+		  // 이전 버튼
+		  var prevBtn = $('<button class="page-btn arrow">‹</button>');
+		  if (page <= 1) {
+		    prevBtn.prop('disabled', true);
+		  } else {
+		    prevBtn.on('click', function() {
+		      currentPage = page - 1;
+		      tabPages[currentTab] = currentPage;
+		      loadActivityData();
+		    });
+		  }
+		  $pagination.append(prevBtn);
+		  
+		  // 페이지 번호들
+		  var startPage = Math.max(1, page - 2);
+		  var endPage = Math.min(totalPages, startPage + 4);
+		  
+		  for (var i = startPage; i <= endPage; i++) {
+		    var pageBtn = $('<button class="page-btn">' + i + '</button>');
+		    if (i === page) {
+		      pageBtn.addClass('active');
+		    } else {
+		      (function(pageNum) {
+		        pageBtn.on('click', function() {
+		          currentPage = pageNum;
+		          tabPages[currentTab] = currentPage;
+		          loadActivityData();
+		        });
+		      })(i);
+		    }
+		    $pagination.append(pageBtn);
+		  }
+		  
+		  // 다음 버튼
+		  var nextBtn = $('<button class="page-btn arrow">›</button>');
+		  if (page >= totalPages) {
+		    nextBtn.prop('disabled', true);
+		  } else {
+		    nextBtn.on('click', function() {
+		      currentPage = page + 1;
+		      tabPages[currentTab] = currentPage;
+		      loadActivityData();
+		    });
+		  }
+		  $pagination.append(nextBtn);
+		}
 	  
 	  // 초기 로드
 	  loadActivityData();
 	});
-  function renderPagination(totalPages, page) {
-	  var $pagination = $('#pagination');
-	  $pagination.empty();
-	  
-	  if (totalPages <= 1) return;
-	  
-	  // 이전 버튼 SVG
-	  var prevBtn = $('<button class="pagination-btn">' +
-	    '<svg width="20" height="16" viewBox="0 0 31 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-	    '<path d="M19 18L13 12L19 6" stroke="' + (page <= 1 ? '#ccc' : '#666') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-	    '</svg></button>');
-	  
-	  if (page <= 1) {
-	    prevBtn.prop('disabled', true);
-	  } else {
-	    prevBtn.on('click', function() {
-	      currentPage = page - 1;
-	      loadActivityData();
-	    });
-	  }
-	  $pagination.append(prevBtn);
-	  
-	  // 페이지 번호들
-	  var startPage = Math.max(1, page - 2);
-	  var endPage = Math.min(totalPages, startPage + 4);
-	  
-	  for (var i = startPage; i <= endPage; i++) {
-	    if (i === page) {
-	      // 활성 페이지는 원형 SVG로 표시
-	      var activePageBtn = $('<div class="pagination-svg-active">' +
-	        '<svg width="36" height="36" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-	        '<circle cx="26" cy="26" r="16" fill="#FF7272" stroke="#FF7272" stroke-width="2"/>' +
-	        '<text x="26" y="31" text-anchor="middle" fill="white" font-size="13" font-weight="600">' + i + '</text>' +
-	        '</svg></div>');
-	      $pagination.append(activePageBtn);
-	    } else {
-	      var pageBtn = $('<button class="pagination-number">' + i + '</button>');
-	      (function(pageNum) {
-	        pageBtn.on('click', function() {
-	          currentPage = pageNum;
-	          loadActivityData();
-	        });
-	      })(i);
-	      $pagination.append(pageBtn);
-	    }
-	  }
-	  
-	  // 다음 버튼 SVG
-	  var nextBtn = $('<button class="pagination-btn">' +
-	    '<svg width="20" height="16" viewBox="0 0 31 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-	    '<path d="M12 6L18 12L12 18" stroke="' + (page >= totalPages ? '#ccc' : '#666') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-	    '</svg></button>');
-	  
-	  if (page >= totalPages) {
-	    nextBtn.prop('disabled', true);
-	  } else {
-	    nextBtn.on('click', function() {
-	      currentPage = page + 1;
-	      loadActivityData();
-	    });
-	  }
-	  $pagination.append(nextBtn);
-	}
   
   </script>
 </body>
