@@ -1,5 +1,6 @@
 package kr.or.kosa.service.room;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,8 +9,10 @@ import kr.or.kosa.action.Action;
 import kr.or.kosa.action.ActionForward;
 import kr.or.kosa.dao.RoomDao;
 import kr.or.kosa.dto.PageResult;
+import kr.or.kosa.dto.RegionDto;
 import kr.or.kosa.dto.RoomDto;
 import kr.or.kosa.dto.SearchCondition;
+import kr.or.kosa.utils.ConnectionPoolHelper;
 
 public class RoomListService implements Action{
 
@@ -50,3 +53,6 @@ public class RoomListService implements Action{
 	}
 
 }
+
+
+
