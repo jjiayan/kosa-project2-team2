@@ -116,7 +116,7 @@
   .nav-root .userbox-inner{
     display:flex;
     align-items:center;
-    gap:5px;
+    gap:10px;
     border:1px solid var(--ring);
     border-radius:999px;
     padding:6px 10px;
