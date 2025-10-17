@@ -79,6 +79,7 @@ public class RoomAjaxController extends HttpServlet {
         }else if(urlCommand.equals("/roomjoin.roomajax")) {
         	int userId = Integer.parseInt(request.getParameter("userId"));
     		int roomId = Integer.parseInt(request.getParameter("roomId"));
+    		System.out.println("?????");
     		
         	RoomDao roomDao = new RoomDao();
         	
