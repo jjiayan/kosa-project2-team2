@@ -7,7 +7,13 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>[<c:out value="${roomTitle}"/>]내 <c:out value="${userInfo.user_nickname}"/>님의 활동</title>
+  <title>
+  [<c:out value="${roomTitle}"/>]내 
+  <c:choose>
+    <c:when test="${isMyActivity}">나의 활동</c:when>
+    <c:otherwise><c:out value="${userInfo.user_nickname}"/>님의 활동</c:otherwise>
+  </c:choose>
+</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   
   <style>
@@ -220,7 +226,7 @@ html, body {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  table-layout: fixed;
+  table-layout: auto;
 }
 
 .table thead th {
@@ -392,15 +398,101 @@ html, body {
   cursor: not-allowed;
 }
 
+/* 기존 페이지네이션 CSS를 다음으로 교체 */
+
 /* 페이지네이션 */
 .pagination {
   display: flex;
-  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 15px 0;
+  background: white;
+  border-top: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.pagination-btn {
+  background: white;
+  border: 1px solid #e0e0e0;
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 16px;
-  padding: 20px;
-  flex-wrap: wrap;
+  margin: 0 2px;
+  min-width: 32px;
+  height: 32px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f5f5f5;
+  border-color: #FF7272;
+}
+
+.pagination-btn:hover:not(:disabled) svg path {
+  stroke: #FF7272;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: #f9f9f9;
+}
+
+.pagination-number {
+  background: white;
+  border: 1px solid #e0e0e0;
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  min-width: 32px;
+  height: 32px;
+  font-size: clamp(12px, 3vw, 13px);
+  font-weight: 500;
+  margin: 0 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-number:hover {
+  background: #f5f5f5;
+  border-color: #FF7272;
+  color: #FF7272;
+}
+
+.pagination-number.active {
+  background: #FF7272;
+  color: white;
+  border-color: #FF7272;
+}
+
+.pagination-svg-active {
+  margin: 0 2px;
+  cursor: default;
+}
+
+.pagination-svg-active svg {
+  filter: drop-shadow(0 1px 2px rgba(255, 114, 114, 0.3));
+}
+
+/* 페이지네이션 반응형 */
+@media (max-width: 768px) {
+  .pagination {
+    gap: 2px;
+    padding: 12px 0;
+  }
+  
+  .pagination-btn,
+  .pagination-number {
+    min-width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
 }
 
 .page-btn {
@@ -534,7 +626,13 @@ html, body {
   
   <div class="page">
     <div class="heading-wrap">
-      <h1 class="heading">[<c:out value="${roomTitle}"/>] 내 <c:out value="${userInfo.user_nickname}"/>님의 활동</h1>
+      <h1 class="heading">
+    [<c:out value="${roomTitle}"/>] 내 
+    <c:choose>
+      <c:when test="${isMyActivity}">나의 활동</c:when>
+      <c:otherwise><c:out value="${userInfo.user_nickname}"/>님의 활동</c:otherwise>
+    </c:choose>
+  </h1>
     </div>
     
     <div class="container">
@@ -657,7 +755,7 @@ html, body {
 	  
 	  // 탭별 테이블 헤더 설정 (체크박스 포함)
 	  var tableHeaders = {
-	    posts: ['제목', '작성일', '조회수'],
+	    posts: ['✓', '제목', '작성일', '조회수'],
 	    comments: ['✓', '댓글 내용', '작성일'],
 	    commented: ['제목', '작성자', '내 댓글 수', '조회수'],
 	    likes: ['✓', '제목', '작성자', '작성일']
@@ -665,6 +763,7 @@ html, body {
 	  
 	  // 탭별 액션 텍스트
 	  var actionTexts = {
+	    posts: '게시글 삭제',     // 추가
 	    comments: '댓글 삭제',
 	    likes: '좋아요 취소'
 	  };
@@ -736,13 +835,15 @@ html, body {
 	  }
 	  
 	  function getItemId(item) {
-	    if (currentTab === 'comments') {
-	      return item.replyId.toString();
-	    } else if (currentTab === 'likes') {
-	      return item.roomBoardId.toString();
-	    }
-	    return '';
-	  }
+		  if (currentTab === 'posts') {
+		    return item.roomBoardId.toString();
+		  } else if (currentTab === 'comments') {
+		    return item.replyId.toString();
+		  } else if (currentTab === 'likes') {
+		    return item.roomBoardId.toString();
+		  }
+		  return '';
+		}
 	  
 	  // 활동 데이터 로드
 	  function loadActivityData() {
@@ -792,27 +893,30 @@ html, body {
 	  
 	  // 테이블 헤더 업데이트
 	  function updateTableHeader() {
-	    var headers = tableHeaders[currentTab];
-	    var $header = $('#tableHeader');
-	    $header.empty();
-	    
-	    headers.forEach(function(header, index) {
-	      if (header === '✓' && isMyActivity && (currentTab === 'comments' || currentTab === 'likes')) {
-	        // 체크박스 헤더 (전체 선택)
-	        $header.append('<th class="checkbox-column"><input type="checkbox" id="selectAllCheckbox"></th>');
+	  var headers = tableHeaders[currentTab];
+	  var $header = $('#tableHeader');
+	  $header.empty();
+	  
+	  headers.forEach(function(header, index) {
+	    if (header === '✓' && isMyActivity && (currentTab === 'posts' || currentTab === 'comments' || currentTab === 'likes')) {
+	      // 체크박스 헤더 (전체 선택) - posts 탭도 포함
+	      $header.append('<th class="checkbox-column"><input type="checkbox" id="selectAllCheckbox"></th>');
+	    } else if (header === '✓') {
+	        // 다른 사용자 페이지에서는 체크박스 컬럼 자체를 생략
+	        return; // 이 헤더는 건너뛰기
 	      } else {
 	        $header.append('<th>' + header + '</th>');
 	      }
 	    });
-	    
-	    // 전체 선택 체크박스 이벤트 바인딩
-	    $('#selectAllCheckbox').off('change').on('change', handleSelectAllChange);
-	    
-	    // 일괄 삭제 버튼 텍스트 업데이트
-	    if (actionTexts[currentTab]) {
-	      $('#bulkActionText').text(actionTexts[currentTab]);
-	    }
+	  
+	  // 전체 선택 체크박스 이벤트 바인딩
+	  $('#selectAllCheckbox').off('change').on('change', handleSelectAllChange);
+	  
+	  // 일괄 삭제 버튼 텍스트 업데이트
+	  if (actionTexts[currentTab]) {
+	    $('#bulkActionText').text(actionTexts[currentTab]);
 	  }
+	}
 	  
 	  // 활동 데이터 렌더링 (데스크톱/모바일 분기)
 	  function renderActivityData(items) {
@@ -869,244 +973,220 @@ html, body {
 	  
 	  // 모바일 카드 생성
 	  function createMobileCard(item) {
-	    var createdAt = item.createdAt ? new Date(item.createdAt).toLocaleDateString('ko-KR') : '';
-	    var cardHtml = '';
-	    
-	    switch (currentTab) {
-	      case 'posts':
-	        var postUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
-	        cardHtml = '<div class="mobile-card-item">' +
-	          '<div class="mobile-card-content">' +
-	          '<div class="mobile-card-title"><a href="' + postUrl + '">' + escapeHtml(item.title) + '</a></div>' +
-	          '<div class="mobile-card-meta">' +
-	          '<span class="mobile-card-meta-item">📅 ' + createdAt + '</span>' +
-	          '<span class="mobile-card-meta-item">👁 ' + (item.viewCount || 0) + '</span>' +
-	          '</div></div></div>';
-	        break;
-	        
-	      case 'comments':
-	        var commentPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId + '#reply-' + item.replyId;
-	        cardHtml = '<div class="mobile-card-item">' +
-	          '<div class="mobile-card-header">';
-	        
-	        if (isMyActivity) {
-	          cardHtml += '<div class="mobile-card-checkbox"><input type="checkbox" class="item-checkbox" value="' + item.replyId + '"></div>';
-	        }
-	        
-	        cardHtml += '<div class="mobile-card-content">' +
-	          '<div class="mobile-card-title"><a href="' + commentPostUrl + '">' + escapeHtml(item.content) + '</a></div>' +
-	          '<div class="mobile-card-meta">' +
-	          '<span class="mobile-card-meta-item">📅 ' + createdAt + '</span>' +
-	          '</div></div></div></div>';
-	        break;
-	        
-	      case 'commented':
-	        var commentedPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
-	        cardHtml = '<div class="mobile-card-item">' +
-	          '<div class="mobile-card-content">' +
-	          '<div class="mobile-card-title"><a href="' + commentedPostUrl + '">' + escapeHtml(item.title) + '</a></div>' +
-	          '<div class="mobile-card-meta">' +
-	          '<span class="mobile-card-meta-item">✍ ' + escapeHtml(item.authorNickname || '') + '</span>' +
-	          '<span class="mobile-card-meta-item">💬 ' + (item.replyCount || 0) + '개</span>' +
-	          '<span class="mobile-card-meta-item">👁 ' + (item.viewCount || 0) + '</span>' +
-	          '</div></div></div>';
-	        break;
-	        
-	      case 'likes':
-	        var likedPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
-	        cardHtml = '<div class="mobile-card-item">' +
-	          '<div class="mobile-card-header">';
-	        
-	        if (isMyActivity) {
-	          cardHtml += '<div class="mobile-card-checkbox"><input type="checkbox" class="item-checkbox" value="' + item.roomBoardId + '"></div>';
-	        }
-	        
-	        cardHtml += '<div class="mobile-card-content">' +
-	          '<div class="mobile-card-title"><a href="' + likedPostUrl + '">' + escapeHtml(item.title) + '</a></div>' +
-	          '<div class="mobile-card-meta">' +
-	          '<span class="mobile-card-meta-item">✍ ' + escapeHtml(item.authorNickname || '') + '</span>' +
-	          '<span class="mobile-card-meta-item">📅 ' + createdAt + '</span>' +
-	          '</div></div></div></div>';
-	        break;
-	        
-	      default:
-	        cardHtml = '';
-	    }
-	    
-	    return cardHtml;
+	  var createdAt = item.createdAt ? new Date(item.createdAt).toLocaleDateString('ko-KR') : '';
+	  var cardHtml = '';
+	  
+	  switch (currentTab) {
+	    case 'posts':
+	      var postUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
+	      cardHtml = '<div class="mobile-card-item">' +
+	        '<div class="mobile-card-header">';
+	      
+	      if (isMyActivity) {
+	        cardHtml += '<div class="mobile-card-checkbox"><input type="checkbox" class="item-checkbox" value="' + item.roomBoardId + '"></div>';
+	      }
+	      
+	      cardHtml += '<div class="mobile-card-content">' +
+	        '<div class="mobile-card-title"><a href="' + postUrl + '">' + escapeHtml(item.title) + '</a></div>' +
+	        '<div class="mobile-card-meta">' +
+	        '<span class="mobile-card-meta-item">📅 ' + createdAt + '</span>' +
+	        '<span class="mobile-card-meta-item">👁 ' + (item.viewCount || 0) + '</span>' +
+	        '</div></div></div></div>';
+	      break;
+	      
+	    case 'comments':
+	      var commentPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId + '#reply-' + item.replyId;
+	      cardHtml = '<div class="mobile-card-item">' +
+	        '<div class="mobile-card-header">';
+	      
+	      if (isMyActivity) {
+	        cardHtml += '<div class="mobile-card-checkbox"><input type="checkbox" class="item-checkbox" value="' + item.replyId + '"></div>';
+	      }
+	      
+	      cardHtml += '<div class="mobile-card-content">' +
+	        '<div class="mobile-card-title"><a href="' + commentPostUrl + '">' + escapeHtml(item.content) + '</a></div>' +
+	        '<div class="mobile-card-meta">' +
+	        '<span class="mobile-card-meta-item">📅 ' + createdAt + '</span>' +
+	        '</div></div></div></div>';
+	      break;
+	      
+	    case 'commented':
+	      var commentedPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
+	      cardHtml = '<div class="mobile-card-item">' +
+	        '<div class="mobile-card-content">' +
+	        '<div class="mobile-card-title"><a href="' + commentedPostUrl + '">' + escapeHtml(item.title) + '</a></div>' +
+	        '<div class="mobile-card-meta">' +
+	        '<span class="mobile-card-meta-item">✍ ' + escapeHtml(item.authorNickname || '') + '</span>' +
+	        '<span class="mobile-card-meta-item">💬 ' + (item.replyCount || 0) + '개</span>' +
+	        '<span class="mobile-card-meta-item">👁 ' + (item.viewCount || 0) + '</span>' +
+	        '</div></div></div>';
+	      break;
+	      
+	    case 'likes':
+	      var likedPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
+	      cardHtml = '<div class="mobile-card-item">' +
+	        '<div class="mobile-card-header">';
+	      
+	      if (isMyActivity) {
+	        cardHtml += '<div class="mobile-card-checkbox"><input type="checkbox" class="item-checkbox" value="' + item.roomBoardId + '"></div>';
+	      }
+	      
+	      cardHtml += '<div class="mobile-card-content">' +
+	        '<div class="mobile-card-title"><a href="' + likedPostUrl + '">' + escapeHtml(item.title) + '</a></div>' +
+	        '<div class="mobile-card-meta">' +
+	        '<span class="mobile-card-meta-item">✍ ' + escapeHtml(item.authorNickname || '') + '</span>' +
+	        '<span class="mobile-card-meta-item">📅 ' + createdAt + '</span>' +
+	        '</div></div></div></div>';
+	      break;
+	      
+	    default:
+	      cardHtml = '';
 	  }
+	  
+	  return cardHtml;
+	}
 	  
 	  // 기존 테이블 행 생성 함수 (데스크톱용)
 	  function createTableRow(item) {
-	    var createdAt = item.createdAt ? new Date(item.createdAt).toLocaleDateString('ko-KR') : '';
-	    var rowHtml = '';
-	    
-	    switch (currentTab) {
-	      case 'posts':
-	        var postUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
+	  var createdAt = item.createdAt ? new Date(item.createdAt).toLocaleDateString('ko-KR') : '';
+	  var rowHtml = '';
+	  
+	  switch (currentTab) {
+	    case 'posts':
+	      var postUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
+	      if (isMyActivity) {
+	        rowHtml = '<tr>' +
+	          '<td class="checkbox-column"><input type="checkbox" class="item-checkbox" value="' + item.roomBoardId + '"></td>' +
+	          '<td><a class="link" href="' + postUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
+	          '<td class="meta">' + createdAt + '</td>' +
+	          '<td class="meta">' + (item.viewCount || 0) + '</td>' +
+	          '</tr>';
+	      } else {
 	        rowHtml = '<tr>' +
 	          '<td><a class="link" href="' + postUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
 	          '<td class="meta">' + createdAt + '</td>' +
 	          '<td class="meta">' + (item.viewCount || 0) + '</td>' +
 	          '</tr>';
-	        break;
-	        
-	      case 'comments':
-	        var commentPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId + '#reply-' + item.replyId;
-	        if (isMyActivity) {
-	          rowHtml = '<tr>' +
-	            '<td class="checkbox-column"><input type="checkbox" class="item-checkbox" value="' + item.replyId + '"></td>' +
-	            '<td class="comment-content"><a class="link" href="' + commentPostUrl + '" title="' + escapeHtml(item.content) + '">' + escapeHtml(item.content) + '</a></td>' +
-	            '<td class="meta">' + createdAt + '</td>' +
-	            '</tr>';
-	        } else {
-	          rowHtml = '<tr>' +
-	            '<td class="comment-content"><a class="link" href="' + commentPostUrl + '" title="' + escapeHtml(item.content) + '">' + escapeHtml(item.content) + '</a></td>' +
-	            '<td class="meta">' + createdAt + '</td>' +
-	            '</tr>';
-	        }
-	        break;
-	        
-	      case 'commented':
-	        var commentedPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
+	      }
+	      break;
+	      
+	    case 'comments':
+	      var commentPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId + '#reply-' + item.replyId;
+	      if (isMyActivity) {
 	        rowHtml = '<tr>' +
-	          '<td><a class="link" href="' + commentedPostUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
-	          '<td class="meta">' + escapeHtml(item.authorNickname || '') + '</td>' +
-	          '<td class="meta">' + (item.replyCount || 0) + '개</td>' +
-	          '<td class="meta">' + (item.viewCount || 0) + '</td>' +
+	          '<td class="checkbox-column"><input type="checkbox" class="item-checkbox" value="' + item.replyId + '"></td>' +
+	          '<td class="comment-content"><a class="link" href="' + commentPostUrl + '" title="' + escapeHtml(item.content) + '">' + escapeHtml(item.content) + '</a></td>' +
+	          '<td class="meta">' + createdAt + '</td>' +
 	          '</tr>';
-	        break;
-	        
-	      case 'likes':
-	        var likedPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
-	        if (isMyActivity) {
-	          rowHtml = '<tr>' +
-	            '<td class="checkbox-column"><input type="checkbox" class="item-checkbox" value="' + item.roomBoardId + '"></td>' +
-	            '<td><a class="link" href="' + likedPostUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
-	            '<td class="meta">' + escapeHtml(item.authorNickname || '') + '</td>' +
-	            '<td class="meta">' + createdAt + '</td>' +
-	            '</tr>';
-	        } else {
-	          rowHtml = '<tr>' +
-	            '<td><a class="link" href="' + likedPostUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
-	            '<td class="meta">' + escapeHtml(item.authorNickname || '') + '</td>' +
-	            '<td class="meta">' + createdAt + '</td>' +
-	            '</tr>';
-	        }
-	        break;
-	        
-	      default:
-	        rowHtml = '';
-	    }
-	    
-	    return rowHtml;
+	      } else {
+	        rowHtml = '<tr>' +
+	          '<td class="comment-content"><a class="link" href="' + commentPostUrl + '" title="' + escapeHtml(item.content) + '">' + escapeHtml(item.content) + '</a></td>' +
+	          '<td class="meta">' + createdAt + '</td>' +
+	          '</tr>';
+	      }
+	      break;
+	      
+	    case 'commented':
+	      var commentedPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
+	      rowHtml = '<tr>' +
+	        '<td><a class="link" href="' + commentedPostUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
+	        '<td class="meta">' + escapeHtml(item.authorNickname || '') + '</td>' +
+	        '<td class="meta">' + (item.replyCount || 0) + '개</td>' +
+	        '<td class="meta">' + (item.viewCount || 0) + '</td>' +
+	        '</tr>';
+	      break;
+	      
+	    case 'likes':
+	      var likedPostUrl = ctx + '/roomboarddetail.room?roomBoardId=' + item.roomBoardId + '&userId=' + targetUserId;
+	      if (isMyActivity) {
+	        rowHtml = '<tr>' +
+	          '<td class="checkbox-column"><input type="checkbox" class="item-checkbox" value="' + item.roomBoardId + '"></td>' +
+	          '<td><a class="link" href="' + likedPostUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
+	          '<td class="meta">' + escapeHtml(item.authorNickname || '') + '</td>' +
+	          '<td class="meta">' + createdAt + '</td>' +
+	          '</tr>';
+	      } else {
+	        rowHtml = '<tr>' +
+	          '<td><a class="link" href="' + likedPostUrl + '" title="' + escapeHtml(item.title) + '">' + escapeHtml(item.title) + '</a></td>' +
+	          '<td class="meta">' + escapeHtml(item.authorNickname || '') + '</td>' +
+	          '<td class="meta">' + createdAt + '</td>' +
+	          '</tr>';
+	      }
+	      break;
+	      
+	    default:
+	      rowHtml = '';
 	  }
+	  
+	  return rowHtml;
+	}
 	  
 	  // 페이지네이션 렌더링
-	  function renderPagination(totalPages, page) {
-	    var $pagination = $('#pagination');
-	    $pagination.empty();
-	    
-	    if (totalPages <= 1) return;
-	    
-	    // 이전 버튼
-	    var prevBtn = $('<button class="page-btn">‹</button>');
-	    if (page <= 1) {
-	      prevBtn.prop('disabled', true);
-	    } else {
-	      prevBtn.on('click', function() {
-	        currentPage = page - 1;
-	        loadActivityData();
-	      });
-	    }
-	    $pagination.append(prevBtn);
-	    
-	    // 페이지 번호들
-	    var startPage = Math.max(1, page - 2);
-	    var endPage = Math.min(totalPages, startPage + 4);
-	    
-	    for (var i = startPage; i <= endPage; i++) {
-	      var pageBtn = $('<button class="page-btn">' + i + '</button>');
-	      if (i === page) {
-	        pageBtn.addClass('active');
-	      } else {
-	        (function(pageNum) {
-	          pageBtn.on('click', function() {
-	            currentPage = pageNum;
-	            loadActivityData();
-	          });
-	        })(i);
-	      }
-	      $pagination.append(pageBtn);
-	    }
-	    
-	    // 다음 버튼
-	    var nextBtn = $('<button class="page-btn">›</button>');
-	    if (page >= totalPages) {
-	      nextBtn.prop('disabled', true);
-	    } else {
-	      nextBtn.on('click', function() {
-	        currentPage = page + 1;
-	        loadActivityData();
-	      });
-	    }
-	    $pagination.append(nextBtn);
+	  function performBulkAction() {
+	  if (selectedItems.size === 0) {
+	    alert('삭제할 항목을 선택해주세요.');
+	    return;
 	  }
 	  
-	  // 일괄 삭제 실행
-	  function performBulkAction() {
-	    if (selectedItems.size === 0) {
-	      alert('삭제할 항목을 선택해주세요.');
-	      return;
-	    }
-	    
-	    var actionType = currentTab === 'comments' ? 'delete-replies' : 'cancel-likes';
-	    var actionName = actionTexts[currentTab];
-	    var isSelectAll = selectedItems.size === allItems.length;
-	    
-	    var confirmMessage = isSelectAll ? 
-	      '이 방에서의 모든 ' + (currentTab === 'comments' ? '댓글을 삭제' : '좋아요를 취소') + '하시겠습니까?' :
-	      '선택한 ' + selectedItems.size + '개 항목을 ' + (currentTab === 'comments' ? '삭제' : '취소') + '하시겠습니까?';
-	    
-	    if (!confirm(confirmMessage)) {
-	      return;
-	    }
-	    
-	    var requestData = {
-	      actionType: actionType,
-	      targetUserId: targetUserId,
-	      roomId: roomId
-	    };
-	    
-	    if (isSelectAll) {
-	      requestData.selectAll = 'true';
-	    } else {
-	      requestData.selectedIds = Array.from(selectedItems);
-	    }
-	    
-	    $('#bulkDeleteBtn').prop('disabled', true).text('처리 중...');
-	    
-	    $.ajax({
-	      url: ctx + '/useractivity/bulk-action.ajax',
-	      type: 'POST',
-	      data: requestData,
-	      success: function(response) {
-	        if (response.success) {
-	          alert(response.message);
-	          // 데이터 새로고침
-	          loadActivityData();
-	        } else {
-	          alert(response.message || '처리 중 오류가 발생했습니다.');
-	        }
-	      },
-	      error: function() {
-	        alert('서버 오류가 발생했습니다.');
-	      },
-	      complete: function() {
-	        $('#bulkDeleteBtn').prop('disabled', false).find('#bulkActionText').text(actionTexts[currentTab] || '삭제');
-	      }
-	    });
+	  var actionType, confirmMessage;
+	  var isSelectAll = selectedItems.size === allItems.length;
+	  
+	  if (currentTab === 'posts') {
+	    actionType = 'delete-posts';
+	    confirmMessage = isSelectAll ? 
+	      '이 방에서의 모든 게시글을 삭제하시겠습니까?' :
+	      '선택한 ' + selectedItems.size + '개 게시글을 삭제하시겠습니까?';
+	  } else if (currentTab === 'comments') {
+	    actionType = 'delete-replies';
+	    confirmMessage = isSelectAll ? 
+	      '이 방에서의 모든 댓글을 삭제하시겠습니까?' :
+	      '선택한 ' + selectedItems.size + '개 댓글을 삭제하시겠습니까?';
+	  } else if (currentTab === 'likes') {
+	    actionType = 'cancel-likes';
+	    confirmMessage = isSelectAll ? 
+	      '이 방에서의 모든 좋아요를 취소하시겠습니까?' :
+	      '선택한 ' + selectedItems.size + '개 좋아요를 취소하시겠습니까?';
 	  }
+	  
+	  if (!confirm(confirmMessage)) {
+	    return;
+	  }
+	  
+	  var requestData = {
+	    actionType: actionType,
+	    targetUserId: targetUserId,
+	    roomId: roomId
+	  };
+	  
+	  if (isSelectAll) {
+	    requestData.selectAll = 'true';
+	  } else {
+	    requestData.selectedIds = Array.from(selectedItems);
+	  }
+	  
+	  $('#bulkDeleteBtn').prop('disabled', true).text('처리 중...');
+	  
+	  $.ajax({
+	    url: ctx + '/useractivity/bulk-action.ajax',
+	    type: 'POST',
+	    data: requestData,
+	    success: function(response) {
+	      if (response.success) {
+	        alert(response.message);
+	        // 데이터 새로고침
+	        loadActivityData();
+	      } else {
+	        alert(response.message || '처리 중 오류가 발생했습니다.');
+	      }
+	    },
+	    error: function() {
+	      alert('서버 오류가 발생했습니다.');
+	    },
+	    complete: function() {
+	      $('#bulkDeleteBtn').prop('disabled', false).find('#bulkActionText').text(actionTexts[currentTab] || '삭제');
+	    }
+	  });
+	}
 	  
 	  // 탭 클릭 이벤트
 	  $('.tab-btn').on('click', function() {
@@ -1130,6 +1210,70 @@ html, body {
 	  // 초기 로드
 	  loadActivityData();
 	});
+  function renderPagination(totalPages, page) {
+	  var $pagination = $('#pagination');
+	  $pagination.empty();
+	  
+	  if (totalPages <= 1) return;
+	  
+	  // 이전 버튼 SVG
+	  var prevBtn = $('<button class="pagination-btn">' +
+	    '<svg width="20" height="16" viewBox="0 0 31 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+	    '<path d="M19 18L13 12L19 6" stroke="' + (page <= 1 ? '#ccc' : '#666') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+	    '</svg></button>');
+	  
+	  if (page <= 1) {
+	    prevBtn.prop('disabled', true);
+	  } else {
+	    prevBtn.on('click', function() {
+	      currentPage = page - 1;
+	      loadActivityData();
+	    });
+	  }
+	  $pagination.append(prevBtn);
+	  
+	  // 페이지 번호들
+	  var startPage = Math.max(1, page - 2);
+	  var endPage = Math.min(totalPages, startPage + 4);
+	  
+	  for (var i = startPage; i <= endPage; i++) {
+	    if (i === page) {
+	      // 활성 페이지는 원형 SVG로 표시
+	      var activePageBtn = $('<div class="pagination-svg-active">' +
+	        '<svg width="36" height="36" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+	        '<circle cx="26" cy="26" r="16" fill="#FF7272" stroke="#FF7272" stroke-width="2"/>' +
+	        '<text x="26" y="31" text-anchor="middle" fill="white" font-size="13" font-weight="600">' + i + '</text>' +
+	        '</svg></div>');
+	      $pagination.append(activePageBtn);
+	    } else {
+	      var pageBtn = $('<button class="pagination-number">' + i + '</button>');
+	      (function(pageNum) {
+	        pageBtn.on('click', function() {
+	          currentPage = pageNum;
+	          loadActivityData();
+	        });
+	      })(i);
+	      $pagination.append(pageBtn);
+	    }
+	  }
+	  
+	  // 다음 버튼 SVG
+	  var nextBtn = $('<button class="pagination-btn">' +
+	    '<svg width="20" height="16" viewBox="0 0 31 24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+	    '<path d="M12 6L18 12L12 18" stroke="' + (page >= totalPages ? '#ccc' : '#666') + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+	    '</svg></button>');
+	  
+	  if (page >= totalPages) {
+	    nextBtn.prop('disabled', true);
+	  } else {
+	    nextBtn.on('click', function() {
+	      currentPage = page + 1;
+	      loadActivityData();
+	    });
+	  }
+	  $pagination.append(nextBtn);
+	}
+  
   </script>
 </body>
 </html>
