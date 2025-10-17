@@ -55,7 +55,7 @@
       grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
       gap:25px;
       margin-bottom:60px;
-      justify-content:center;
+      justify-content:space-around;
     }
     .study-card{
       background:#fff;
