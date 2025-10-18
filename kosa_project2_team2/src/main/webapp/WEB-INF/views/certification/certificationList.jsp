@@ -337,8 +337,8 @@ document.addEventListener("DOMContentLoaded", function () {
         '<td>' + toCurrency(cert.examFee) + '</td>' +
         '<td>' + escapeHtml(cert.organName || "-") + '</td>';
 
-      // 더블클릭 -> 상세
-      row.addEventListener("dblclick", function () {
+      // 클릭 -> 상세
+      row.addEventListener("click", function () {
         var url = contextPath + "/certificationDetail.cert"
                 + "?jmcd=" + encodeURIComponent(cert.jmcd)
                 + "&year=" + encodeURIComponent(cert.year)

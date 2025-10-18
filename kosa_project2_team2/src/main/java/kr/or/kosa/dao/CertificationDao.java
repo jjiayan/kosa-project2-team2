@@ -516,20 +516,20 @@ public class CertificationDao {
         List<String> fields = new ArrayList<>();
 
         String sql1 =
-        	    "SELECT DISTINCT GRADE " +
-        	    "FROM CERTIFICATION_CATEGORY " +
-        	    "WHERE GRADE IS NOT NULL " +
-        	    "ORDER BY GRADE";
+    	    "SELECT DISTINCT GRADE " +
+    	    "FROM CERTIFICATION_CATEGORY " +
+    	    "WHERE GRADE IS NOT NULL " +
+    	    "ORDER BY GRADE";
 
-        	String sql2 =
-        	    "SELECT DISTINCT FIELD " +
-        	    "FROM CERTIFICATION_CATEGORY " +
-        	    "WHERE FIELD IS NOT NULL " +
-        	    "ORDER BY FIELD";
+    	String sql2 =
+    	    "SELECT DISTINCT FIELD " +
+    	    "FROM CERTIFICATION_CATEGORY " +
+    	    "WHERE FIELD IS NOT NULL " +
+    	    "ORDER BY FIELD";
 
         try (Connection conn = ConnectionPoolHelper.getConnection()) {
 
-            // === 1) GRADE 조회
+            // GRADE 조회
             try (PreparedStatement ps = conn.prepareStatement(sql1);
                  ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -537,7 +537,7 @@ public class CertificationDao {
                 }
             }
 
-            // === 2) FIELD 조회
+            // FIELD 조회
             try (PreparedStatement ps = conn.prepareStatement(sql2);
                  ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
