@@ -1407,7 +1407,7 @@ public class RoomDao {
 	  }
 
 	  /* 목록 */
-	  public List<RoomCardDto> findMyRooms(long userId, String tab, String q, String sort, int size, int page) {
+	public List<RoomCardDto> findMyRooms(long userId, String tab, String q, String sort, int size, int page) {
 	    List<RoomCardDto> list = new ArrayList<>();
 	    String order;
 	    switch (sort==null? "recent" : sort) {
@@ -1458,12 +1458,19 @@ public class RoomDao {
 
 	      try (ResultSet rs = ps.executeQuery()) {
 	        while (rs.next()) {
+	        	
+	        	String roomStatus = "모집중";
+				
+				if(rs.getString("room_status").equals("RECRUITING"))
+					roomStatus = "모집중";
+				else roomStatus = "마감";
+				
 	          list.add(RoomCardDto.builder()
 	              .roomId(rs.getLong("room_id"))
 	              .title(rs.getString("room_title"))
 	              .thumbnailUrl(nvl(rs.getString("room_thumbnail"), ""))
 	              .maxParticipant(rs.getInt("maxParticipant"))
-	              .status(rs.getString("room_status"))
+	              .status(roomStatus)
 	              .updatedAt(rs.getString("updated_fmt"))
 	              .certName(rs.getString("jmName"))
 	              .parentRegion(nvl(rs.getString("parent_region"), ""))
