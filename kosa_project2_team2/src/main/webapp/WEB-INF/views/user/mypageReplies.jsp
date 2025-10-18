@@ -92,7 +92,7 @@ main{ min-height:100vh; background:#fff; border-left:1px solid var(--ring); padd
   <jsp:include page="/include/nav.jsp"/>
   <div class="wrap">
     <jsp:include page="/include/mypageSidebar.jsp">
-      <jsp:param name="current" value="comment"/>
+      <jsp:param name="current" value="comments"/>
     </jsp:include>
 
     <main>

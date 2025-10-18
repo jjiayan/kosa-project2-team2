@@ -216,7 +216,7 @@ main{
   <jsp:include page="/include/nav.jsp"/>
   <div class="wrap">
     <jsp:include page="/include/mypageSidebar.jsp">
-      <jsp:param name="current" value="post"/>
+      <jsp:param name="current" value="posts"/>
     </jsp:include>
 
     <main>
