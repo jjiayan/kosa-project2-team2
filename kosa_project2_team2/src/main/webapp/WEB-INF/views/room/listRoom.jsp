@@ -1,4 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+=<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core"%>
 <%@ taglib prefix="fmt" uri="jakarta.tags.fmt"%>
 <!DOCTYPE html>
@@ -92,7 +92,6 @@
     .page-arrow:hover,.page-num:hover{ background:#f0f0f0 }
     .page-num.active{ background:#ff6b6b; color:#fff; font-weight:600 }
     
-    /* 로딩 스피너 추가 */
     .loading-spinner {
       display: none;
       text-align: center;
@@ -114,8 +113,8 @@
         <h1>스터디 리스트</h1>
       </header>
 
-	<input type="hidden" id="userId" name="userId" value="${sessionScope.LOGIN_USER.user_id}">
-      <!-- 검색 + 필터 -->
+      <input type="hidden" id="userId" name="userId" value="${sessionScope.LOGIN_USER.user_id}">
+      
       <div class="search-section">
         <div class="search-bar">
           <input type="text" placeholder="모임방 제목으로 검색해주세요." id="searchInput"/>
@@ -144,12 +143,10 @@
         </div>
       </div>
 
-      <!-- 로딩 스피너 -->
       <div class="loading-spinner" id="loadingSpinner">
         <p>로딩 중...</p>
       </div>
 
-      <!-- 스터디 카드 -->
       <div class="study-grid">
         <c:forEach var="room" items="${pageResult.data}">
           <div class="study-card">
@@ -190,18 +187,8 @@
         </c:forEach>
       </div>
 
-      <!-- 페이지네이션 -->
-      <div class="pagination" id="pagination">
-        <c:if test="${pageResult.currentPage > 1}">
-          <button class="page-arrow" onclick="goToPage(${pageResult.currentPage - 1})">&lt;</button>
-        </c:if>
-        <c:forEach begin="1" end="${pageResult.totalPages}" var="i">
-          <button class="page-num ${pageResult.currentPage == i ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>
-        </c:forEach>
-        <c:if test="${pageResult.currentPage < pageResult.totalPages}">
-          <button class="page-arrow" onclick="goToPage(${pageResult.currentPage + 1})">&gt;</button>
-        </c:if>
-      </div>
+      <!-- 페이지네이션 (JavaScript로 렌더링) -->
+      <div class="pagination" id="pagination"></div>
 
     </div>
   </main>
@@ -210,7 +197,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
   var CTX = '<c:out value="${pageContext.request.contextPath}" />';
-  var currentPage = ${pageResult.currentPage}; // 현재 페이지 전역 변수로 관리
+  var currentPage = ${pageResult.currentPage};
 
   window.toggleLike = function(btn, roomId){
     btn.classList.toggle('liked');
@@ -230,14 +217,12 @@
     }).catch(e=>console.error('like error', e));
   };
 
-  // ✅ 통합된 데이터 로드 함수
   function loadData(page = 1) {
     let keyword = $('#searchInput').val();
     let region1 = $('#region1').val();
     let region2 = $('#region2').val();
     let userId = $('#userId').val();
     
-    // 로딩 표시
     $('#loadingSpinner').addClass('show');
     $('.study-grid').hide();
     
@@ -254,16 +239,14 @@
       success: function(res) {
         console.log("loadData response:", res);
         updateStudyGrid(res.data || []);
-        updatePagination(res);
+        renderPagination(res); // ✅ 페이지네이션 렌더링
         currentPage = res.currentPage || page;
         
-        // 로딩 숨기기
         $('#loadingSpinner').removeClass('show');
         $('.study-grid').show();
       },
       error: function(xhr, status, error) {
         console.error('데이터 로드 오류:', error);
-        // 로딩 숨기기
         $('#loadingSpinner').removeClass('show');
         $('.study-grid').show();
         alert('데이터를 불러오는 중 오류가 발생했습니다.');
@@ -271,7 +254,6 @@
     });
   }
 
-  // ✅ 검색 함수 (페이지를 1로 리셋)
   window.performSearch = function() {
     loadData(1);
   };
@@ -319,35 +301,42 @@
     });
   };
 
-  // ✅ 페이지네이션 업데이트 함수
-  window.updatePagination = function(res){
-    console.log("pagination res =>> ", res);
-    var totalPages = res.totalPages || 0;
+  // ✅ 페이지네이션 렌더링 함수 (5개씩 그룹으로)
+  function renderPagination(res) {
     var currentPageNum = res.currentPage || 1;
-    var $pagination = $('#pagination').empty();
-
-    // 이전 페이지 버튼
-    if(totalPages > 1 && currentPageNum > 1){
-      $pagination.append('<button class="page-arrow" onclick="goToPage(' + (currentPageNum - 1) + ')">&lt;</button>');
+    var totalPages = res.totalPages || 0;
+    var pageGroupSize = 5;
+    
+    // 그룹 계산 (정수 나눗셈)
+    var groupIndex = Math.floor((currentPageNum - 1) / pageGroupSize);
+    var startPage = groupIndex * pageGroupSize + 1;
+    var endPage = Math.min(startPage + pageGroupSize - 1, totalPages);
+    
+    var html = '';
+    
+    // 이전 페이지 버튼 (현재 페이지가 1보다 크면 표시)
+    if (currentPageNum > 1) {
+      html += '<button class="page-arrow" onclick="goToPage(' + (currentPageNum - 1) + ')">&lt;</button>';
     }
-
-    // 페이지 번호 버튼들
-    for(var i=1; i<=totalPages; i++){
-      $pagination.append('<button class="page-num ' + (i===currentPageNum ? 'active' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>');
+    
+    // 페이지 번호 버튼
+    for (var i = startPage; i <= endPage; i++) {
+      var activeClass = currentPageNum === i ? 'active' : '';
+      html += '<button class="page-num ' + activeClass + '" onclick="goToPage(' + i + ')">' + i + '</button>';
     }
-
-    // 다음 페이지 버튼
-    if(totalPages > 1 && currentPageNum < totalPages){
-      $pagination.append('<button class="page-arrow" onclick="goToPage(' + (currentPageNum + 1) + ')">&gt;</button>');
+    
+    // 다음 페이지 버튼 (현재 페이지가 마지막보다 작으면 표시)
+    if (currentPageNum < totalPages) {
+      html += '<button class="page-arrow" onclick="goToPage(' + (currentPageNum + 1) + ')">&gt;</button>';
     }
-  };
+    
+    $('#pagination').html(html);
+  }
 
-  // ✅ 페이지 이동 함수 (비동기로 변경)
   window.goToPage = function(page) {
     loadData(page);
   };
 
-  // 지역 선택 변경 이벤트
   $(document).on('change', '#region1', function(){
     var parentId=$(this).val();
     var $r2=$('#region2').html('<option value="">구/군 선택</option>');
@@ -364,14 +353,20 @@
     });
   });
 
-  // 필터 변경시 자동 검색
   $(document).on('change', '#region1, #region2', function(){
-    loadData(1); // 필터 변경시 첫 페이지로
+    loadData(1);
   });
 
-  // 엔터키 검색
   $('#searchInput').on('keypress', function(e){
     if(e.key==='Enter') performSearch();
+  });
+
+  // ✅ 페이지 로드시 초기 페이지네이션 렌더링
+  $(document).ready(function(){
+    renderPagination({
+      currentPage: ${pageResult.currentPage},
+      totalPages: ${pageResult.totalPages}
+    });
   });
 </script>
 </body>
